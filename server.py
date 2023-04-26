@@ -3,27 +3,20 @@ import webbrowser
 from flask import Flask, render_template, request, redirect, url_for
 from jinja2 import Environment, FileSystemLoader
 
-from image_loader import ImageLoader
 from review_image_loader import ReviewImageLoader
 from sequences import sequences
 
 # initialize a flask object
 app = Flask(__name__)
 env = Environment(loader=FileSystemLoader('templates/'))
-home = env.get_template('index.html')
 images = env.get_template('external_review.html')
+save_success = env.get_template('save_success.html')
 err404 = env.get_template('404.html')
 
 
 @app.route('/favicon.ico')
 def favicon():
     return app.send_static_file('img/favicon.ico')
-
-
-@app.route('/')
-def index():
-    # return the rendered template
-    return render_template(home)
 
 
 @app.get('/review/<reviewer_name>')
@@ -57,7 +50,13 @@ def save_comments():
         json.dump(comments, file)
 
     reviewer_name = reviewer_name.replace(' ', '%20')
-    return redirect(f'/review/{reviewer_name}')
+    return redirect(f'success?name={reviewer_name}')
+
+
+@app.get('/success')
+def success():
+    name = request.args.get('name')
+    return render_template(save_success, name=name)
 
 
 @app.errorhandler(404)
