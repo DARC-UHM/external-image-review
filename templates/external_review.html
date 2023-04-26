@@ -8,6 +8,7 @@
 </head>
 <body class="text-center my-3 mx-5">
     <h1>Image Review</h1>
+    {% if data.annotations|length > 0 %}
     <span>Please click "Submit Review" at the bottom of the page to save your comments.</span>
     <form action="/save_comments" method="post" autocomplete="off">
     <div class="col d-flex justify-content-center mt-3">
@@ -107,6 +108,9 @@
     <input id="reviewerSubmit" type="submit" value="Submit Review" class="btn btn-success my-4">
     </form>
     <p class="mb-5">After submitting, you may return to this page at any time to update your comments.</p>
+    {% else %}
+    No images found.
+    {% endif %}
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.js"></script>
     <script src="/static/js/autocomplete.js"></script>
