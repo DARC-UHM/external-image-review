@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>DARC Image Review | {{ data.reviewer }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/css/bootstrap.css" />
+    <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body class="text-center my-3 mx-5">
+    <h1>Image Review</h1>
+    <span>Please click "Submit Review" at the bottom of the page to save your comments.</span>
+    <form action="/save_comments" method="post" autocomplete="off">
+    <div class="col d-flex justify-content-center mt-3">
+         <table class="table table-striped">
+            <thead class="thead-dark sticky-top" style="background-color: #393E46; color: #EEEEEE">
+                <tr>
+                    <th scope="col">Info</th>
+                    <th scope="col">Image</th>
+                    <th scope="col">Comments</th>
+                </tr>
+            </thead>
+            <tbody class="text-start">
+                {% for annotation in data.annotations %}
+                <tr>
+                    <td class="ps-5">
+                        <div class="row">
+                            <div class="col">
+                                Concept:
+                            </div>
+                            <div class="col values">
+                                {{ annotation.concept }}<br>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                ID Certainty:<br>
+                            </div>
+                            <div class="col values">
+                                {{ annotation.identity_certainty if annotation.identity_certainty else '-' }}<br>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                ID Reference:<br>
+                            </div>
+                            <div class="col values">
+                                {{ annotation.identity_reference if annotation.identity_reference else '-' }}<br>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                Upon:<br>
+                            </div>
+                            <div class="col values">
+                                {{ annotation.upon if annotation.upon else '-' }}<br>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                Comments:<br>
+                            </div>
+                            <div class="col values">
+                                {{ annotation.comment if annotation.comment else '-' }}<br>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                Guide Photo:<br>
+                            </div>
+                            <div class="col values">
+                                {{ annotation.guide_photo if annotation.guide_photo else '-' }}<br>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                Timestamp:
+                            </div>
+                            <div class="col values">
+                                {{ annotation.recorded_timestamp }}<br>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                Video Sequence:
+                            </div>
+                            <div class="col values">
+                                {{ annotation.video_sequence_name }}<br>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ annotation.image_url }}" target="_blank">
+                            <img src="{{ annotation.image_url }}" style="width: 500px;"/>
+                        </a>
+                    </td>
+                    <td>
+                        <div class="col d-flex justify-content-center">
+                            <textarea class="reviewer" name="{{ annotation.observation_uuid }}" rows="9" placeholder="Enter comments">{{ data.comments[annotation.observation_uuid] }}</textarea>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <input type="hidden" name="reviewer_name" value="{{ data.reviewer }}">
+    <input id="reviewerSubmit" type="submit" value="Submit Review" class="btn btn-success my-4">
+    </form>
+    <p class="mb-5">After submitting, you may return to this page at any time to update your comments.</p>
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.bundle.js"></script>
+    <script src="/static/js/autocomplete.js"></script>
+</body>
+</html>
