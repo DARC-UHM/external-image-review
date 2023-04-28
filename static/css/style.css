@@ -15,82 +15,15 @@ thead, tbody, tfoot, tr, td, th {
     border-bottom-color: #393E46 !important;
 }
 
-.modal-lg {
-    max-width: 600px;
-}
-
-.modal-header {
-    border-bottom: 2px solid #393E46;
-}
-
-.modal-footer {
-    border-top: 2px solid #393E46;
-}
-
-.modal-content {
-    background-color: #222831;
-}
-
-.modal-content input {
+textarea {
     padding: 5px 10px;
     background-color: #393E46;
     color: white;
     border: 0;
-    width: 300px;
-}
-
-.modal-content select {
-    background-color: #393E46;
-    color: white;
-    padding: 5px 10px;
-    width: 300px;
-}
-
-.modal-label {
-    font-weight: 500;
 }
 
 .values {
     font-weight: 600;
-}
-
-.editButton {
-    font-weight: 500;
-    color: #00ADB5;
-    text-decoration: none;
-    background: transparent;
-    border: none;
-    padding: 0;
-}
-
-.autocomplete-items {
-    max-height: 700px;
-    overflow: auto;
-    position: absolute;
-    border: 1px solid #393E46;
-    border-bottom: none;
-    border-top: none;
-    z-index: 99;
-}
-
-.autocomplete-items div {
-    padding: 10px;
-    cursor: pointer;
-    background-color: #222831;
-    border-bottom: 1px solid #393E46;
-}
-
-.autocomplete-items div:hover {
-    background-color: #393E46;
-}
-
-.autocomplete-active {
-    background-color: #234c73 !important;
-    color: #ffffff;
-}
-
-.editButton:hover {
-    color: #00c3cc;
 }
 
 .reviewer {
@@ -98,7 +31,6 @@ thead, tbody, tfoot, tr, td, th {
     padding-left: 10px;
     padding-right: 10px;
 }
-
 
 #sequenceName {
     width: 250px;

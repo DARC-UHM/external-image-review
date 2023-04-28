@@ -4,7 +4,6 @@ from flask import Flask, render_template, request, redirect, url_for
 from jinja2 import Environment, FileSystemLoader
 
 from review_image_loader import ReviewImageLoader
-from sequences import sequences
 
 # initialize a flask object
 app = Flask(__name__)
@@ -21,6 +20,11 @@ def favicon():
 
 @app.get('/review/<reviewer_name>')
 def review(reviewer_name):
+    # get list of sequences
+    with open('sequences.json', 'r') as jsonSeq:
+        sequences = json.load(jsonSeq)
+
+    print(sequences)
     # get images in sequence
     image_loader = ReviewImageLoader(sequences, reviewer_name)
     comments = {}
