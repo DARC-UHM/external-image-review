@@ -1,6 +1,8 @@
+import datetime
 import json
 import webbrowser
 import requests
+import os
 from flask import Flask, render_template, request, redirect
 from jinja2 import Environment, FileSystemLoader
 
@@ -10,6 +12,7 @@ from review_image_loader import ReviewImageLoader
 app = Flask(__name__)
 env = Environment(loader=FileSystemLoader('templates/'))
 images = env.get_template('external_review.html')
+view_all = env.get_template('view_all.html')
 sequence_update = env.get_template('sequence_update.html')
 sequence_view = env.get_template('sequence_view.html')
 save_success = env.get_template('save_success.html')
@@ -21,26 +24,24 @@ def favicon():
     return app.send_static_file('img/favicon.ico')
 
 
-@app.get('/review/<reviewer_name>')
-def review(reviewer_name):
+@app.get('/view_all_comments')
+def view_all_comments():
     # get list of sequences
     with open('sequences.json', 'r') as jsonSeq:
         sequences = json.load(jsonSeq)
-    # get images in sequence
-    image_loader = ReviewImageLoader(sequences, reviewer_name)
     comments = {}
-
-    # get saved comments
-    try:
-        with open(f'comments/{reviewer_name.replace(" ", "_")}.comments', 'r') as file:
-            comments = json.load(file)
-            print('Loaded saved comments')
-    except FileNotFoundError:
-        print('No saved comments')
-
-    data = {'annotations': image_loader.distilled_records, 'reviewer': reviewer_name.title(), 'comments': comments}
-    # return the rendered template
-    return render_template(images, data=data)
+    reviewers = []
+    for filename in os.listdir('comments'):
+        with open(f'comments/{filename}', 'r') as f:
+            data = json.load(f)
+            comments = data['comments'] | comments  # merge dicts
+            reviewers.append(data['reviewer'])
+    records = []
+    if len(reviewers) > 0:
+        image_loader = ReviewImageLoader(sequences, reviewers)
+        records = image_loader.distilled_records
+    data = {'annotations': records, 'comments': comments}
+    return render_template(view_all, data=data)
 
 
 @app.get('/view_sequences')
@@ -73,15 +74,40 @@ def update_sequences_post():
     return redirect('/view_sequences')
 
 
+@app.get('/review/<reviewer_name>')
+def review(reviewer_name):
+    # get list of sequences
+    with open('sequences.json', 'r') as jsonSeq:
+        sequences = json.load(jsonSeq)
+    # get images in sequence
+    image_loader = ReviewImageLoader(sequences, [reviewer_name])
+    comments = {}
+
+    # get saved comments
+    try:
+        with open(f'comments/{reviewer_name.replace(" ", "_")}.json', 'r') as file:
+            comments = json.load(file)['comments']
+            print('Loaded saved comments')
+    except FileNotFoundError:
+        print('No saved comments')
+
+    data = {'annotations': image_loader.distilled_records, 'reviewer': reviewer_name.title(), 'comments': comments}
+    # return the rendered template
+    return render_template(images, data=data)
+
+
 @app.post('/save_comments')
 def save_comments():
     reviewer_name = request.values.get('reviewer_name')
-    comments = {'reviewer_name': reviewer_name}
+    time = datetime.datetime.now().strftime('%H:%M:%S %b %d %Y')
+    comments = {'reviewer': reviewer_name, 'comments': {}}
 
     for value in request.values:
-        comments[value] = request.values.get(value)
+        comments['comments'][value] = {}
+        comments['comments'][value]['text'] = request.values.get(value)
+        comments['comments'][value]['time'] = time
 
-    with open(f'comments/{reviewer_name.replace(" ", "_")}.comments', 'w') as file:
+    with open(f'comments/{reviewer_name.replace(" ", "_")}.json', 'w') as file:
         json.dump(comments, file)
 
     reviewer_name = reviewer_name.replace(' ', '%20')

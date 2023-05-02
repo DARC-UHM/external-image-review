@@ -12,9 +12,9 @@ def get_association(annotation, link_name):
 
 class ReviewImageLoader:
 
-    def __init__(self, sequence_names: list, reviewer_name: str):
+    def __init__(self, sequence_names: list, reviewer_names: list):
         self.distilled_records = []
-        self.reviewer_name = reviewer_name
+        self.reviewer_names = reviewer_names  # one or more reviewers
         for name in sequence_names:
             self.load_images(name)
 
@@ -35,8 +35,11 @@ class ReviewImageLoader:
             if annotation['image_references'] and concept_name[0].isupper():
                 match_name = False
                 for association in annotation['associations']:
-                    if association['link_name'] == 'comment' and self.reviewer_name in association['link_value']:
-                        match_name = True
+                    if association['link_name'] == 'comment':
+                        for name in self.reviewer_names:
+                            if name in association['link_value']:
+                                match_name = True
+                                break
                 if match_name:
                     image_records.append(annotation)
                     if concept_name not in concept_phylogeny.keys():
