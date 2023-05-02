@@ -125,11 +125,6 @@ def page_not_found(e):
     return render_template(err404), 404
 
 
-def open_browser():
-    webbrowser.open_new('http://127.0.0.1:5000')
-
-
 # check to see if this is the main thread of execution
 if __name__ == '__main__':
-    # Timer(1, open_browser).start()
     app.run(host='0.0.0.0', port=8070)
