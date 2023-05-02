@@ -1,6 +1,8 @@
 import requests
 import pandas as pd
 
+from util.translate_substrate import translate_substrate_code
+
 
 def get_association(annotation, link_name):
     """ Obtains an association value from the annotation data structure """
@@ -129,7 +131,7 @@ class ReviewImageLoader:
 
             temp = get_association(record, 'upon')
             if temp:
-                upon = temp['to_concept']
+                upon = translate_substrate_code(temp['to_concept'])
 
             temp = get_association(record, 'comment')
             if temp:

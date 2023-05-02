@@ -6,7 +6,7 @@ import os
 from flask import Flask, render_template, request, redirect
 from jinja2 import Environment, FileSystemLoader
 
-from review_image_loader import ReviewImageLoader
+from util.review_image_loader import ReviewImageLoader
 
 # initialize a flask object
 app = Flask(__name__)
