@@ -11,6 +11,7 @@ app = Flask(__name__)
 env = Environment(loader=FileSystemLoader('templates/'))
 images = env.get_template('external_review.html')
 sequence_update = env.get_template('sequence_update.html')
+sequence_view = env.get_template('sequence_view.html')
 save_success = env.get_template('save_success.html')
 err404 = env.get_template('404.html')
 
@@ -44,7 +45,10 @@ def review(reviewer_name):
 
 @app.get('/view_sequences')
 def view_sequences():
-    pass
+    # get list of sequences
+    with open('sequences.json', 'r') as jsonSeq:
+        sequences = json.load(jsonSeq)
+    return render_template(sequence_view, sequences=sequences)
 
 
 @app.get('/update_sequences')
@@ -66,7 +70,7 @@ def update_sequences_post():
         updated_sequences.append(val)
     with open('sequences.json', 'w') as file:
         json.dump(updated_sequences, file)
-    return {"hehe": "hoho"}
+    return redirect('/view_sequences')
 
 
 @app.post('/save_comments')
