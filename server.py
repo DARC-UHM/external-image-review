@@ -14,10 +14,6 @@ sequence_update = env.get_template('sequence_update.html')
 save_success = env.get_template('save_success.html')
 err404 = env.get_template('404.html')
 
-# get list of sequences
-with open('sequences.json', 'r') as jsonSeq:
-    sequences = json.load(jsonSeq)
-
 
 @app.route('/favicon.ico')
 def favicon():
@@ -26,6 +22,9 @@ def favicon():
 
 @app.get('/review/<reviewer_name>')
 def review(reviewer_name):
+    # get list of sequences
+    with open('sequences.json', 'r') as jsonSeq:
+        sequences = json.load(jsonSeq)
     # get images in sequence
     image_loader = ReviewImageLoader(sequences, reviewer_name)
     comments = {}
@@ -43,18 +42,31 @@ def review(reviewer_name):
     return render_template(images, data=data)
 
 
-@app.post('/update_sequences')
-def update_sequences_post():
+@app.get('/view_sequences')
+def view_sequences():
     pass
 
 
 @app.get('/update_sequences')
 def update_sequences_get():
+    # get list of sequences
+    with open('sequences.json', 'r') as jsonSeq:
+        sequences = json.load(jsonSeq)
     # get list of sequences from vars
     with requests.get('http://hurlstor.soest.hawaii.edu:8084/vam/v1/videosequences/names') as r:
         video_sequences = r.json()
 
     return render_template(sequence_update, all_sequences=video_sequences, sequences=sequences)
+
+
+@app.post('/update_sequences')
+def update_sequences_post():
+    updated_sequences = []
+    for key, val in request.values.items():
+        updated_sequences.append(val)
+    with open('sequences.json', 'w') as file:
+        json.dump(updated_sequences, file)
+    return {"hehe": "hoho"}
 
 
 @app.post('/save_comments')
