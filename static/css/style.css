@@ -22,6 +22,54 @@ textarea {
     border: 0;
 }
 
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: #1d222a;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #393E46;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #686869;
+    border-radius: 10px;
+}
+
+.autocomplete {
+  position: relative;
+  display: inline-block;
+}
+
+.autocomplete-items {
+    max-height: 600px;
+    overflow: auto;
+    position: absolute;
+    border: 1px solid #393E46;
+    border-top: none;
+    z-index: 99;
+}
+
+.autocomplete-items div {
+    padding: 10px;
+    cursor: pointer;
+    background-color: #222831;
+    border-bottom: 1px solid #393E46;
+}
+
+.autocomplete-items div:hover {
+    background-color: #393E46;
+}
+
+.autocomplete-active {
+    background-color: #234c73 !important;
+    color: #ffffff;
+}
+
 .values {
     font-weight: 600;
 }
@@ -32,8 +80,43 @@ textarea {
     padding-right: 10px;
 }
 
-#sequenceName {
+.plusButton {
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: 0;
+    color: #4c525d;
+    transition: 0.2s;
+}
+
+.plusButton:hover {
+    color: #dddddd;
+}
+
+.xButton {
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: 0;
+    color: #41464f;
+}
+
+.xButton:hover {
+    color: #585e67;
+    transition: 0.2s;
+}
+
+.sequenceName {
     width: 250px;
+}
+
+#updateSequence input {
+    border-radius: 3px;
+}
+
+#updateSequence .autocomplete-items {
+    width: 250px;
+    max-height: 300px;
 }
 
 #goButton {
