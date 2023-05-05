@@ -80,7 +80,7 @@
                     </td>
                     <td>
                         <div class="col d-flex justify-content-center">
-                            <textarea class="reviewer" name="{{ annotation.observation_uuid }}" rows="9" placeholder="Enter comments">{{ data.comments[annotation.observation_uuid].text }}</textarea>
+                            <textarea class="reviewer" name="{{ annotation.observation_uuid }}" rows="9" placeholder="Enter comments">{{ data.comments[annotation.observation_uuid].text if annotation.observation_uuid in data.comments.keys() else '' }}</textarea>
                         </div>
                     </td>
                 </tr>
@@ -89,7 +89,7 @@
         </table>
     </div>
     <input type="hidden" name="reviewer_name" value="{{ data.reviewer }}">
-    <input id="reviewerSubmit" type="submit" value="Submit Review" class="btn btn-success my-4">
+    <input id="reviewerSubmit" type="submit" onclick="turnOffWarning()" value="Submit Review" class="btn btn-success my-4">
     </form>
     <p class="mb-5">After submitting, you may return to this page at any time to update your comments.</p>
     {% else %}
@@ -98,5 +98,22 @@
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.js"></script>
     <script src="/static/js/autocomplete.js"></script>
+    <script>
+        let warningOn = false;
+
+        function turnOnWarning() {
+            if (!warningOn) {
+                window.onbeforeunload = () => true;
+                warningOn = true;
+            }
+        }
+        function turnOffWarning() {
+            if (warningOn) {
+                window.onbeforeunload = null;
+                warningOn = false;
+            }
+        }
+        $('textarea').on('input', () => turnOnWarning());
+    </script>
 </body>
 </html>
