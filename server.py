@@ -1,10 +1,8 @@
 import datetime
-import json
-import webbrowser
 import requests
-import os
 from flask import Flask, render_template, request, redirect
 from jinja2 import Environment, FileSystemLoader
+from pymongo import MongoClient
 
 from util.review_image_loader import ReviewImageLoader
 
@@ -42,36 +40,6 @@ def view_all_comments():
         records = image_loader.distilled_records
     data = {'annotations': records, 'comments': comments}
     return render_template(view_all, data=data)
-
-
-@app.get('/view_sequences')
-def view_sequences():
-    # get list of sequences
-    with open('sequences.json', 'r') as jsonSeq:
-        sequences = json.load(jsonSeq)
-    return render_template(sequence_view, sequences=sequences)
-
-
-@app.get('/update_sequences')
-def update_sequences_get():
-    # get list of sequences
-    with open('sequences.json', 'r') as jsonSeq:
-        sequences = json.load(jsonSeq)
-    # get list of sequences from vars
-    with requests.get('http://hurlstor.soest.hawaii.edu:8084/vam/v1/videosequences/names') as r:
-        video_sequences = r.json()
-
-    return render_template(sequence_update, all_sequences=video_sequences, sequences=sequences)
-
-
-@app.post('/update_sequences')
-def update_sequences_post():
-    updated_sequences = []
-    for key, val in request.values.items():
-        updated_sequences.append(val)
-    with open('sequences.json', 'w') as file:
-        json.dump(updated_sequences, file)
-    return redirect('/view_sequences')
 
 
 @app.get('/review/<reviewer_name>')

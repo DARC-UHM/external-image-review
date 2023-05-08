@@ -1,5 +1,4 @@
 flask
 jinja2
-pandas
-requests
+pymongo
 gunicorn
