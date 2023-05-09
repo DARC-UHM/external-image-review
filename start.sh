@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-gunicorn server:app -b :8070
+gunicorn run:app -b :8070
 

@@ -1,20 +1,9 @@
 import datetime
-import requests
-from flask import Flask, render_template, request, redirect
-from jinja2 import Environment, FileSystemLoader
-from pymongo import MongoClient
+import os
 
-from util.review_image_loader import ReviewImageLoader
+from flask import render_template, request, redirect
 
-# initialize a flask object
-app = Flask(__name__)
-env = Environment(loader=FileSystemLoader('templates/'))
-images = env.get_template('external_review.html')
-view_all = env.get_template('view_all.html')
-sequence_update = env.get_template('sequence_update.html')
-sequence_view = env.get_template('sequence_view.html')
-save_success = env.get_template('save_success.html')
-err404 = env.get_template('404.html')
+from application import app
 
 
 @app.route('/favicon.ico')
@@ -39,7 +28,7 @@ def view_all_comments():
         image_loader = ReviewImageLoader(sequences, reviewers)
         records = image_loader.distilled_records
     data = {'annotations': records, 'comments': comments}
-    return render_template(view_all, data=data)
+    return render_template('view_all.html', data=data)
 
 
 @app.get('/review/<reviewer_name>')
@@ -61,7 +50,7 @@ def review(reviewer_name):
 
     data = {'annotations': image_loader.distilled_records, 'reviewer': reviewer_name.title(), 'comments': comments}
     # return the rendered template
-    return render_template(images, data=data)
+    return render_template('external_review.html', data=data)
 
 
 @app.post('/save_comments')
@@ -85,12 +74,12 @@ def save_comments():
 @app.get('/success')
 def success():
     name = request.args.get('name')
-    return render_template(save_success, name=name)
+    return render_template('save_success.html', name=name)
 
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template(err404), 404
+    return render_template('404.html'), 404
 
 
 # check to see if this is the main thread of execution
