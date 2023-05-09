@@ -1,5 +1,6 @@
 import datetime
 from flask import render_template, request, redirect
+from mongoengine import NotUniqueError
 
 from application import app
 from comment import Comment
@@ -10,16 +11,53 @@ def favicon():
     return app.send_static_file('img/favicon.ico')
 
 
+@app.get('/add_record')
+def add_record():
+    uuid = request.args.get('uuid')
+    reviewer = request.args.get('reviewer')
+    try:
+        Comment(uuid=uuid, reviewer=reviewer).save()
+    except NotUniqueError:
+        print('Not added - already a record with this uuid')
+        return '500'
+    return render_template('view_all.html', data='test')
+
+# in internal image review, load the comment database in the beginning and then add comment section if uuid matches a key
+
+
+@app.put('/update_record')
+def update_record():
+    pass
+
+
+@app.delete('/delete_record')
+def delete_record():
+    pass
+
+
 @app.get('/view_all_comments')
 def view_all_comments():
-    return render_template('view_all.html', data='hehe')
+    comments = []
+    db_records = Comment.objects()
+    for record in db_records:
+        comments.append({
+            'reviewer': record.reviewer,
+            'comment': record.comment
+        })
+    return render_template('view_all.html', data=comments)
 
 
 @app.get('/review/<reviewer_name>')
 def review(reviewer_name):
-    # get list of sequences
+    comments = []
+    matched_records = Comment.objects(reviewer=reviewer_name)
+    for record in matched_records:
+        comments.append({
+            'reviewer': record.reviewer,
+            'comment': record.comment
+        })
 
-    data = {'annotations': image_loader.distilled_records, 'reviewer': reviewer_name.title(), 'comments': comments}
+    data = {'annotations': comments, 'reviewer': reviewer_name.title(), 'comments': comments}
     # return the rendered template
     return render_template('external_review.html', data=data)
 
