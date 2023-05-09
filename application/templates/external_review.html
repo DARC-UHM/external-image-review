@@ -1,30 +1,31 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>DARC Image Review | Review</title>
+    <title>DARC Image Review | {{ data.reviewer }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="/static/css/bootstrap.css" />
     <link rel="stylesheet" href="/static/css/style.css" />
 </head>
 <body class="text-center my-3 mx-5">
     <h1>Image Review</h1>
-    {% if comments|length > 0 %}
+    {% if data.comments|length > 0 %}
     <span>Please click "Submit Review" at the bottom of the page to save your comments.</span>
     <form action="/save_comments" method="post" autocomplete="off">
-    <div class="col d-flex justify-content-center mt-3">
-         <table id="commentTable" class="table table-striped">
-            <thead class="thead-dark sticky-top" style="background-color: #393E46; color: #EEEEEE">
-                <tr>
-                    <th scope="col">Info</th>
-                    <th scope="col">Image</th>
-                    <th scope="col">Comments</th>
-                </tr>
-            </thead>
-            <tbody class="text-start">
-            </tbody>
-        </table>
-    </div>
-    <input id="reviewerSubmit" type="submit" onclick="turnOffWarning()" value="Submit Review" class="btn btn-success my-4">
+        <div class="col d-flex justify-content-center mt-3">
+             <table id="commentTable" class="table table-striped">
+                <thead class="thead-dark sticky-top" style="background-color: #393E46; color: #EEEEEE">
+                    <tr>
+                        <th scope="col">Info</th>
+                        <th scope="col">Image</th>
+                        <th scope="col">Comments</th>
+                    </tr>
+                </thead>
+                <tbody class="text-start">
+                </tbody>
+            </table>
+        </div>
+      <input type="hidden" name="reviewer" value="{{ data.reviewer }}">
+      <input id="reviewerSubmit" type="submit" onclick="turnOffWarning()" value="Submit Review" class="btn btn-success my-4">
     </form>
     <p class="mb-5">After submitting, you may return to this page at any time to update your comments.</p>
     {% else %}
@@ -34,7 +35,7 @@
     <script src="/static/js/bootstrap.bundle.js"></script>
     <script>
         const None = null;
-        const comments = {{ comments | safe }};
+        const comments = {{ data.comments | safe }};
         let warningOn = false;
 
         function turnOnWarning() {
@@ -94,7 +95,7 @@
                     </td>
                     <td>
                         <div class="col d-flex justify-content-center">
-                            <textarea class="reviewer" name="${comment.uuid}" rows="9" placeholder="Enter comments"></textarea>
+                            <textarea class="reviewer" name="${comment.uuid}" rows="9" placeholder="Enter comments">${comment.comment ? comment.comment : ''}</textarea>
                         </div>
                     </td>
                 </tr>

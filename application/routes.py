@@ -1,8 +1,7 @@
-import json
 from datetime import datetime
 
 import requests
-from flask import render_template, request, redirect, Response
+from flask import render_template, request, redirect
 from mongoengine import NotUniqueError, DoesNotExist
 
 from application import app
@@ -103,38 +102,36 @@ def review(reviewer_name):
             server_record = r.json()
         if 'concept' not in record.keys() or record['concept'] != server_record['concept']:
             record['concept'] = server_record['concept']
-    return render_template('external_review.html', comments=comments)
+    data = {'comments': comments, 'reviewer': reviewer_name}
+    return render_template('external_review.html', data=data), 200
 
 
 @app.post('/save_comments')
 def save_comments():
-    reviewer_name = request.values.get('reviewer_name')
-    time = datetime.now().strftime('%H:%M:%S %b %d %Y')
-    comments = {'reviewer': reviewer_name, 'comments': {}}
-
+    reviewer_name = request.values.get('reviewer')
+    count_success = 0
+    list_failures = []
     for value in request.values:
-        comments['comments'][value] = {}
-        comments['comments'][value]['text'] = request.values.get(value)
-        comments['comments'][value]['time'] = time
-
-    with open(f'comments/{reviewer_name.replace(" ", "_")}.json', 'w') as file:
-        json.dump(comments, file)
-
-    reviewer_name = reviewer_name.replace(' ', '%20')
-    return redirect(f'success?name={reviewer_name}')
+        data = {'comment': request.values.get(value)}
+        with requests.put(f'{request.url_root}/update_comment/{value}', data=data) as r:
+            if r.status_code == 200:
+                count_success += 1
+            else:
+                list_failures.append(value)
+    if count_success > 0:
+        return redirect(f'success?name={reviewer_name}&count={count_success}')
+    else:
+        return {500: f'Internal server error - could not update {list_failures}'}, 500
 
 
 @app.get('/success')
 def success():
     name = request.args.get('name')
-    return render_template('save_success.html', name=name)
+    count = request.args.get('count')
+    data = {'name': name, 'count': count}
+    return render_template('save_success.html', data=data), 200
 
 
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
-
-
-# check to see if this is the main thread of execution
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8070)

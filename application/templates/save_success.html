@@ -8,10 +8,10 @@
 </head>
 <body id="index" class="text-center my-3 mx-5">
     <img src="/static/img/logo_darc.png" class="mt-4" width="30%" style="max-width: 300px; min-width: 200px"/>
-    <h2 class="mt-5" style="font-weight: 600;">Successfully saved comments.</h2>
+    <h2 class="mt-5" style="font-weight: 600;">Successfully saved {{ data.count }} records.</h2>
     <h5 class="mt-5">Thank you for your review!</h5>
     <p class="mt-3 mb-5">You may return to the previous page at any time if you wish to update your comments.</p>
-    <a href="/review/{{ name }}" style="color: #EEEEEE;">
+    <a href="/review/{{ data.name }}" style="color: #EEEEEE;">
         <p>Return to previous page</p>
     </a>
     <script src="/static/js/bootstrap.bundle.js"></script>
