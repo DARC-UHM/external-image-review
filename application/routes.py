@@ -1,6 +1,7 @@
-import datetime
-from flask import render_template, request, redirect
-from mongoengine import NotUniqueError
+import json
+from datetime import datetime
+from flask import render_template, request, redirect, Response
+from mongoengine import NotUniqueError, DoesNotExist
 
 from application import app
 from comment import Comment
@@ -11,40 +12,63 @@ def favicon():
     return app.send_static_file('img/favicon.ico')
 
 
-@app.get('/add_record')
-def add_record():
+@app.get('/add_comment')
+def add_comment():
     uuid = request.args.get('uuid')
     reviewer = request.args.get('reviewer')
+    sequence = request.args.get('sequence')
     try:
-        Comment(uuid=uuid, reviewer=reviewer).save()
+        Comment(uuid=uuid, reviewer=reviewer, sequence=sequence).save()
     except NotUniqueError:
-        print('Not added - already a record with this uuid')
-        return '500'
-    return render_template('view_all.html', data='test')
-
-# in internal image review, load the comment database in the beginning and then add comment section if uuid matches a key
+        return {409: 'Already a comment record for given uuid'}, 409
+    return {'uuid': uuid, 'reviewer': reviewer, 'sequence': sequence}, 201
 
 
-@app.put('/update_record')
-def update_record():
-    pass
+@app.put('/update_comment/<uuid>')
+def update_comment(uuid):
+    try:
+        db_record = Comment.objects.get(uuid=uuid)
+    except DoesNotExist:
+        return {404: 'No comment records matching given uuid'}, 404
+    db_record.update(set__comment=request.values.get('comment'), set__date_modified=datetime.now)
+    return Comment.objects.get(uuid=uuid).json(), 200
 
 
-@app.delete('/delete_record')
-def delete_record():
-    pass
+@app.delete('/delete_comment/<uuid>')
+def delete_record(uuid):
+    try:
+        db_record = Comment.objects.get(uuid=uuid)
+    except DoesNotExist:
+        return {404: 'No comment records matching given uuid'}, 404
+    db_record.delete()
+    return {}, 200
 
 
-@app.get('/view_all_comments')
-def view_all_comments():
+@app.get('/get_all_comments')
+def get_all_comments():
     comments = []
     db_records = Comment.objects()
     for record in db_records:
-        comments.append({
-            'reviewer': record.reviewer,
-            'comment': record.comment
-        })
-    return render_template('view_all.html', data=comments)
+        comments.append(record.json())
+    return comments, 200
+
+
+@app.get('/get_sequence_comments/<sequence_num>')
+def get_sequence_comments(sequence_num):
+    comments = []
+    db_records = Comment.objects(sequence=sequence_num)
+    for record in db_records:
+        comments.append(record.json())
+    return comments, 200
+
+
+@app.get('/get_reviewer_comments/<reviewer_name>')
+def get_reviewer_comments(reviewer_name):
+    comments = []
+    db_records = Comment.objects(reviewer=reviewer_name)
+    for record in db_records:
+        comments.append(record.json())
+    return comments, 200
 
 
 @app.get('/review/<reviewer_name>')
@@ -65,7 +89,7 @@ def review(reviewer_name):
 @app.post('/save_comments')
 def save_comments():
     reviewer_name = request.values.get('reviewer_name')
-    time = datetime.datetime.now().strftime('%H:%M:%S %b %d %Y')
+    time = datetime.now().strftime('%H:%M:%S %b %d %Y')
     comments = {'reviewer': reviewer_name, 'comments': {}}
 
     for value in request.values:
