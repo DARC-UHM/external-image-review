@@ -1,18 +1,18 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>DARC Image Review | {{ data.reviewer }}</title>
+    <title>DARC Image Review | Review</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="/static/css/bootstrap.css" />
     <link rel="stylesheet" href="/static/css/style.css" />
 </head>
 <body class="text-center my-3 mx-5">
     <h1>Image Review</h1>
-    {% if data.annotations|length > 0 %}
+    {% if comments|length > 0 %}
     <span>Please click "Submit Review" at the bottom of the page to save your comments.</span>
     <form action="/save_comments" method="post" autocomplete="off">
     <div class="col d-flex justify-content-center mt-3">
-         <table class="table table-striped">
+         <table id="commentTable" class="table table-striped">
             <thead class="thead-dark sticky-top" style="background-color: #393E46; color: #EEEEEE">
                 <tr>
                     <th scope="col">Info</th>
@@ -21,74 +21,9 @@
                 </tr>
             </thead>
             <tbody class="text-start">
-                {% for annotation in data.annotations %}
-                <tr>
-                    <td class="ps-5">
-                        <div class="row">
-                            <div class="col">
-                                Concept:
-                            </div>
-                            <div class="col values">
-                                {{ annotation.concept }}<br>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                ID Certainty:<br>
-                            </div>
-                            <div class="col values">
-                                {{ annotation.identity_certainty if annotation.identity_certainty else '-' }}<br>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                ID Reference:<br>
-                            </div>
-                            <div class="col values">
-                                {{ annotation.identity_reference if annotation.identity_reference else '-' }}<br>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                Upon:<br>
-                            </div>
-                            <div class="col values">
-                                {{ annotation.upon if annotation.upon else '-' }}<br>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                Comments:<br>
-                            </div>
-                            <div class="col values">
-                                {{ annotation.comment if annotation.comment else '-' }}<br>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                Timestamp:
-                            </div>
-                            <div class="col values">
-                                {{ annotation.recorded_timestamp }}<br>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="text-center">
-                        <a href="{{ annotation.image_url }}" target="_blank">
-                            <img src="{{ annotation.image_url }}" style="width: 500px;"/>
-                        </a>
-                    </td>
-                    <td>
-                        <div class="col d-flex justify-content-center">
-                            <textarea class="reviewer" name="{{ annotation.observation_uuid }}" rows="9" placeholder="Enter comments">{{ data.comments[annotation.observation_uuid].text if annotation.observation_uuid in data.comments.keys() else '' }}</textarea>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
             </tbody>
         </table>
     </div>
-    <input type="hidden" name="reviewer_name" value="{{ data.reviewer }}">
     <input id="reviewerSubmit" type="submit" onclick="turnOffWarning()" value="Submit Review" class="btn btn-success my-4">
     </form>
     <p class="mb-5">After submitting, you may return to this page at any time to update your comments.</p>
@@ -97,8 +32,9 @@
     {% endif %}
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.bundle.js"></script>
-    <script src="/static/js/autocomplete.js"></script>
     <script>
+        const None = null;
+        const comments = {{ comments | safe }};
         let warningOn = false;
 
         function turnOnWarning() {
@@ -114,6 +50,63 @@
             }
         }
         $('textarea').on('input', () => turnOnWarning());
+
+        comments.forEach((comment, index) => {
+            let serverRecord = {};
+            fetch(`http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/${comment.uuid}`, {
+                method: "GET",
+            })  .then((response) => response.json())
+                .then((json) => { serverRecord = json })
+                .catch((err) => console.log(err));
+            console.log(serverRecord);
+            $('#commentTable').find('tbody').append(`
+                <tr>
+                    <td class="ps-5">
+                        <div></div>
+                        <div class="row">
+                            <div class="col">
+                                Concept:
+                            </div>
+                            <div class="col values"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                ID Certainty:<br>
+                            </div>
+                            <div class="col values"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                ID Reference:<br>
+                            </div>
+                            <div class="col values"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                Upon:<br>
+                            </div>
+                            <div class="col values"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                Timestamp:
+                            </div>
+                            <div class="col values"></div>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <a href="" target="_blank">
+                            <img src="" />
+                        </a>
+                    </td>
+                    <td>
+                        <div class="col d-flex justify-content-center">
+                            <textarea class="reviewer" name="${comment.uuid}" rows="9" placeholder="Enter comments"></textarea>
+                        </div>
+                    </td>
+                </tr>
+            `)
+        });
     </script>
 </body>
 </html>
