@@ -1,5 +1,7 @@
 import json
 from datetime import datetime
+
+import requests
 from flask import render_template, request, redirect, Response
 from mongoengine import NotUniqueError, DoesNotExist
 
@@ -16,11 +18,27 @@ def favicon():
 def add_comment():
     uuid = request.values.get('uuid')
     reviewer = request.values.get('reviewer')
+    concept = request.values.get('concept')
+    image_reference = request.values.get('image_reference')
+    id_certainty = request.values.get('id_certainty')
+    id_reference = request.values.get('id_reference')
+    upon = request.values.get('upon')
     sequence = request.values.get('sequence')
-    if not uuid or not reviewer or not sequence:
+    timestamp = request.values.get('timestamp')
+    if not uuid or not reviewer or not sequence or not concept or not image_reference:
         return {400: 'Missing required values'}, 400
     try:
-        comment = Comment(uuid=uuid, reviewer=reviewer, sequence=sequence).save()
+        comment = Comment(
+            uuid=uuid,
+            reviewer=reviewer,
+            image_reference=image_reference,
+            concept=concept,
+            id_certainty=id_certainty,
+            id_reference=id_reference,
+            upon=upon,
+            sequence=sequence,
+            timestamp=timestamp
+        ).save()
     except NotUniqueError:
         return {409: 'Already a comment record for given uuid'}, 409
     return comment.json(), 201
@@ -78,8 +96,13 @@ def review(reviewer_name):
     comments = []
     matched_records = Comment.objects(reviewer=reviewer_name)
     for record in matched_records:
-        comments.append(record.json())
-    # return the rendered template
+        record = record.json()
+        comments.append(record)
+        # check if concept on the server is different than what we have saved
+        with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{record["uuid"]}') as r:
+            server_record = r.json()
+        if 'concept' not in record.keys() or record['concept'] != server_record['concept']:
+            record['concept'] = server_record['concept']
     return render_template('external_review.html', comments=comments)
 
 

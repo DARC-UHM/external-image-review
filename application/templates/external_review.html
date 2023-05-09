@@ -52,13 +52,6 @@
         $('textarea').on('input', () => turnOnWarning());
 
         comments.forEach((comment, index) => {
-            let serverRecord = {};
-            fetch(`http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/${comment.uuid}`, {
-                method: "GET",
-            })  .then((response) => response.json())
-                .then((json) => { serverRecord = json })
-                .catch((err) => console.log(err));
-            console.log(serverRecord);
             $('#commentTable').find('tbody').append(`
                 <tr>
                     <td class="ps-5">
@@ -67,36 +60,36 @@
                             <div class="col">
                                 Concept:
                             </div>
-                            <div class="col values"></div>
+                            <div class="col values">${comment.concept}</div>
                         </div>
                         <div class="row">
                             <div class="col">
                                 ID Certainty:<br>
                             </div>
-                            <div class="col values"></div>
+                            <div class="col values">${comment.id_certainty}</div>
                         </div>
                         <div class="row">
                             <div class="col">
                                 ID Reference:<br>
                             </div>
-                            <div class="col values"></div>
+                            <div class="col values">${comment.id_reference}</div>
                         </div>
                         <div class="row">
                             <div class="col">
                                 Upon:<br>
                             </div>
-                            <div class="col values"></div>
+                            <div class="col values">${comment.upon}</div>
                         </div>
                         <div class="row">
                             <div class="col">
                                 Timestamp:
                             </div>
-                            <div class="col values"></div>
+                            <div class="col values">${comment.timestamp}</div>
                         </div>
                     </td>
                     <td class="text-center">
-                        <a href="" target="_blank">
-                            <img src="" />
+                        <a href="${comment.image_reference}" target="_blank">
+                            <img src="${comment.image_reference}" style="width: 500px;"/>
                         </a>
                     </td>
                     <td>
