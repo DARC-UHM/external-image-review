@@ -12,16 +12,18 @@ def favicon():
     return app.send_static_file('img/favicon.ico')
 
 
-@app.get('/add_comment')
+@app.post('/add_comment')
 def add_comment():
-    uuid = request.args.get('uuid')
-    reviewer = request.args.get('reviewer')
-    sequence = request.args.get('sequence')
+    uuid = request.values.get('uuid')
+    reviewer = request.values.get('reviewer')
+    sequence = request.values.get('sequence')
+    if not uuid or not reviewer or not sequence:
+        return {400: 'Missing required values'}, 400
     try:
-        Comment(uuid=uuid, reviewer=reviewer, sequence=sequence).save()
+        comment = Comment(uuid=uuid, reviewer=reviewer, sequence=sequence).save()
     except NotUniqueError:
         return {409: 'Already a comment record for given uuid'}, 409
-    return {'uuid': uuid, 'reviewer': reviewer, 'sequence': sequence}, 201
+    return comment.json(), 201
 
 
 @app.put('/update_comment/<uuid>')
@@ -41,7 +43,7 @@ def delete_record(uuid):
     except DoesNotExist:
         return {404: 'No comment records matching given uuid'}, 404
     db_record.delete()
-    return {}, 200
+    return {200: 'Comment deleted'}, 200
 
 
 @app.get('/get_all_comments')
@@ -76,14 +78,9 @@ def review(reviewer_name):
     comments = []
     matched_records = Comment.objects(reviewer=reviewer_name)
     for record in matched_records:
-        comments.append({
-            'reviewer': record.reviewer,
-            'comment': record.comment
-        })
-
-    data = {'annotations': comments, 'reviewer': reviewer_name.title(), 'comments': comments}
+        comments.append(record.json())
     # return the rendered template
-    return render_template('external_review.html', data=data)
+    return render_template('external_review.html', comments=comments)
 
 
 @app.post('/save_comments')
