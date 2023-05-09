@@ -1,9 +1,8 @@
 import datetime
-import os
-
 from flask import render_template, request, redirect
 
 from application import app
+from comment import Comment
 
 
 @app.route('/favicon.ico')
@@ -13,40 +12,12 @@ def favicon():
 
 @app.get('/view_all_comments')
 def view_all_comments():
-    # get list of sequences
-    with open('sequences.json', 'r') as jsonSeq:
-        sequences = json.load(jsonSeq)
-    comments = {}
-    reviewers = []
-    for filename in os.listdir('comments'):
-        with open(f'comments/{filename}', 'r') as f:
-            data = json.load(f)
-            comments = data['comments'] | comments  # merge dicts
-            reviewers.append(data['reviewer'])
-    records = []
-    if len(reviewers) > 0:
-        image_loader = ReviewImageLoader(sequences, reviewers)
-        records = image_loader.distilled_records
-    data = {'annotations': records, 'comments': comments}
-    return render_template('view_all.html', data=data)
+    return render_template('view_all.html', data='hehe')
 
 
 @app.get('/review/<reviewer_name>')
 def review(reviewer_name):
     # get list of sequences
-    with open('sequences.json', 'r') as jsonSeq:
-        sequences = json.load(jsonSeq)
-    # get images in sequence
-    image_loader = ReviewImageLoader(sequences, [reviewer_name])
-    comments = {}
-
-    # get saved comments
-    try:
-        with open(f'comments/{reviewer_name.replace(" ", "_")}.json', 'r') as file:
-            comments = json.load(file)['comments']
-            print('Loaded saved comments')
-    except FileNotFoundError:
-        print('No saved comments')
 
     data = {'annotations': image_loader.distilled_records, 'reviewer': reviewer_name.title(), 'comments': comments}
     # return the rendered template
