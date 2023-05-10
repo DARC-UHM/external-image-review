@@ -6,6 +6,7 @@ from mongoengine import NotUniqueError, DoesNotExist
 
 from application import app
 from comment import Comment
+from comment_loader import CommentLoader
 from translate_substrate import translate_substrate_code
 
 
@@ -42,6 +43,16 @@ def add_comment():
     except NotUniqueError:
         return {409: 'Already a comment record for given uuid'}, 409
     return comment.json(), 201
+
+
+@app.get('/sync_comments')
+def sync_comments():
+    # takes a list of sequences, iterates through list and adds all records that have comment associations
+    sequences = []
+    for value in request.args:
+        sequences.append(request.args.get(value))
+    comment_loader = CommentLoader(sequences, request.url_root)
+    return comment_loader.comments, 200
 
 
 @app.put('/update_comment/<uuid>')

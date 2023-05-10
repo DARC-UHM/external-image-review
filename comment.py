@@ -1,4 +1,3 @@
-import json
 from mongoengine import Document, StringField, DateTimeField
 from datetime import datetime
 
