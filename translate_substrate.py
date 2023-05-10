@@ -1,5 +1,4 @@
 # Substrate code translations and grain size order
-from typing import Dict
 
 sub_concepts = {
     'sed': 'sediment',

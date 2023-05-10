@@ -6,6 +6,7 @@ from mongoengine import NotUniqueError, DoesNotExist
 
 from application import app
 from comment import Comment
+from translate_substrate import translate_substrate_code
 
 
 @app.route('/favicon.ico')
@@ -96,6 +97,8 @@ def review(reviewer_name):
     matched_records = Comment.objects(reviewer=reviewer_name)
     for record in matched_records:
         record = record.json()
+        if 'upon' in record.keys():
+            record['upon'] = translate_substrate_code(record['upon'])
         comments.append(record)
         # check if concept on the server is different than what we have saved
         with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{record["uuid"]}') as r:
