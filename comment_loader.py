@@ -33,17 +33,16 @@ class CommentLoader:
         self.load_comments()
 
     def find_comments(self, sequence: str):
-        videos = {}
+        videos = []
 
         with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
             response = r.json()
 
         # get list of video links and start timestamps
         for video in response['media']:
-            videos[parse_datetime(video['start_timestamp'])] = \
-                video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive', 'https://hurlvideo.soest.hawaii.edu')
-
-        print(videos)
+            if 'urn:imagecollection:org' not in video['uri']:
+                videos.append([parse_datetime(video['start_timestamp']),
+                    video['uri'].replace('http://hurlstor.soest.hawaii.edu/videoarchive', 'https://hurlvideo.soest.hawaii.edu')])
 
         video_sequence_name = response['media'][0]['video_sequence_name']
 
@@ -62,7 +61,6 @@ class CommentLoader:
                 reviewer = ' '.join(reviewer)
                 if len(reviewer) > 0 and len(annotation['image_references']):
                     # get image reference url
-                    print(annotation['observation_uuid'], video_sequence_name)
                     img_url = annotation['image_references'][0]['url']
                     for i in range(1, len(annotation['image_references'])):
                         if '.png' in annotation['image_references'][i]['url']:
@@ -70,6 +68,22 @@ class CommentLoader:
                             break
                     img_url = img_url.replace('http://hurlstor.soest.hawaii.edu/imagearchive', 'https://hurlimage.soest.hawaii.edu')
 
+                    # get video reference url
+                    timestamp = parse_datetime(annotation['recorded_timestamp'])
+
+                    print('anno 1:')
+                    print(timestamp.isoformat())
+
+                    video_url = videos[0]
+                    for video in videos:
+                        print(video[0].isoformat())
+                        if video[0] > timestamp:
+                            break
+                        video_url = video
+                    time_diff = timestamp - video_url[0]
+                    video_url = f'{video_url[1]}#t={int(time_diff.total_seconds()) - 5}'
+
+                    print('\n')
                     # get optional associations
                     id_certainty = None
                     id_reference = None
@@ -89,14 +103,15 @@ class CommentLoader:
 
                     self.comments.append({
                         'uuid': annotation['observation_uuid'],
-                        'concept': annotation['concept'],
-                        'image_reference': img_url,
                         'sequence': video_sequence_name,
+                        'timestamp': timestamp,
+                        'image_reference': img_url,
+                        'concept': annotation['concept'],
                         'reviewer': reviewer,
+                        'video_url': video_url,
                         'id_certainty': id_certainty,
                         'id_reference': id_reference,
-                        'upon': upon,
-                        'timestamp': annotation['recorded_timestamp']
+                        'upon': upon
                     })
 
     def load_comments(self):

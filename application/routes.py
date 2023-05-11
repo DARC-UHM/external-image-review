@@ -18,27 +18,29 @@ def favicon():
 @app.post('/add_comment')
 def add_comment():
     uuid = request.values.get('uuid')
-    reviewer = request.values.get('reviewer')
-    concept = request.values.get('concept')
+    sequence = request.values.get('sequence')
+    timestamp = request.values.get('timestamp')
     image_reference = request.values.get('image_reference')
+    concept = request.values.get('concept')
+    reviewer = request.values.get('reviewer')
+    video_url = request.values.get('video_url')
     id_certainty = request.values.get('id_certainty')
     id_reference = request.values.get('id_reference')
     upon = request.values.get('upon')
-    sequence = request.values.get('sequence')
-    timestamp = request.values.get('timestamp')
-    if not uuid or not reviewer or not sequence or not concept or not image_reference:
+    if not uuid or not sequence or not timestamp or not image_reference or not concept or not reviewer:
         return {400: 'Missing required values'}, 400
     try:
         comment = Comment(
             uuid=uuid,
-            reviewer=reviewer,
+            sequence=sequence,
+            timestamp=timestamp,
             image_reference=image_reference,
             concept=concept,
+            reviewer=reviewer,
+            video_url=video_url,
             id_certainty=id_certainty,
             id_reference=id_reference,
             upon=upon,
-            sequence=sequence,
-            timestamp=timestamp
         ).save()
     except NotUniqueError:
         return {409: 'Already a comment record for given uuid'}, 409
