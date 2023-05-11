@@ -45,12 +45,12 @@ def add_comment():
     return comment.json(), 201
 
 
-@app.get('/sync_comments')
+@app.post('/sync_comments')
 def sync_comments():
     # takes a list of sequences, iterates through list and adds all records that have comment associations
     sequences = []
-    for value in request.args:
-        sequences.append(request.args.get(value))
+    for value in request.values:
+        sequences.append(request.values.get(value))
     comment_loader = CommentLoader(sequences, request.url_root)
     return comment_loader.comments, 200
 
