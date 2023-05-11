@@ -7,10 +7,9 @@ table {
     color: #EEEEEE !important;
     --bs-table-striped-color: #EEEEEE !important;
     vertical-align: middle !important;
-    border-bottom: #393E46 !important;
 }
 
-thead, tbody, tfoot, tr, td, th {
+tbody tfoot, td, th {
     border-bottom-width: 2px !important;
     border-bottom-color: #393E46 !important;
 }
