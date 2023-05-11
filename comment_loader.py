@@ -105,7 +105,7 @@ class CommentLoader:
                         'uuid': annotation['observation_uuid'],
                         'sequence': video_sequence_name,
                         'timestamp': timestamp,
-                        'image_reference': img_url,
+                        'image_url': img_url,
                         'concept': annotation['concept'],
                         'reviewer': reviewer,
                         'video_url': video_url,

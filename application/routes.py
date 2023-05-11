@@ -20,21 +20,21 @@ def add_comment():
     uuid = request.values.get('uuid')
     sequence = request.values.get('sequence')
     timestamp = request.values.get('timestamp')
-    image_reference = request.values.get('image_reference')
+    image_url = request.values.get('image_url')
     concept = request.values.get('concept')
     reviewer = request.values.get('reviewer')
     video_url = request.values.get('video_url')
     id_certainty = request.values.get('id_certainty')
     id_reference = request.values.get('id_reference')
     upon = request.values.get('upon')
-    if not uuid or not sequence or not timestamp or not image_reference or not concept or not reviewer:
+    if not uuid or not sequence or not timestamp or not image_url or not concept or not reviewer:
         return {400: 'Missing required values'}, 400
     try:
         comment = Comment(
             uuid=uuid,
             sequence=sequence,
             timestamp=timestamp,
-            image_reference=image_reference,
+            image_url=image_url,
             concept=concept,
             reviewer=reviewer,
             video_url=video_url,

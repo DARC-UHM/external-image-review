@@ -6,13 +6,13 @@ class Comment(Document):
     uuid = StringField(unique=True, required=True, max_length=50)
     sequence = StringField(required=True, max_length=100)
     timestamp = StringField(required=True, max_length=30)
-    image_reference = StringField(required=True, max_length=200)
+    image_url = StringField(required=True, max_length=200)
     concept = StringField(required=True, max_length=100)
     reviewer = StringField(required=True, max_length=100)
     video_url = StringField(max_length=200)
     id_certainty = StringField(max_length=50)
     id_reference = StringField(max_length=3)
-    upon = StringField(max_length=100)
+    upon = StringField(default='-', max_length=100)
     comment = StringField(max_length=1000)
     date_modified = DateTimeField(default=datetime.now)
 
@@ -21,7 +21,7 @@ class Comment(Document):
             "uuid": self.uuid,
             "sequence": self.sequence,
             "timestamp": self.timestamp,
-            "image_reference": self.image_reference,
+            "image_url": self.image_url,
             "concept": self.concept,
             "reviewer": self.reviewer,
             "video_url": self.video_url,
