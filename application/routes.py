@@ -67,6 +67,12 @@ def update_comment(uuid):
     return Comment.objects.get(uuid=uuid).json(), 200
 
 
+@app.put('/update_reviewer/<uuid>')
+def update_reviewer(uuid):
+    # change the reviewer on a comment TODO
+    return ''
+
+
 @app.delete('/delete_comment/<uuid>')
 def delete_record(uuid):
     try:
