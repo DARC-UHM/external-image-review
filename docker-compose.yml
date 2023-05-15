@@ -1,17 +1,16 @@
 version: '3.8'
 services:
-  app:
+  image-review-server:
     build: .
     restart: always
-    command: gunicorn run:app -b :5000
     environment:
       - MONGO_USERNAME=${DB_USER}
       - MONGO_PASSWORD=${DB_PASS}
     ports:
       - "5000:5000"
     links:
-      - db
-  db:
+      - mongodb
+  mongodb:
     image: mongo:latest
     restart: always
     hostname: review_mongo
