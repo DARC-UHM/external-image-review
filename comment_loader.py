@@ -1,4 +1,5 @@
 import requests
+import re
 from datetime import datetime
 
 
@@ -49,17 +50,11 @@ class CommentLoader:
         # find all records that have comments
         for annotation in response['annotations']:
             comment = get_association(annotation, 'comment')
-            if comment:
+            if comment and 'send to' in comment['link_value'].lower():
                 # get reviewer name
-                comment = comment['link_value'].split(' ')
-                reviewer = []
-                for word in comment:
-                    if len(word) > 0 and word[0].isupper() and \
-                            word.lower() not in ['sent', 'send', 'right', 'left', 'referring', 'outreach/pr']:
-                        word = ''.join(char for char in word if char.isalnum())
-                        reviewer.append(word)
-                reviewer = ' '.join(reviewer)
-                if len(reviewer) > 0 and len(annotation['image_references']):
+                reviewer = comment['link_value'].lower().partition('send to ')
+                reviewer = re.sub('[^\\w| ]', '', reviewer[reviewer.index('send to ') + 1]).title()
+                if annotation['image_references']:
                     # get image reference url
                     img_url = annotation['image_references'][0]['url']
                     for i in range(1, len(annotation['image_references'])):

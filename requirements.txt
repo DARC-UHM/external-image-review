@@ -1,4 +1,5 @@
 flask
+requests
 jinja2
 mongoengine
 gunicorn
