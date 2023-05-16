@@ -3,6 +3,8 @@ from datetime import datetime
 
 
 class Comment(Document):
+    """ Schema for comment collection """
+
     uuid = StringField(unique=True, required=True, max_length=50)
     sequence = StringField(required=True, max_length=100)
     timestamp = StringField(required=True, max_length=30)

@@ -14,8 +14,5 @@ RUN pip install -r requirements.txt
 EXPOSE 5000
 
 # Set the directive to specify the executable that will run when the container is initiated
-# ENTRYPOINT ["gunicorn", "--bind", "0.0.0:5000", "run:app"]
-ENTRYPOINT [ "python" ]
+ENTRYPOINT ["gunicorn", "run:app", "-b", ":5000", "--threads", "2"]
 
-# Specify the command to run on container start
-CMD [ "run.py" ]
