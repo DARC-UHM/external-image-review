@@ -1,6 +1,6 @@
-from datetime import datetime
-
 import requests
+
+from datetime import datetime
 from flask import render_template, request, redirect
 from mongoengine import NotUniqueError, DoesNotExist
 
@@ -69,8 +69,13 @@ def update_comment(uuid):
 
 @app.put('/update_reviewer/<uuid>')
 def update_reviewer(uuid):
-    # change the reviewer on a comment TODO
-    return ''
+    # change the reviewer on a comment
+    try:
+        db_record = Comment.objects.get(uuid=uuid)
+    except DoesNotExist:
+        return {404: 'No comment records matching given uuid'}, 404
+    db_record.update(set__reviewer=request.values.get('reviewer'), set__date_modified=datetime.now)
+    return Comment.objects.get(uuid=uuid).json(), 200
 
 
 @app.delete('/delete_comment/<uuid>')

@@ -14,5 +14,6 @@ connect(
     password=mongo_password,
     authentication_source='admin'
 )
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 
 from application import routes

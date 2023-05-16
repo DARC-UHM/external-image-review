@@ -66,9 +66,6 @@ class CommentLoader:
                     # get video reference url
                     timestamp = parse_datetime(annotation['recorded_timestamp'])
 
-                    print('anno 1:')
-                    print(timestamp.isoformat())
-
                     video_url = videos[0]
                     for video in videos:
                         print(video[0].isoformat())
