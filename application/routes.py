@@ -5,7 +5,7 @@ from flask import render_template, request, redirect
 from mongoengine import NotUniqueError, DoesNotExist
 
 from application import app
-from comment.comment import Comment
+from schema.comment import Comment
 from comment.comment_loader import CommentLoader
 from translate_substrate import translate_substrate_code
 
