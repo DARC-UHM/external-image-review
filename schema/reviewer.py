@@ -8,7 +8,7 @@ class Reviewer(Document):
     organization = StringField(max_length=150)
     focus_group = StringField(required=True, max_length=150)
     focus_subgroup = StringField(max_length=150)
-    last_contacted = DateTimeField
+    last_contacted = DateTimeField()
 
     def json(self):
         reviewer = {

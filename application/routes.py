@@ -7,6 +7,7 @@ from mongoengine import NotUniqueError, DoesNotExist
 from application import app
 from schema.comment import Comment
 from comment.comment_loader import CommentLoader
+from schema.reviewer import Reviewer
 from translate_substrate import translate_substrate_code
 
 
@@ -67,8 +68,8 @@ def update_comment(uuid):
     return Comment.objects.get(uuid=uuid).json(), 200
 
 
-@app.put('/update_reviewer/<uuid>')
-def update_reviewer(uuid):
+@app.put('/update_comment_reviewer/<uuid>')
+def update_comment_reviewer(uuid):
     # change the reviewer on a comment
     try:
         db_record = Comment.objects.get(uuid=uuid)
@@ -79,7 +80,7 @@ def update_reviewer(uuid):
 
 
 @app.delete('/delete_comment/<uuid>')
-def delete_record(uuid):
+def delete_comment(uuid):
     try:
         db_record = Comment.objects.get(uuid=uuid)
     except DoesNotExist:
@@ -113,6 +114,61 @@ def get_reviewer_comments(reviewer_name):
     for record in db_records:
         comments.append(record.json())
     return comments, 200
+
+
+@app.post('/add_reviewer')
+def add_reviewer():
+    name = request.values.get('name')
+    email = request.values.get('email')
+    organization = request.values.get('organization')
+    focus_group = request.values.get('focus_group')
+    focus_subgroup = request.values.get('focus_subgroup')
+    last_contacted = request.values.get('last_contacted')
+    if not name or not focus_group:
+        return {400: 'Missing required values'}, 400
+    try:
+        reviewer = Reviewer(
+            name=name,
+            email=email,
+            organization=organization,
+            focus_group=focus_group,
+            focus_subgroup=focus_subgroup,
+            last_contacted=last_contacted
+        ).save()
+    except NotUniqueError:
+        return {409: 'Already a comment record for given uuid'}, 409
+    return reviewer.json(), 201
+
+
+@app.put('/update_reviewer_info/<old_name>')
+def update_reviewer_info(old_name):
+    new_name = request.values.get('new_name')  # if the name didn't change, this will be the same as old_name
+    email = request.values.get('email')
+    organization = request.values.get('organization')
+    focus_group = request.values.get('focus_group')
+    focus_subgroup = request.values.get('focus_subgroup')
+    try:
+        db_record = Reviewer.objects.get(name=old_name)
+    except DoesNotExist:
+        return {404: 'No reviewer records found with matching name'}, 404
+    db_record.update(
+        set__name=new_name,
+        set__email=email or '',
+        set__organization=organization or '',
+        set__focus_group=focus_group or '',
+        set__focus_subgroup=focus_subgroup or ''
+    )
+    return Reviewer.objects.get(name=new_name).json(), 200
+
+
+@app.delete('/delete_reviewer/<name>')
+def delete_reviewer(name):
+    try:
+        db_record = Reviewer.objects.get(name=name)
+    except DoesNotExist:
+        return {404: 'No comment records matching given uuid'}, 404
+    db_record.delete()
+    return {200: 'Reviewer deleted'}, 200
 
 
 @app.get('/review/<reviewer_name>')
