@@ -111,7 +111,7 @@ class CommentLoader:
         count_success = 0
         count_failure = 0
         for comment in self.comments:
-            req = requests.post(f'{self.base_url}/add_comment', data=comment)
+            req = requests.post(f'{self.base_url}/comment/add', data=comment)
             if req.status_code == 201:
                 count_success += 1
             else:

@@ -181,6 +181,26 @@ def delete_reviewer(name):
     return {200: 'Reviewer deleted'}, 200
 
 
+# returns all reviewers saved in the database
+@app.get('/reviewer/all')
+def get_all_reviewers():
+    reviewers = []
+    db_records = Reviewer.objects()
+    for record in db_records:
+        reviewers.append(record.json())
+    return reviewers, 200
+
+
+# returns all reviewers in a given focus group
+@app.get('/reviewer/<group>')
+def get_group_reviewers(group):
+    reviewers = []
+    db_records = Reviewer.objects(focus_group=group)
+    for record in db_records:
+        reviewers.append(record.json())
+    return reviewers, 200
+
+
 # the link to share with external reviewers
 @app.get('/review/<reviewer_name>')
 def review(reviewer_name):
