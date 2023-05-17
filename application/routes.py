@@ -16,7 +16,8 @@ def favicon():
     return app.send_static_file('img/favicon.ico')
 
 
-@app.post('/add_comment')
+# add a new comment
+@app.post('/comment/add')
 def add_comment():
     uuid = request.values.get('uuid')
     sequence = request.values.get('sequence')
@@ -48,9 +49,9 @@ def add_comment():
     return comment.json(), 201
 
 
-@app.post('/sync_comments')
+# takes a list of sequences, iterates through list and adds all records that have 'send to' comment associations
+@app.post('/comment/sync_comments')
 def sync_comments():
-    # takes a list of sequences, iterates through list and adds all records that have comment associations
     sequences = []
     for value in request.values:
         sequences.append(request.values.get(value))
@@ -58,7 +59,8 @@ def sync_comments():
     return comment_loader.comments, 200
 
 
-@app.put('/update_comment/<uuid>')
+# update a comment's text given an observation uuid
+@app.put('/comment/update/<uuid>')
 def update_comment(uuid):
     try:
         db_record = Comment.objects.get(uuid=uuid)
@@ -68,7 +70,8 @@ def update_comment(uuid):
     return Comment.objects.get(uuid=uuid).json(), 200
 
 
-@app.put('/update_comment_reviewer/<uuid>')
+# update a comment's reviewer given an observation uuid
+@app.put('/comment/update_reviewer/<uuid>')
 def update_comment_reviewer(uuid):
     # change the reviewer on a comment
     try:
@@ -79,7 +82,8 @@ def update_comment_reviewer(uuid):
     return Comment.objects.get(uuid=uuid).json(), 200
 
 
-@app.delete('/delete_comment/<uuid>')
+# delete a comment given an observation uuid
+@app.delete('/comment/delete/<uuid>')
 def delete_comment(uuid):
     try:
         db_record = Comment.objects.get(uuid=uuid)
@@ -89,7 +93,8 @@ def delete_comment(uuid):
     return {200: 'Comment deleted'}, 200
 
 
-@app.get('/get_all_comments')
+# returns all comments saved in the database
+@app.get('/comment/all')
 def get_all_comments():
     comments = []
     db_records = Comment.objects()
@@ -98,7 +103,8 @@ def get_all_comments():
     return comments, 200
 
 
-@app.get('/get_sequence_comments/<sequence_num>')
+# returns all comments in a given sequence
+@app.get('/comment/sequence/<sequence_num>')
 def get_sequence_comments(sequence_num):
     comments = []
     db_records = Comment.objects(sequence=sequence_num)
@@ -107,7 +113,8 @@ def get_sequence_comments(sequence_num):
     return comments, 200
 
 
-@app.get('/get_reviewer_comments/<reviewer_name>')
+# returns all comments for a given reviewer
+@app.get('/comment/reviewer/<reviewer_name>')
 def get_reviewer_comments(reviewer_name):
     comments = []
     db_records = Comment.objects(reviewer=reviewer_name)
@@ -116,7 +123,8 @@ def get_reviewer_comments(reviewer_name):
     return comments, 200
 
 
-@app.post('/add_reviewer')
+# add a new reviewer to the database
+@app.post('/reviewer/add')
 def add_reviewer():
     name = request.values.get('name')
     email = request.values.get('email')
@@ -140,7 +148,8 @@ def add_reviewer():
     return reviewer.json(), 201
 
 
-@app.put('/update_reviewer_info/<old_name>')
+# update a reviewer's information
+@app.put('/reviewer/update/<old_name>')
 def update_reviewer_info(old_name):
     new_name = request.values.get('new_name')  # if the name didn't change, this will be the same as old_name
     email = request.values.get('email')
@@ -161,7 +170,8 @@ def update_reviewer_info(old_name):
     return Reviewer.objects.get(name=new_name).json(), 200
 
 
-@app.delete('/delete_reviewer/<name>')
+# delete a reviewer
+@app.delete('/reviewer/delete/<name>')
 def delete_reviewer(name):
     try:
         db_record = Reviewer.objects.get(name=name)
@@ -171,6 +181,7 @@ def delete_reviewer(name):
     return {200: 'Reviewer deleted'}, 200
 
 
+# the link to share with external reviewers
 @app.get('/review/<reviewer_name>')
 def review(reviewer_name):
     comments = []
@@ -189,6 +200,7 @@ def review(reviewer_name):
     return render_template('external_review.html', data=data), 200
 
 
+# route to save reviewer's comments, redirects to success page
 @app.post('/save_comments')
 def save_comments():
     reviewer_name = request.values.get('reviewer')
@@ -207,6 +219,7 @@ def save_comments():
         return {500: f'Internal server error - could not update {list_failures}'}, 500
 
 
+# displays a save success page
 @app.get('/success')
 def success():
     name = request.args.get('name')
