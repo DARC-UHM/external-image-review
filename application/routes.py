@@ -129,18 +129,18 @@ def add_reviewer():
     name = request.values.get('name')
     email = request.values.get('email')
     organization = request.values.get('organization')
-    focus_group = request.values.get('focus_group')
-    focus_subgroup = request.values.get('focus_subgroup')
+    phylum = request.values.get('phylum')
+    focus = request.values.get('focus')
     last_contacted = request.values.get('last_contacted')
-    if not name or not focus_group:
+    if not name or not phylum:
         return {400: 'Missing required values'}, 400
     try:
         reviewer = Reviewer(
             name=name,
             email=email,
             organization=organization,
-            focus_group=focus_group,
-            focus_subgroup=focus_subgroup,
+            phylum=phylum,
+            focus=focus,
             last_contacted=last_contacted
         ).save()
     except NotUniqueError:
@@ -186,16 +186,6 @@ def delete_reviewer(name):
 def get_all_reviewers():
     reviewers = []
     db_records = Reviewer.objects()
-    for record in db_records:
-        reviewers.append(record.json())
-    return reviewers, 200
-
-
-# returns all reviewers in a given focus group
-@app.get('/reviewer/<group>')
-def get_group_reviewers(group):
-    reviewers = []
-    db_records = Reviewer.objects(focus_group=group)
     for record in db_records:
         reviewers.append(record.json())
     return reviewers, 200
