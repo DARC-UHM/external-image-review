@@ -368,133 +368,133 @@ reviewers = [
         "name": "Bruce Mundy",
         "organization": "NOAA Pacific Islands Fisheries Science Center",
         "email": "mundyichthyo@gmail.com",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "all fishes"
     },
     {
         "name": "Kenneth Sulak",
         "organization": "United States Geological Survey",
         "email": "jumpingsturgeon@yahoo.com",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "Atlantic"
     },
     {
         "name": "Jorgen Nielsen",
         "organization": "University of Copenhagen",
         "email": "jgnielsen@zmuc.ku.dk",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "Ophidiiformes"
     },
     {
         "name": "Tomio Iwamoto",
         "organization": "California Academy of Sciences",
         "email": "TIwamoto@calacademy.org",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "Gadiformes"
     },
     {
         "name": "John McCosker",
         "organization": "California Academy of Sciences",
         "email": "JMcCosker@calacademy.org",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "eels, BLENNIIFORMES, sharks"
     },
     {
         "name": "Andrea Quattrini",
         "organization": "Harvey Mudd College",
         "email": "aquattrini@g.hmc.edu",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "Atlantic"
     },
     {
         "name": "Dominique Didier",
         "organization": "Millersville University",
         "email": "dominique.didier@millersville.edu",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "Chimeras, sharks, rays"
     },
     {
         "name": "David Ebert",
         "organization": "Moss Landing Marine Laboratories",
         "email": "debert@mlml.calstate.edu",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "sharks"
     },
     {
         "name": "Mackenzie Gerringer",
         "organization": "University of Hawaii",
         "email": "mgerring@hawaii.edu",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "Liparidae"
     },
     {
         "name": "Astrid Leitner",
         "organization": "University of Hawaii",
         "email": "aleitner@hawaii.edu",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "all deep fish"
     },
     {
         "name": "Jeff Drazen",
         "organization": "University of Hawaii",
         "email": "jdrazen@hawaii.edu",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "all fish"
     },
     {
         "name": "Peter Møller",
         "organization": "Natural History Museum of Denmark",
         "email": "PDRMoller@snm.ku.dk",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "artic fish?"
     },
     {
         "name": "Werner Schwarzhans",
         "organization": "University of Copenhagen",
         "email": "wwschwarz@aol.com",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "southern ocean"
     },
     {
         "name": "David Smith",
         "organization": "National Museum of Natural History (Smithsonian)",
         "email": "smithd@si.edu",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "eels"
     },
     {
         "name": "Hsuan Ching (Hans) Ho",
         "organization": "National Dong Hwa University",
         "email": "ogcoho@gmail.com",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "lophiiformes, all fishes?"
     },
     {
         "name": "Hiroyuki Motomura",
         "organization": "Kagoshima University",
         "email": "motomura@kaum.kagoshima-u.ac.jp",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "tropical Scorpaenidae (not Sebastidae), Percoidei"
     },
     {
         "name": "Kyoji Fujiwara",
         "organization": "Kagoshima University",
         "email": "kyojifujiwara627@yahoo.co.jp",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "Lizardfishes and allies, gobies"
     },
     {
         "name": "Yoshiaki Kai",
         "organization": "Kyoto Univeristy",
         "email": "mebaru@kais.kyoto-u.ac.jp",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "Sebastidae"
     },
     {
         "name": "Nozomu Muto",
         "organization": "University of Tokai",
         "email": "nzmutou@tsc.u-tokai.ac.jp",
-        "phylum": "Cordata",
+        "phylum": "Chordata",
         "focus": "Sebastidae"
     }
 ]

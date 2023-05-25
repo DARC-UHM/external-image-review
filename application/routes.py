@@ -120,7 +120,6 @@ def add_reviewer():
     organization = request.values.get('organization')
     phylum = request.values.get('phylum')
     focus = request.values.get('focus')
-    last_contacted = request.values.get('last_contacted')
     if not name or not phylum:
         return {400: 'Missing required values'}, 400
     try:
@@ -129,8 +128,7 @@ def add_reviewer():
             email=email,
             organization=organization,
             phylum=phylum,
-            focus=focus,
-            last_contacted=last_contacted
+            focus=focus
         ).save()
     except NotUniqueError:
         return {409: 'Already a comment record for given uuid'}, 409
