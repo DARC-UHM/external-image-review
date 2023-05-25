@@ -6,7 +6,6 @@ from mongoengine import NotUniqueError, DoesNotExist
 
 from application import app
 from schema.comment import Comment
-from comment.comment_loader import CommentLoader
 from schema.reviewer import Reviewer
 from translate_substrate import translate_substrate_code
 
@@ -47,16 +46,6 @@ def add_comment():
     except NotUniqueError:
         return {409: 'Already a comment record for given uuid'}, 409
     return comment.json(), 201
-
-
-# takes a list of sequences, iterates through list and adds all records that have 'send to' comment associations
-@app.post('/comment/sync_comments')
-def sync_comments():
-    sequences = []
-    for value in request.values:
-        sequences.append(request.values.get(value))
-    comment_loader = CommentLoader(sequences, request.url_root)
-    return comment_loader.comments, 200
 
 
 # update a comment's text given an observation uuid
