@@ -143,8 +143,8 @@ def update_reviewer_info(old_name):
     new_name = request.values.get('new_name')  # if the name didn't change, this will be the same as old_name
     email = request.values.get('email')
     organization = request.values.get('organization')
-    focus_group = request.values.get('focus_group')
-    focus_subgroup = request.values.get('focus_subgroup')
+    phylum = request.values.get('phylum')
+    focus = request.values.get('focus')
     try:
         db_record = Reviewer.objects.get(name=old_name)
     except DoesNotExist:
@@ -153,8 +153,8 @@ def update_reviewer_info(old_name):
         set__name=new_name,
         set__email=email or '',
         set__organization=organization or '',
-        set__focus_group=focus_group or '',
-        set__focus_subgroup=focus_subgroup or ''
+        set__phylum=phylum or '',
+        set__focus=focus or ''
     )
     return Reviewer.objects.get(name=new_name).json(), 200
 
