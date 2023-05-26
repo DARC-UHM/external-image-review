@@ -9,15 +9,18 @@
 <body class="text-center my-3 mx-5">
     <h1>Image Review</h1>
     {% if data.comments|length > 0 %}
-    <span>Please click "Submit Review" at the bottom of the page to save your comments.</span>
+    <span>
+      Click on an image to view a larger version. Select "See video" to watch the video where the image was captured.<br>
+      Please click "Submit Review" at the bottom of the page to save your comments.
+    </span>
     <form action="/save_comments" method="post" autocomplete="off">
         <div class="col d-flex justify-content-center mt-3">
              <table id="commentTable" class="table table-striped">
                 <thead class="thead-dark sticky-top" style="background-color: #393E46; color: #EEEEEE">
                     <tr class="headrow">
-                        <th scope="col">Info</th>
-                        <th scope="col">Image</th>
-                        <th scope="col">Comments</th>
+                        <th scope="col" style="width: 33%;">Info</th>
+                        <th scope="col" style="width: 33%;">Image</th>
+                        <th scope="col" style="width: 33%;">Comments</th>
                     </tr>
                 </thead>
                 <tbody class="text-start">
@@ -93,12 +96,12 @@
                             </div>
                         </div>
                     </td>
-                    <td class="text-center" style="width: 500px;">
+                    <td class="text-center">
                         <a href="${comment.image_url}" target="_blank">
                             <img src="${comment.image_url}" style="width: 500px;"/>
                         </a>
                     </td>
-                    <td style="width: 500px;">
+                    <td>
                         <div class="col d-flex justify-content-center">
                             <textarea class="reviewer" name="${comment.uuid}" rows="9" placeholder="Enter comments">${comment.comment ? comment.comment : ''}</textarea>
                         </div>
