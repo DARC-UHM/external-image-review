@@ -1,5 +1,5 @@
 from mongoengine import Document, StringField, DateTimeField
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class Comment(Document):
@@ -16,7 +16,7 @@ class Comment(Document):
     id_reference = StringField(max_length=3)
     upon = StringField(default='-', max_length=100)
     comment = StringField(max_length=1000)
-    date_modified = DateTimeField(default=datetime.now)
+    date_modified = DateTimeField(default=(datetime.now() - timedelta(hours=10)))
 
     def json(self):
         comment = {
@@ -31,7 +31,7 @@ class Comment(Document):
             "id_reference": self.id_reference,
             "upon": self.upon,
             "comment": self.comment,
-            "date_modified": self.date_modified.isoformat()
+            "date_modified": self.date_modified.strftime('%d %b %H:%M HST')
         }
         return comment
 
