@@ -85,31 +85,62 @@ def delete_comment(uuid):
 # returns all comments saved in the database
 @app.get('/comment/all')
 def get_all_comments():
-    comments = []
+    comments = {}
     db_records = Comment.objects()
     for record in db_records:
-        comments.append(record.json())
+        obj = record.json()
+        comments[obj['uuid']] = {
+            'comment': obj['comment'],
+            'date_modified': obj['date_modified'].strftime('%b %d, %Y'),
+            'image_url': obj['image_url'],
+            'video_url': obj['video_url'],
+            'sequence': obj['sequence'],
+            'reviewer': obj['reviewer']
+        }
     return comments, 200
 
 
 # returns all comments in a given sequence
 @app.get('/comment/sequence/<sequence_num>')
 def get_sequence_comments(sequence_num):
-    comments = []
+    comments = {}
     db_records = Comment.objects(sequence=sequence_num)
     for record in db_records:
-        comments.append(record.json())
+        obj = record.json()
+        comments[obj['uuid']] = {
+            'comment': obj['comment'],
+            'date_modified': obj['date_modified'].strftime('%b %d, %Y'),
+            'image_url': obj['image_url'],
+            'video_url': obj['video_url'],
+            'reviewer': obj['reviewer']
+        }
     return comments, 200
 
 
 # returns all comments for a given reviewer
 @app.get('/comment/reviewer/<reviewer_name>')
 def get_reviewer_comments(reviewer_name):
-    comments = []
+    comments = {}
     db_records = Comment.objects(reviewer=reviewer_name)
     for record in db_records:
-        comments.append(record.json())
+        obj = record.json()
+        comments[obj['uuid']] = {
+            'comment': obj['comment'],
+            'date_modified': obj['date_modified'].strftime('%b %d, %Y'),
+            'image_url': obj['image_url'],
+            'video_url': obj['video_url'],
+            'sequence': obj['sequence']
+        }
     return comments, 200
+
+
+# returns one comment
+@app.get('/comment/get/<uuid>')
+def get_comment(uuid):
+    db_record = Comment.objects(uuid=uuid)
+    if not db_record:
+        return {404: 'No comment with given uuid'}, 404
+    return db_record[0].json(), 200
 
 
 # add a new reviewer to the database
@@ -205,7 +236,7 @@ def save_comments():
     list_failures = []
     for value in request.values:
         data = {'comment': request.values.get(value)}
-        with requests.put(f'{request.url_root}/update_comment/{value}', data=data) as r:
+        with requests.put(f'{request.url_root}/comment/update/{value}', data=data) as r:
             if r.status_code == 200:
                 count_success += 1
             else:
