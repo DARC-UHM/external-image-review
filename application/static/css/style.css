@@ -62,6 +62,11 @@ textarea {
     color: #00c3cc;
 }
 
+.footer {
+  background: #1d222a;
+  font-size: 12px;
+}
+
 #reviewerSubmit {
     padding: 10px 40px;
     font-weight: 500;
