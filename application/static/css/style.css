@@ -44,7 +44,7 @@ textarea {
 }
 
 .reviewer {
-    width: 400px;
+    width: 100%;
     padding-left: 10px;
     padding-right: 10px;
 }
@@ -63,7 +63,6 @@ textarea {
 }
 
 #reviewerSubmit {
-    padding: 15px 40px;
-    font-weight: 600;
-    font-size: larger;
+    padding: 10px 40px;
+    font-weight: 500;
 }
