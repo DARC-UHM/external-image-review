@@ -10,11 +10,10 @@
     <div class="text-center my-3 mx-5">
         <h2 style="font-weight: 600;">Image Review</h2>
         {% if data.comments|length > 0 %}
-        <div class="small mt-2" style="color: #848a91;">
-            Select an image to see a larger version.<br>
-            Select "See video" to watch the video where the image was captured.<br>
+        <div class="mt-2" style="font-weight: 500;">Please click "Submit Review" at the bottom of the page to save your comments.</div>
+        <div class="small">
+            Select an image to view a larger version, or select "see video" to see the video where the image was captured.<br>
         </div>
-        <div class="my-2" style="font-weight: 500;">Please click "Submit Review" at the bottom of the page to save your comments.</div>
         <form action="/save_comments" method="post" autocomplete="off">
             <div class="col d-flex justify-content-center mt-3">
                 <table id="commentTable" class="table table-striped">
@@ -29,14 +28,14 @@
                 </table>
             </div>
             <input type="hidden" name="reviewer" value="{{ data.reviewer }}">
-            <input id="reviewerSubmit" type="submit" onclick="turnOffWarning()" value="Submit Review" class="btn btn-success mt-2 mb-3">
+            <input id="reviewerSubmit" type="submit" onclick="turnOffWarning()" value="Submit Review" class="btn btn-success my-3">
         </form>
         <p class="small mb-4">After submitting, you may return to this page at any time to view/update your comments.</p>
         {% else %}
         No images found.
         {% endif %}
     </div>
-    <div class="row footer px-5 py-2" style="margin: 0;">
+    <div class="row footer px-5 py-2 m-0 mt-5">
         <div class="col mt-1">
             <a class="mediaButton" target="_blank" href="https://www.soest.hawaii.edu/DARC/index.php"><strong>Deep-sea Animal Research Center</strong></a><br>
             School of Ocean and Earth Science and Technology<br>
