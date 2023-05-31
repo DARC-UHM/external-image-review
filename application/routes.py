@@ -60,7 +60,7 @@ def update_comment(uuid):
 
 
 # update a comment's reviewer given an observation uuid
-@app.put('/comment/update_reviewer/<uuid>')
+@app.put('/comment/update-reviewer/<uuid>')
 def update_comment_reviewer(uuid):
     # change the reviewer on a comment
     try:
@@ -213,6 +213,7 @@ def get_all_reviewers():
 @app.get('/review/<reviewer_name>')
 def review(reviewer_name):
     comments = []
+    reviewer_name = reviewer_name.replace('-', ' ')
     matched_records = Comment.objects(reviewer=reviewer_name)
     for record in matched_records:
         record = record.json()
@@ -229,7 +230,7 @@ def review(reviewer_name):
 
 
 # route to save reviewer's comments, redirects to success page
-@app.post('/save_comments')
+@app.post('/save-comments')
 def save_comments():
     reviewer_name = request.values.get('reviewer')
     count_success = 0
