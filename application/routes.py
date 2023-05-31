@@ -25,9 +25,10 @@ def add_comment():
     concept = request.values.get('concept')
     reviewer = request.values.get('reviewer')
     video_url = request.values.get('video_url')
-    id_certainty = request.values.get('id_certainty')
-    id_reference = request.values.get('id_reference')
-    upon = request.values.get('upon')
+    annotator = request.values.get('annotator')
+    depth = request.values.get('depth')
+    lat = request.values.get('lat')
+    long = request.values.get('long')
     if not uuid or not sequence or not timestamp or not image_url or not concept or not reviewer:
         return {400: 'Missing required values'}, 400
     try:
@@ -39,9 +40,10 @@ def add_comment():
             concept=concept,
             reviewer=reviewer,
             video_url=video_url,
-            id_certainty=id_certainty,
-            id_reference=id_reference,
-            upon=upon,
+            annotator=annotator,
+            depth=depth,
+            lat=lat,
+            long=long,
         ).save()
     except NotUniqueError:
         return {409: 'Already a comment record for given uuid'}, 409
@@ -55,7 +57,10 @@ def update_comment(uuid):
         db_record = Comment.objects.get(uuid=uuid)
     except DoesNotExist:
         return {404: 'No comment records matching given uuid'}, 404
-    db_record.update(set__comment=request.values.get('comment'), set__date_modified=(datetime.now() - timedelta(hours=10)))
+    db_record.update(
+        set__comment=request.values.get('comment'),
+        set__date_modified=(datetime.now() - timedelta(hours=10))
+    )
     return Comment.objects.get(uuid=uuid).json(), 200
 
 
@@ -67,7 +72,10 @@ def update_comment_reviewer(uuid):
         db_record = Comment.objects.get(uuid=uuid)
     except DoesNotExist:
         return {404: 'No comment records matching given uuid'}, 404
-    db_record.update(set__reviewer=request.values.get('reviewer'), set__date_modified=(datetime.now() - timedelta(hours=10)))
+    db_record.update(
+        set__reviewer=request.values.get('reviewer'),
+        set__date_modified=(datetime.now() - timedelta(hours=10))
+    )
     return Comment.objects.get(uuid=uuid).json(), 200
 
 

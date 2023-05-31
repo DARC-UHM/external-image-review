@@ -11,10 +11,11 @@ class Comment(Document):
     image_url = StringField(required=True, max_length=200)
     concept = StringField(required=True, max_length=100)
     reviewer = StringField(required=True, max_length=100)
+    annotator = StringField(required=True, max_length=100)
+    depth = StringField(max_length=20)
+    lat = StringField(max_length=20)
+    long = StringField(max_length=20)
     video_url = StringField(max_length=200)
-    id_certainty = StringField(max_length=50)
-    id_reference = StringField(max_length=3)
-    upon = StringField(default='-', max_length=100)
     comment = StringField(max_length=1000)
     date_modified = DateTimeField(default=(datetime.now() - timedelta(hours=10)))
 
@@ -26,10 +27,11 @@ class Comment(Document):
             "image_url": self.image_url,
             "concept": self.concept,
             "reviewer": self.reviewer,
+            "annotator": self.annotator,
+            "depth": self.depth,
+            "lat": self.lat,
+            "long": self.long,
             "video_url": self.video_url,
-            "id_certainty": self.id_certainty,
-            "id_reference": self.id_reference,
-            "upon": self.upon,
             "comment": self.comment,
             "date_modified": self.date_modified.strftime('%d %b %H:%M HST')
         }

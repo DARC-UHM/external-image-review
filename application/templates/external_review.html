@@ -86,6 +86,24 @@
                         </div>
                         <div class="row">
                             <div class="col-3">
+                                Annotator:
+                            </div>
+                            <div class="col values">${comment.annotator}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3">
+                                Location:
+                            </div>
+                            <div class="col values"><a href="http://www.google.com/maps/place/${comment.lat},${comment.long}/@${comment.lat},${comment.long},6z" target="_blank" class="mediaButton">${comment.lat}, ${comment.long}</a></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3">
+                                Depth:
+                            </div>
+                            <div class="col values">${comment.depth}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3">
                                 Timestamp:
                             </div>
                             <div class="col values">${comment.timestamp}</div>
