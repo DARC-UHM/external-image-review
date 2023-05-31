@@ -29,7 +29,7 @@ def add_comment():
     depth = request.values.get('depth')
     lat = request.values.get('lat')
     long = request.values.get('long')
-    if not uuid or not sequence or not timestamp or not image_url or not concept or not reviewer:
+    if not uuid or not sequence or not timestamp or not image_url or not concept or not reviewer or not annotator:
         return {400: 'Missing required values'}, 400
     try:
         comment = Comment(
@@ -224,10 +224,7 @@ def review(reviewer_name):
     reviewer_name = reviewer_name.replace('-', ' ')
     matched_records = Comment.objects(reviewer=reviewer_name)
     for record in matched_records:
-        record = record.json()
-        if 'upon' in record.keys():
-            record['upon'] = translate_substrate_code(record['upon'])
-        comments.append(record)
+        comments.append(record.json())
         # check if concept on the server is different than what we have saved
         with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{record["uuid"]}') as r:
             server_record = r.json()
