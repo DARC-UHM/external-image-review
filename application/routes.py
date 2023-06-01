@@ -57,17 +57,19 @@ def update_comment(uuid):
         db_record = Comment.objects.get(uuid=uuid)
     except DoesNotExist:
         return {404: 'No comment records matching given uuid'}, 404
-    db_record.update(
-        set__comment=request.values.get('comment'),
-        set__date_modified=(datetime.now() - timedelta(hours=10))
-    )
-    return Comment.objects.get(uuid=uuid).json(), 200
+    if db_record.comment != request.values.get('comment'):
+        db_record.update(
+            set__comment=request.values.get('comment'),
+            set__date_modified=(datetime.now() - timedelta(hours=10)),
+            set__unread=True
+        )
+        return Comment.objects.get(uuid=uuid).json(), 200
+    return 'No updates made', 200
 
 
 # update a comment's reviewer given an observation uuid
 @app.put('/comment/update-reviewer/<uuid>')
 def update_comment_reviewer(uuid):
-    # change the reviewer on a comment
     try:
         db_record = Comment.objects.get(uuid=uuid)
     except DoesNotExist:
@@ -75,6 +77,19 @@ def update_comment_reviewer(uuid):
     db_record.update(
         set__reviewer=request.values.get('reviewer'),
         set__date_modified=(datetime.now() - timedelta(hours=10))
+    )
+    return Comment.objects.get(uuid=uuid).json(), 200
+
+
+# mark a comment as read
+@app.put('/comment/mark-read/<uuid>')
+def mark_comment_read(uuid):
+    try:
+        db_record = Comment.objects.get(uuid=uuid)
+    except DoesNotExist:
+        return {404: 'No comment records matching given uuid'}, 404
+    db_record.update(
+        set__unread=False,
     )
     return Comment.objects.get(uuid=uuid).json(), 200
 
@@ -103,7 +118,27 @@ def get_all_comments():
             'image_url': obj['image_url'],
             'video_url': obj['video_url'],
             'sequence': obj['sequence'],
-            'reviewer': obj['reviewer']
+            'reviewer': obj['reviewer'],
+            'unread': obj['unread']
+        }
+    return comments, 200
+
+
+# returns all unread comments
+@app.get('/comment/unread')
+def get_unread_comments():
+    comments = {}
+    db_records = Comment.objects(unread=True)
+    for record in db_records:
+        obj = record.json()
+        comments[obj['uuid']] = {
+            'comment': obj['comment'],
+            'date_modified': obj['date_modified'],
+            'image_url': obj['image_url'],
+            'video_url': obj['video_url'],
+            'sequence': obj['sequence'],
+            'reviewer': obj['reviewer'],
+            'unread': obj['unread']
         }
     return comments, 200
 
@@ -120,7 +155,8 @@ def get_sequence_comments(sequence_num):
             'date_modified': obj['date_modified'],
             'image_url': obj['image_url'],
             'video_url': obj['video_url'],
-            'reviewer': obj['reviewer']
+            'reviewer': obj['reviewer'],
+            'unread': obj['unread']
         }
     return comments, 200
 
@@ -137,7 +173,8 @@ def get_reviewer_comments(reviewer_name):
             'date_modified': obj['date_modified'],
             'image_url': obj['image_url'],
             'video_url': obj['video_url'],
-            'sequence': obj['sequence']
+            'sequence': obj['sequence'],
+            'unread': obj['unread']
         }
     return comments, 200
 
