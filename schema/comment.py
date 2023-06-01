@@ -1,4 +1,4 @@
-from mongoengine import Document, StringField, DateTimeField
+from mongoengine import Document, StringField, DateTimeField, BooleanField
 from datetime import datetime, timedelta
 
 
@@ -12,6 +12,7 @@ class Comment(Document):
     concept = StringField(required=True, max_length=100)
     reviewer = StringField(required=True, max_length=100)
     annotator = StringField(required=True, max_length=100)
+    unread = BooleanField(required=True)
     depth = StringField(max_length=20)
     lat = StringField(max_length=20)
     long = StringField(max_length=20)
@@ -28,6 +29,7 @@ class Comment(Document):
             "concept": self.concept,
             "reviewer": self.reviewer,
             "annotator": self.annotator,
+            "unread": self.unread,
             "depth": self.depth,
             "lat": self.lat,
             "long": self.long,

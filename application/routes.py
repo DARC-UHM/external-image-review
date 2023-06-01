@@ -7,7 +7,6 @@ from mongoengine import NotUniqueError, DoesNotExist
 from application import app
 from schema.comment import Comment
 from schema.reviewer import Reviewer
-from translate_substrate import translate_substrate_code
 
 
 @app.route('/favicon.ico')
@@ -39,6 +38,7 @@ def add_comment():
             image_url=image_url,
             concept=concept,
             reviewer=reviewer,
+            unread=False,
             video_url=video_url,
             annotator=annotator,
             depth=depth,
@@ -224,7 +224,8 @@ def review(reviewer_name):
     reviewer_name = reviewer_name.replace('-', ' ')
     matched_records = Comment.objects(reviewer=reviewer_name)
     for record in matched_records:
-        comments.append(record.json())
+        record = record.json()
+        comments.append(record)
         # check if concept on the server is different than what we have saved
         with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{record["uuid"]}') as r:
             server_record = r.json()
