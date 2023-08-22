@@ -9,7 +9,7 @@ class Comment(Document):
     sequence = StringField(required=True, max_length=50)
     timestamp = StringField(required=True, max_length=30)
     image_url = StringField(required=True, max_length=200)
-    concept = StringField(required=True, max_length=50)
+    concept = StringField(max_length=50)
     reviewer = StringField(required=True, max_length=50)
     annotator = StringField(required=True, max_length=50)
     unread = BooleanField(required=True)
@@ -26,7 +26,6 @@ class Comment(Document):
             "sequence": self.sequence,
             "timestamp": self.timestamp,
             "image_url": self.image_url,
-            "concept": self.concept,
             "reviewer": self.reviewer,
             "annotator": self.annotator,
             "unread": self.unread,
@@ -40,6 +39,6 @@ class Comment(Document):
         return comment
 
     meta = {
-        "indexes": ["uuid", "reviewer", "sequence", "concept"],
-        "ordering": ["reviewer", "concept"]
+        "indexes": ["uuid", "reviewer", "sequence"],
+        "ordering": ["reviewer"]
     }

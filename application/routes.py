@@ -21,14 +21,13 @@ def add_comment():
     sequence = request.values.get('sequence')
     timestamp = request.values.get('timestamp')
     image_url = request.values.get('image_url')
-    concept = request.values.get('concept')
     reviewer = request.values.get('reviewer')
     video_url = request.values.get('video_url')
     annotator = request.values.get('annotator')
     depth = request.values.get('depth')
     lat = request.values.get('lat')
     long = request.values.get('long')
-    if not uuid or not sequence or not timestamp or not image_url or not concept or not reviewer or not annotator:
+    if not uuid or not sequence or not timestamp or not image_url or not reviewer or not annotator:
         return {400: 'Missing required values'}, 400
     try:
         comment = Comment(
@@ -36,7 +35,6 @@ def add_comment():
             sequence=sequence,
             timestamp=timestamp,
             image_url=image_url,
-            concept=concept,
             reviewer=reviewer,
             unread=False,
             video_url=video_url,
@@ -233,14 +231,28 @@ def update_reviewer_info(old_name):
     return Reviewer.objects.get(name=new_name).json(), 200
 
 
+# update ctd
+@app.put('/sync-ctd')
+def sync_ctd():
+    updated_ctd = request.values.get('updated_ctd').json()  # TODO need to test this..
+    for uuid in updated_ctd.keys():
+        record = Comment.objects.get(uuid=uuid)
+        record.update(
+            set__depth=updated_ctd[uuid]['depth'],
+            set__lat=updated_ctd[uuid]['lat'],
+            set__long=updated_ctd[uuid]['long']
+        )
+    return {200: 'CTD synced'}, 200
+
+
 # delete a reviewer
 @app.delete('/reviewer/delete/<name>')
 def delete_reviewer(name):
     try:
         db_record = Reviewer.objects.get(name=name)
+        db_record.delete()
     except DoesNotExist:
         return {404: 'No comment records matching given uuid'}, 404
-    db_record.delete()
     return {200: 'Reviewer deleted'}, 200
 
 
@@ -263,10 +275,9 @@ def review(reviewer_name):
     for record in matched_records:
         record = record.json()
         comments.append(record)
-        # check if concept on the server is different than what we have saved
+        # get the record info from the server
         with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{record["uuid"]}') as r:
             server_record = r.json()
-        if 'concept' not in record.keys() or record['concept'] != server_record['concept']:
             record['concept'] = server_record['concept']
     data = {'comments': comments, 'reviewer': reviewer_name}
     return render_template('external_review.html', data=data), 200
