@@ -1,4 +1,5 @@
 import requests
+import json
 
 from datetime import datetime, timedelta
 from flask import render_template, request, redirect
@@ -186,6 +187,20 @@ def get_comment(uuid):
     return db_record[0].json(), 200
 
 
+# update ctd data for all comments in the db
+@app.put('/sync-ctd')
+def sync_ctd():
+    updated_ctd = json.loads(request.data)
+    for uuid in updated_ctd.keys():
+        record = Comment.objects.get(uuid=uuid)
+        record.update(
+            set__depth=str(updated_ctd[uuid]['depth']),
+            set__lat=str(updated_ctd[uuid]['lat']),
+            set__long=str(updated_ctd[uuid]['long'])
+        )
+    return {200: 'CTD synced'}, 200
+
+
 # add a new reviewer to the database
 @app.post('/reviewer/add')
 def add_reviewer():
@@ -229,20 +244,6 @@ def update_reviewer_info(old_name):
         set__focus=focus or ''
     )
     return Reviewer.objects.get(name=new_name).json(), 200
-
-
-# update ctd
-@app.put('/sync-ctd')
-def sync_ctd():
-    updated_ctd = request.values.get('updated_ctd').json()  # TODO need to test this..
-    for uuid in updated_ctd.keys():
-        record = Comment.objects.get(uuid=uuid)
-        record.update(
-            set__depth=updated_ctd[uuid]['depth'],
-            set__lat=updated_ctd[uuid]['lat'],
-            set__long=updated_ctd[uuid]['long']
-        )
-    return {200: 'CTD synced'}, 200
 
 
 # delete a reviewer
