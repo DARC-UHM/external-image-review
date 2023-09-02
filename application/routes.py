@@ -25,6 +25,7 @@ def add_comment():
     reviewer = request.values.get('reviewer')
     video_url = request.values.get('video_url')
     annotator = request.values.get('annotator')
+    id_ref = request.values.get('id_ref')
     depth = request.values.get('depth')
     lat = request.values.get('lat')
     long = request.values.get('long')
@@ -40,6 +41,7 @@ def add_comment():
             unread=False,
             video_url=video_url,
             annotator=annotator,
+            id_reference=id_ref,
             depth=depth,
             lat=lat,
             long=long,
