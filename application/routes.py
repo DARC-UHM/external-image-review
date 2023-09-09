@@ -290,6 +290,12 @@ def review(reviewer_name):
     return render_template('external_review.html', data=data), 200
 
 
+# returns a list of reviewers with comments in the database
+@app.get('/active-reviewers')
+def active_reviewers():
+    return Comment.objects().distinct(field='reviewer')
+
+
 # route to save reviewer's comments, redirects to success page
 @app.post('/save-comments')
 def save_comments():
