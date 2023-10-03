@@ -6,7 +6,7 @@ from flask import render_template, request, redirect
 from mongoengine import NotUniqueError, DoesNotExist
 
 from application import app
-from schema.comment import Comment
+from schema.comment import Comment, ReviewerCommentList
 from schema.reviewer import Reviewer
 
 
@@ -18,7 +18,7 @@ def favicon():
 # add a new comment
 @app.post('/comment/add')
 def add_comment():
-    reviewer_comments = {}
+    print(request.values.get('reviewers'))
     uuid = request.values.get('uuid')
     sequence = request.values.get('sequence')
     timestamp = request.values.get('timestamp')
@@ -32,15 +32,12 @@ def add_comment():
     long = request.values.get('long')
     if not uuid or not sequence or not timestamp or not image_url or not reviewers or not annotator:
         return {400: 'Missing required values'}, 400
-    for reviewer in reviewers:
-        reviewer_comments[reviewer] = ''
     try:
         comment = Comment(
             uuid=uuid,
             sequence=sequence,
             timestamp=timestamp,
             image_url=image_url,
-            reviewer_comments=reviewer_comments,
             unread=False,
             video_url=video_url,
             annotator=annotator,
@@ -48,7 +45,10 @@ def add_comment():
             depth=depth,
             lat=lat,
             long=long,
-        ).save()
+        )
+        for reviewer in reviewers:
+            comment.reviewer_comments.append(ReviewerCommentList(reviewer=reviewer, comment=''))
+        comment.save()
     except NotUniqueError:
         return {409: 'Already a comment record for given uuid'}, 409
     return comment.json(), 201
@@ -59,18 +59,19 @@ def add_comment():
 def update_comment(reviewer, uuid):
     try:
         db_record = Comment.objects.get(uuid=uuid)
+        print(db_record.json())
     except DoesNotExist:
         return {404: 'No comment records matching given uuid'}, 404
-    if db_record.reviewer_comments[reviewer] != request.values.get('comment'):
-        temp_dict = db_record.reviewer_comments
-        temp_dict[reviewer] = request.values.get('comment')
-        db_record.update(
-            reviewer_comments=temp_dict,
-            date_modified=(datetime.now() - timedelta(hours=10)),
-            unread=True
-        )
-        return Comment.objects.get(uuid=uuid).json(), 200
-    return 'No updates made', 200
+    for reviewer_comment in db_record.reviewer_comments:
+        if reviewer_comment['reviewer'] == reviewer:
+            if reviewer_comment['comment'] != request.values.get('comment'):
+                reviewer_comment['comment'] = request.values.get('comment')
+                reviewer_comment['date_modified'] = (datetime.now() - timedelta(hours=10))
+                db_record.unread = True
+                db_record.save()
+                return Comment.objects.get(uuid=uuid).json(), 200
+            return 'No updates made', 200
+    return {404: 'No comment records matching given reviewer'}, 404
 
 
 # mark a comment as read
@@ -106,7 +107,6 @@ def get_all_comments():
         obj = record.json()
         comments[obj['uuid']] = {
             'reviewer_comments': obj['reviewer_comments'],
-            'date_modified': obj['date_modified'],
             'image_url': obj['image_url'],
             'video_url': obj['video_url'],
             'sequence': obj['sequence'],
@@ -124,7 +124,6 @@ def get_unread_comments():
         obj = record.json()
         comments[obj['uuid']] = {
             'reviewer_comments': obj['reviewer_comments'],
-            'date_modified': obj['date_modified'],
             'image_url': obj['image_url'],
             'video_url': obj['video_url'],
             'sequence': obj['sequence'],
@@ -142,7 +141,6 @@ def get_sequence_comments(sequence_num):
         obj = record.json()
         comments[obj['uuid']] = {
             'reviewer_comments': obj['reviewer_comments'],
-            'date_modified': obj['date_modified'],
             'image_url': obj['image_url'],
             'video_url': obj['video_url'],
             'unread': obj['unread']
@@ -154,37 +152,11 @@ def get_sequence_comments(sequence_num):
 @app.get('/comment/reviewer/<reviewer_name>')
 def get_reviewer_comments(reviewer_name):
     comments = {}
-    db_records = Comment.objects().aggregate([
-        {'$unwind': '$subdocuments'},
-    ])
-    for record in db_records:
-        print(record)
-    return
+    db_records = Comment.objects(reviewer_comments__reviewer=reviewer_name)
     for record in db_records:
         obj = record.json()
         comments[obj['uuid']] = {
-            # TODO probably need to reformat the comment obj to conform to standard mongodb schema, ie
-            #  -
-            #  from
-            #  -
-            #  reviewer_comments = {
-            #    'reviewer1': 'comment1',
-            #    'reviewer2': 'comment2'
-            #  }
-            #  -
-            #  to
-            #  -
-            #  reviewer_comments  = [
-            #    {
-            #      'reviewer': 'reviewer1',
-            #      'comment': 'comment1'
-            #    },
-            #    {
-            #      'reviewer': 'reviewer2',
-            #      'comment': 'comment2'
-            #    }
-            #  ]
-            'date_modified': obj['date_modified'],
+            'comment': obj['reviewer_comments'],
             'image_url': obj['image_url'],
             'video_url': obj['video_url'],
             'sequence': obj['sequence'],
@@ -287,7 +259,7 @@ def get_all_reviewers():
 def review(reviewer_name):
     comments = []
     reviewer_name = reviewer_name.replace('-', ' ')
-    matched_records = Comment.objects(reviewer=reviewer_name)
+    matched_records = Comment.objects(reviewer_comments__reviewer=reviewer_name)
     for record in matched_records:
         record = record.json()
         comments.append(record)
@@ -315,13 +287,15 @@ def save_comments():
     reviewer_name = request.values.get('reviewer')
     count_success = 0
     list_failures = []
-    for value in request.values:
-        data = {'comment': request.values.get(value)}
-        with requests.put(f'{request.url_root}/comment/update/{value}', data=data) as r:
+    for uuid in request.values:
+        if uuid == reviewer_name:
+            break
+        data = {'comment': request.values.get(uuid)}
+        with requests.put(f'{request.url_root}/comment/update/{reviewer_name}/{uuid}', data=data) as r:
             if r.status_code == 200:
                 count_success += 1
             else:
-                list_failures.append(value)
+                list_failures.append(uuid)
     if count_success > 0:
         return redirect(f'success?name={reviewer_name}&count={count_success}')
     else:
