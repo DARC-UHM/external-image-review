@@ -114,11 +114,11 @@ $(document).ready(() => {
                     <div class="mt-3">
                         Comments:
                     </div>
-                    <textarea class="reviewer mt-2" name="${comment.uuid}" rows="3" placeholder="Enter comments"
-                        >${comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)
-                            ? comment.reviewer_comments.find((comment) => comment.reviewer === reviewer).comment
-                            : ''}
-                    </textarea>
+                    <textarea class="reviewer mt-2" name="${comment.uuid}" rows="3" placeholder="Enter comments">${
+                        comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)
+                        ? comment.reviewer_comments.find((comment) => comment.reviewer === reviewer).comment
+                        : ''
+                    }</textarea>
                     <div class="row mt-3">
                         <div class="col">
                             <a href="${comment.video_url}" target="_blank" class="mediaButton mt-2">See video</a>

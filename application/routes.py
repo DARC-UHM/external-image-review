@@ -59,7 +59,6 @@ def add_comment():
 def update_comment(reviewer, uuid):
     try:
         db_record = Comment.objects.get(uuid=uuid)
-        print(db_record.json())
     except DoesNotExist:
         return {404: 'No comment records matching given uuid'}, 404
     for reviewer_comment in db_record.reviewer_comments:
@@ -72,6 +71,26 @@ def update_comment(reviewer, uuid):
                 return Comment.objects.get(uuid=uuid).json(), 200
             return 'No updates made', 200
     return {404: 'No comment records matching given reviewer'}, 404
+
+
+# update a comment's reviewers given an observation uuid
+@app.put('/comment/update-reviewers/<uuid>')
+def update_comment_reviewer(uuid):
+    try:
+        db_record = Comment.objects.get(uuid=uuid)
+    except DoesNotExist:
+        return {404: 'No comment records matching given uuid'}, 404
+    reviewers = json.loads(request.values.get('reviewers'))
+    temp_reviewer_comments = []
+    for reviewer_comment in db_record.reviewer_comments:
+        if reviewer_comment['reviewer'] in reviewers:
+            temp_reviewer_comments.append(reviewer_comment)
+            reviewers.remove(reviewer_comment['reviewer'])
+    for reviewer in reviewers:
+        temp_reviewer_comments.append(ReviewerCommentList(reviewer=reviewer, comment=''))
+    db_record.reviewer_comments = temp_reviewer_comments
+    db_record.save()
+    return Comment.objects.get(uuid=uuid).json(), 200
 
 
 # mark a comment as read
