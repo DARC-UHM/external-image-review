@@ -39,6 +39,7 @@ class Comment(Document):
             'sequence': self.sequence,
             'timestamp': self.timestamp,
             'image_url': self.image_url,
+            'concept': self.concept,
             'reviewer_comments': reviewer_comments,
             'annotator': self.annotator,
             'unread': self.unread,

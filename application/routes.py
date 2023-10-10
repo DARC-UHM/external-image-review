@@ -18,7 +18,6 @@ def favicon():
 # add a new comment
 @app.post('/comment/add')
 def add_comment():
-    print(request.values.get('reviewers'))
     uuid = request.values.get('uuid')
     sequence = request.values.get('sequence')
     timestamp = request.values.get('timestamp')
@@ -131,6 +130,17 @@ def get_all_comments():
             'sequence': obj['sequence'],
             'unread': obj['unread']
         }
+    return comments, 200
+
+
+# returns all comments saved in the database with extra info
+@app.get('/comment/all-v')
+def get_all_comments_verbose():
+    comments = {}
+    db_records = Comment.objects()
+    for record in db_records:
+        obj = record.json()
+        comments[obj['uuid']] = record.json()
     return comments, 200
 
 
