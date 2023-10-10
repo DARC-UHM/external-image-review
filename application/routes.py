@@ -191,6 +191,7 @@ def get_reviewer_comments(reviewer_name):
             'image_url': obj['image_url'],
             'video_url': obj['video_url'],
             'sequence': obj['sequence'],
+            'depth': obj['depth'],
             'unread': obj['unread']
         }
     return comments, 200
@@ -302,7 +303,7 @@ def review(reviewer_name):
             for association in server_record['associations']:
                 if association['link_name'] == 'identity-certainty' and association['link_value'] == 'maybe':
                     record['concept'] += '?'
-    data = {'comments': comments, 'reviewer': reviewer_name}
+    data = {'comments': sorted(comments, key=lambda t: t['timestamp']), 'reviewer': reviewer_name}
     return render_template('external_review.html', data=data), 200
 
 
