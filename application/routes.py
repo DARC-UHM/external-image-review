@@ -307,7 +307,7 @@ def review(reviewer_name):
 # returns a list of reviewers with comments in the database
 @app.get('/active-reviewers')
 def active_reviewers():
-    return Comment.objects().distinct(field='reviewer')
+    return Comment.objects().distinct(field='reviewer_comments.reviewer')
 
 
 # route to save reviewer's comments, redirects to success page
