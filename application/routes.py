@@ -128,6 +128,7 @@ def get_all_comments():
             'image_url': obj['image_url'],
             'video_url': obj['video_url'],
             'sequence': obj['sequence'],
+            'depth': obj['depth'],
             'unread': obj['unread']
         }
     return comments, 200
@@ -156,6 +157,7 @@ def get_unread_comments():
             'image_url': obj['image_url'],
             'video_url': obj['video_url'],
             'sequence': obj['sequence'],
+            'depth': obj['depth'],
             'unread': obj['unread']
         }
     return comments, 200
