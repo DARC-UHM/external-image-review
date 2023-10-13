@@ -3,11 +3,16 @@ import json
 
 from datetime import datetime, timedelta
 from flask import render_template, request, redirect
+from flask_cors import CORS, cross_origin
 from mongoengine import NotUniqueError, DoesNotExist
 
 from application import app
 from schema.comment import Comment, ReviewerCommentList
 from schema.reviewer import Reviewer
+
+
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 
 @app.route('/favicon.ico')
@@ -199,6 +204,7 @@ def get_reviewer_comments(reviewer_name):
 
 # returns one comment
 @app.get('/comment/get/<uuid>')
+@cross_origin()
 def get_comment(uuid):
     db_record = Comment.objects(uuid=uuid)
     if not db_record:
