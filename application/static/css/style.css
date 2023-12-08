@@ -93,6 +93,7 @@ textarea {
     font-size: 18px;
     transition: 0.3s ease;
     user-select: none;
+    background-color: rgba(0, 0, 0, 0.3);
 }
 
 #prev {
@@ -106,8 +107,7 @@ textarea {
 }
 
 #prev:hover, #next:hover {
-    background-color: rgba(0,0,0,0.4);
-    color: #dddddd;
+    background-color: rgba(0,0,0,0.5);
 }
 
 /* Number text (1/3 etc) */
