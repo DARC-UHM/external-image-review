@@ -305,10 +305,13 @@ def review(reviewer_name):
         with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{record["uuid"]}') as r:
             server_record = r.json()
             record['concept'] = server_record['concept']
-            # check for "identity-certainty: maybe"
+            # check for "identity-certainty: maybe" and "identity-reference"
             for association in server_record['associations']:
                 if association['link_name'] == 'identity-certainty' and association['link_value'] == 'maybe':
                     record['concept'] += '?'
+                if association['link_name'] == 'identity-reference':
+                    # dive num + id ref to account for duplicate numbers across dives
+                    record['id_reference'] = f'{record["sequence"][-2:]}:{association["link_value"]}'
     data = {'comments': sorted(comments, key=lambda t: t['timestamp']), 'reviewer': reviewer_name}
     return render_template('external_review.html', data=data), 200
 
