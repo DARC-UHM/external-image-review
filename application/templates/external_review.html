@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="/static/css/style.css" />
 </head>
 <body>
-    <div class="text-center my-3 mx-5">
+    <div class="text-center my-3 mx-4 mx-md-5">
         <h2 style="font-weight: 600;">Image Review</h2>
         {% if data.comments|length > 0 %}
         <div class="mt-2" style="font-weight: 500;">Please click "Submit Review" at the bottom of the page to save your comments.</div>
@@ -15,17 +15,7 @@
             Select an image to view a larger version, or select "see video" to see the video where the image was captured.<br>
         </div>
         <form action="/save-comments" method="post" autocomplete="off">
-            <div class="col d-flex justify-content-center mt-3">
-                <table id="commentTable" class="table table-striped">
-                    <thead class="thead-dark" style="background-color: #393E46; color: #EEEEEE;">
-                      <tr class="headrow">
-                          <th scope="col" style="width: 50%;">Info</th>
-                          <th scope="col" style="width: 50%;">Image</th>
-                      </tr>
-                    </thead>
-                    <tbody class="text-start">
-                    </tbody>
-                </table>
+            <div id="comments" class="col mt-3">
             </div>
             <input type="hidden" name="reviewer" value="{{ data.reviewer }}">
             <input id="reviewerSubmit" type="submit" onclick="turnOffWarning()" value="Submit Review" class="btn btn-success my-3">

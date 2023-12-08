@@ -78,62 +78,63 @@ $(document).ready(() => {
               </div>`;
         }
 
-        $('#commentTable').find('tbody').append(`
-            <tr>
-                <td class="ps-5">
-                    <div class="row">
-                        <div class="col-4">
-                            Tentative ID:
+        $('#comments').append(`
+            <div class="row flex-column-reverse flex-md-row my-3" style="background-color: #1d222a; border-radius: 10px;">
+                <div class="col-md ps-3 ps-md-5 text-start d-flex align-items-center py-3">
+                    <div class="w-100">
+                        <div class="row">
+                            <div class="col-4">
+                                Tentative ID:
+                            </div>
+                            <div class="col values">${comment.concept}</div>
                         </div>
-                        <div class="col values">${comment.concept}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-4">
-                            Annotator:
+                        <div class="row">
+                            <div class="col-4">
+                                Annotator:
+                            </div>
+                            <div class="col values">${comment.annotator}</div>
                         </div>
-                        <div class="col values">${comment.annotator}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-4">
-                            Location:
+                        <div class="row">
+                            <div class="col-4">
+                                Location:
+                            </div>
+                            <div class="col values"><a href="http://www.google.com/maps/place/${comment.lat},${comment.long}/@${comment.lat},${comment.long},5z/data=!3m1!1e3" target="_blank" class="mediaButton">${comment.lat}, ${comment.long}</a></div>
                         </div>
-                        <div class="col values"><a href="http://www.google.com/maps/place/${comment.lat},${comment.long}/@${comment.lat},${comment.long},5z/data=!3m1!1e3" target="_blank" class="mediaButton">${comment.lat}, ${comment.long}</a></div>
-                    </div>
-                    <div class="row">
-                        <div class="col-4">
-                            Depth:
+                        <div class="row">
+                            <div class="col-4">
+                                Depth:
+                            </div>
+                            <div class="col values">${comment.depth} m</div>
                         </div>
-                        <div class="col values">${comment.depth} m</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-4">
-                            Timestamp:
+                        <div class="row">
+                            <div class="col-4">
+                                Timestamp:
+                            </div>
+                            <div class="col values">${comment.timestamp}</div>
                         </div>
-                        <div class="col values">${comment.timestamp}</div>
-                    </div>
-                    <div class="mt-3">
-                        Comments:
-                    </div>
-                    <textarea class="reviewer mt-2" name="${comment.uuid}" rows="3" placeholder="Enter comments">${
-                        comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)
-                        ? comment.reviewer_comments.find((comment) => comment.reviewer === reviewer).comment
-                        : ''
-                    }</textarea>
-                    <div class="row mt-3">
-                        <div class="col">
-                            <a href="${comment.video_url}" target="_blank" class="mediaButton mt-2">See video</a>
+                        <div class="mt-3">
+                            Comments:
+                        </div>
+                        <textarea class="reviewer mt-2" name="${comment.uuid}" rows="3" placeholder="Enter comments">${
+                            comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)
+                            ? comment.reviewer_comments.find((comment) => comment.reviewer === reviewer).comment
+                            : ''
+                        }</textarea>
+                        <div class="row mt-3">
+                            <div class="col">
+                                <a href="${comment.video_url}" target="_blank" class="mediaButton mt-2">See video</a>
+                            </div>
                         </div>
                     </div>
-                </td>
-                <td class="text-center">
+                </div>
+                <div class="col-md text-center py-3">
                     <div class="slideshow-container w-100">
                         ${photoSlideshow}
                         <a id="prev" onclick="plusSlides(${numSlideshows} - 1, -1, '${comment.id_reference}')" ${photos.length < 2 ? "hidden" : ""}>&#10094;</a>
                         <a id="next" onclick="plusSlides(${numSlideshows} - 1, 1, '${comment.id_reference}')" ${photos.length < 2 ? "hidden" : ""}>&#10095;</a>
                     </div>
-                    <br>
-                </td>
-            </tr>
+                </div>
+            </div>
         `);
     }
 });
