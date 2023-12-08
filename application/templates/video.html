@@ -6,8 +6,11 @@
     <link rel="stylesheet" href="/static/css/bootstrap.css" />
     <link rel="stylesheet" href="/static/css/style.css" />
 </head>
-<body id="index" class="">
-    <video class="w-100" controls style="height: 100vh;">
+<body id="index">
+    <div class="text-center small my-2" style="color: #e3e3e3;">
+        If the video does not play, try <a class="mediaButton" href="{{ data.link }}">downloading it</a> (right click, "Save Link As...") or using another browser (e.g. Chrome or Edge).
+    </div>
+    <video class="w-100" controls style="height: 95vh;">
       <!-- MP4 format with H.264 video codec and AAC audio codec -->
       <source src="{{ data.link }}#t={{ data.time }}" type="video/mp4">
 
