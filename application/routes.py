@@ -352,6 +352,12 @@ def success():
     return render_template('save_success.html', data=data), 200
 
 
+@app.get('/video')
+def video():
+    data = {'link': request.args.get('link'), 'time': request.args.get('time')}
+    return render_template('video.html', data=data), 200
+
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404

@@ -46,6 +46,12 @@ $(document).ready(() => {
     for (let i = 0; i < sortedComments.length; i += 1) {
         const comment = sortedComments[i];
         const photos = [comment.image_url];
+        let videoLink = comment.video_url;
+
+        if (videoLink.includes('.mov')) {
+            videoLink = `/video?link=${videoLink.split('#t=')[0]}&time=${videoLink.split('#t=')[1]}`;
+        }
+
         if (comment.id_reference) {
             if (multiples.includes(comment.id_reference)) {
                 // we already added this one to the list
@@ -122,7 +128,7 @@ $(document).ready(() => {
                         }</textarea>
                         <div class="row mt-3">
                             <div class="col">
-                                <a href="${comment.video_url}" target="_blank" class="mediaButton mt-2">See video</a>
+                                <a href="${videoLink}" target="_blank" class="mediaButton mt-2">See video</a>
                             </div>
                         </div>
                     </div>

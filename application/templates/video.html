@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>DARC Image Review</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/css/bootstrap.css" />
+    <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body id="index" class="">
+    <video class="w-100" controls style="height: 100vh;">
+      <!-- MP4 format with H.264 video codec and AAC audio codec -->
+      <source src="{{ data.link }}#t={{ data.time }}" type="video/mp4">
+
+      <!-- MOV format with different codecs -->
+      <source src="{{ data.link }}#t={{ data.time }}" type="video/quicktime">
+      Your browser does not support the video tag or the file format of this video.
+    </video>
+</body>
+</html>
