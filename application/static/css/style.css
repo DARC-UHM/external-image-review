@@ -16,9 +16,20 @@ tbody tfoot, td, th {
 
 textarea {
     padding: 5px 10px;
-    background-color: #393E46;
+    background-color: #282e38;
     color: white;
     border: 0;
+    border-radius: 10px;
+    resize: none;
+}
+
+::placeholder {
+  color: #6da3a9;
+  opacity: 1; /* Firefox */
+}
+
+::-ms-input-placeholder { /* Edge 12 -18 */
+  color: #6da3a9;
 }
 
 ::-webkit-scrollbar {
@@ -118,6 +129,7 @@ textarea {
     position: absolute;
     top: 0;
     background: rgba(0,0,0,0.4);
+    border-radius: 10px 0 0 0;
 }
 
 /* Hide slideshow images by default */

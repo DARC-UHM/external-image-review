@@ -71,7 +71,7 @@ $(document).ready(() => {
         let photoSlideshow = `<div id="${comment.id_reference}-0">
                 ${photos.length > 1 ? `<div class="numbertext">1 / ${photos.length}</div>` : ''}
                 <a href="${photos[0]}" target="_blank">
-                    <img src="${photos[0]}" style="width:100%">
+                    <img src="${photos[0]}" style="width:100%; border-radius: 10px;">
                 </a>
               </div>`;
 
@@ -79,41 +79,41 @@ $(document).ready(() => {
             photoSlideshow += `<div id="${comment.id_reference}-${j}" class="slide">
                 ${photos.length > 1 ? `<div class="numbertext">${j + 1} / ${photos.length}</div>` : ''}
                 <a href="${photos[j]}" target="_blank">
-                    <img src="${photos[j]}" style="width:100%">
+                    <img src="${photos[j]}" style="width:100%; border-radius: 10px;">
                 </a>
               </div>`;
         }
 
         $('#comments').append(`
-            <div class="row flex-column-reverse flex-md-row my-3" style="background-color: #1d222a; border-radius: 10px;">
+            <div class="row flex-column-reverse flex-md-row my-3 small-md" style="background-color: #1d222a; border-radius: 20px;">
                 <div class="col-md ps-3 ps-md-5 text-start d-flex align-items-center py-3">
                     <div class="w-100">
                         <div class="row">
-                            <div class="col-4">
+                            <div class="col-5 col-sm-4">
                                 Tentative ID:
                             </div>
                             <div class="col values">${comment.concept}</div>
                         </div>
                         <div class="row">
-                            <div class="col-4">
+                            <div class="col-5 col-sm-4">
                                 Annotator:
                             </div>
                             <div class="col values">${comment.annotator}</div>
                         </div>
                         <div class="row">
-                            <div class="col-4">
+                            <div class="col-5 col-sm-4">
                                 Location:
                             </div>
                             <div class="col values"><a href="http://www.google.com/maps/place/${comment.lat},${comment.long}/@${comment.lat},${comment.long},5z/data=!3m1!1e3" target="_blank" class="mediaButton">${comment.lat}, ${comment.long}</a></div>
                         </div>
                         <div class="row">
-                            <div class="col-4">
+                            <div class="col-5 col-sm-4">
                                 Depth:
                             </div>
                             <div class="col values">${comment.depth} m</div>
                         </div>
                         <div class="row">
-                            <div class="col-4">
+                            <div class="col-5 col-sm-4">
                                 Timestamp:
                             </div>
                             <div class="col values">${comment.timestamp}</div>
