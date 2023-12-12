@@ -6,7 +6,7 @@ const slideshowIndices = [];
 let numSlideshows = 0;
 let warningOn = false; // alert "are you sure you want to navigate away from this page?"
 
-const tempSortedComments = comments.sort((a, b) => a.timestamp.localeCompare(b.timestamp)); // sort by timestamp
+const tempSortedComments = comments.sort((a, b) => Date.parse(a.timestamp) > Date.parse(b.timestamp)); // sort by timestamp
 const sortedComments = tempSortedComments.sort((a, b) => (a.concept > b.concept) ? 1 : (b.concept > a.concept) ? -1 : 0); // sort by concept
 
 function turnOnWarning() {

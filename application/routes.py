@@ -314,7 +314,7 @@ def review(reviewer_name):
                     if association['link_name'] == 'identity-reference':
                         # dive num + id ref to account for duplicate numbers across dives
                         record['id_reference'] = f'{record["sequence"][-2:]}:{association["link_value"]}'
-    data = {'comments': sorted(comments, key=lambda t: t['timestamp']), 'reviewer': reviewer_name}
+    data = {'comments': comments, 'reviewer': reviewer_name}
     return render_template('external_review.html', data=data), 200
 
 
