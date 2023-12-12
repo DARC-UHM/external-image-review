@@ -294,22 +294,26 @@ def get_all_reviewers():
 @app.get('/review/<reviewer_name>')
 def review(reviewer_name):
     comments = []
+    return_all_comments = request.args.get('all') == 'true'
     reviewer_name = reviewer_name.replace('-', ' ')
     matched_records = Comment.objects(reviewer_comments__reviewer=reviewer_name)
     for record in matched_records:
         record = record.json()
-        comments.append(record)
-        # get the record info from the server
-        with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{record["uuid"]}') as r:
-            server_record = r.json()
-            record['concept'] = server_record['concept']
-            # check for "identity-certainty: maybe" and "identity-reference"
-            for association in server_record['associations']:
-                if association['link_name'] == 'identity-certainty' and association['link_value'] == 'maybe':
-                    record['concept'] += '?'
-                if association['link_name'] == 'identity-reference':
-                    # dive num + id ref to account for duplicate numbers across dives
-                    record['id_reference'] = f'{record["sequence"][-2:]}:{association["link_value"]}'
+        if return_all_comments or \
+                next((x for x in record['reviewer_comments'] if x['reviewer'] == reviewer_name))['comment'] == '':
+            # only return records that the reviewer has not yet commented on
+            comments.append(record)
+            # get the record info from the server
+            with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{record["uuid"]}') as r:
+                server_record = r.json()
+                record['concept'] = server_record['concept']
+                # check for "identity-certainty: maybe" and "identity-reference"
+                for association in server_record['associations']:
+                    if association['link_name'] == 'identity-certainty' and association['link_value'] == 'maybe':
+                        record['concept'] += '?'
+                    if association['link_name'] == 'identity-reference':
+                        # dive num + id ref to account for duplicate numbers across dives
+                        record['id_reference'] = f'{record["sequence"][-2:]}:{association["link_value"]}'
     data = {'comments': sorted(comments, key=lambda t: t['timestamp']), 'reviewer': reviewer_name}
     return render_template('external_review.html', data=data), 200
 
