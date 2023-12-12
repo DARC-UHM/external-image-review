@@ -1,5 +1,3 @@
-// list of records that have id references, ie there is more than one photo of the same animal
-const multiples = [];
 // array of the slideshow indices for records that have multiple id references: [[currentIndex, maxIndex, refId], ...]
 const slideshowIndices = [];
 
@@ -39,11 +37,42 @@ function plusSlides(slideshowIndex, slideMod, idRef) {
 
 }
 
+async function saveComments() {
+    event.preventDefault();
+    const formData = new FormData($('#commentForm')[0]);
+    for (const comment of formData.entries()) {
+        if (comment[0].includes(';')) {
+            const uuids = comment[0].split(';');
+            formData.delete(comment[0]);
+            for (let i = 0; i < uuids.length; i += 1) {
+                formData.append(uuids[i], comment[1]);
+            }
+        }
+    }
+    try {
+        const res = await fetch('/save-comments', {
+            method: 'POST',
+            body: formData,
+        });
+        if (res.ok && res.redirected) {
+            window.location.href = res.url;
+        } else {
+            console.log('Error saving comments');
+        }
+    } catch (err) {
+        console.log(err);
+    }
+}
+
 $(document).ready(() => {
     $('textarea').on('input', () => turnOnWarning()); // when any textarea is modified, turn on warning
 
+    // list of records that have id references, ie there is more than one photo of the same animal
+    const multiples = [];
+
     // find records with the same id reference #
     for (let i = 0; i < sortedComments.length; i += 1) {
+        const idRefUuids = [];
         const comment = sortedComments[i];
         const photos = [comment.image_url];
         let videoLink = comment.video_url;
@@ -59,12 +88,14 @@ $(document).ready(() => {
             }
             multiples.push(comment.id_reference); // add id ref to list
             slideshowIndices.push([1, 1, comment.id_reference]); // add the slideshow index for this record to the array
+            idRefUuids.push(comment.uuid);
             numSlideshows += 1;
             // find other records with same id ref
             for (let j = i + 1; j < sortedComments.length; j += 1) {
                 if (sortedComments[j].id_reference && sortedComments[j].id_reference === sortedComments[i].id_reference) {
                     photos.push(sortedComments[j].image_url); // add those photos to this comment
                     slideshowIndices[numSlideshows - 1][1] += 1;
+                    idRefUuids.push(sortedComments[j].uuid);
                 }
             }
         }
@@ -121,7 +152,7 @@ $(document).ready(() => {
                         <div class="mt-3">
                             Comments:
                         </div>
-                        <textarea class="reviewer mt-2" name="${comment.uuid}" rows="3" placeholder="Enter comments">${
+                        <textarea class="reviewer mt-2" name="${idRefUuids.length ? idRefUuids.join(';') : comment.uuid}" rows="3" placeholder="Enter comments">${
                             comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)
                             ? comment.reviewer_comments.find((comment) => comment.reviewer === reviewer).comment
                             : ''

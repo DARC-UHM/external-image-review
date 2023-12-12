@@ -14,7 +14,7 @@
         <div class="small">
             Select an image to view a larger version, or select "see video" to see the video where the image was captured.<br>
         </div>
-        <form action="/save-comments" method="post" autocomplete="off">
+        <form id="commentForm" onsubmit="saveComments()" autocomplete="off">
             <div id="comments" class="col mt-3">
             </div>
             <input type="hidden" name="reviewer" value="{{ data.reviewer }}">
