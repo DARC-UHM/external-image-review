@@ -190,7 +190,7 @@ def get_reviewer_comments(reviewer_name):
     for record in db_records:
         obj = record.json()
         comments[obj['uuid']] = {
-            'comment': obj['reviewer_comments'],
+            'reviewer_comments': obj['reviewer_comments'],
             'image_url': obj['image_url'],
             'video_url': obj['video_url'],
             'sequence': obj['sequence'],
