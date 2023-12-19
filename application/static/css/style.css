@@ -78,6 +78,21 @@ textarea {
   font-size: 12px;
 }
 
+.secret-button {
+    position: absolute;
+    left: 0;
+    background: transparent;
+    border: none;
+    color: transparent;
+    transition: 0.1s;
+    font-size: small;
+    margin-left: 14px;
+}
+
+.secret-button:hover {
+    color: #3c4554;
+}
+
 #reviewerSubmit {
     padding: 10px 40px;
     font-weight: 500;

@@ -37,6 +37,12 @@ function plusSlides(slideshowIndex, slideMod, idRef) {
 
 }
 
+function addViewAllParam() {
+    const url = new URL(window.location.href);
+    url.searchParams.set('all', 'true');
+    window.location.href = url.href;
+}
+
 async function saveComments() {
     event.preventDefault();
     const formData = new FormData($('#commentForm')[0]);
