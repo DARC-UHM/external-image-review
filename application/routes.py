@@ -123,7 +123,7 @@ def delete_comment(uuid):
 @app.get('/comment/all')
 def get_all_comments():
     comments = {}
-    db_records = Comment.objects()
+    db_records = Comment.objects.order_by('sequence')
     for record in db_records:
         obj = record.json()
         comments[obj['uuid']] = {
@@ -141,7 +141,7 @@ def get_all_comments():
 @app.get('/comment/all-v')
 def get_all_comments_verbose():
     comments = {}
-    db_records = Comment.objects()
+    db_records = Comment.objects.order_by('sequence')
     for record in db_records:
         obj = record.json()
         comments[obj['uuid']] = record.json()
