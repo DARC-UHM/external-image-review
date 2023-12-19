@@ -22,6 +22,8 @@ class Comment(Document):
     depth = StringField(max_length=10)
     lat = StringField(max_length=10)
     long = StringField(max_length=10)
+    temperature = StringField(max_length=10)
+    oxygen_ml_l = StringField(max_length=10)
     video_url = StringField(max_length=200)
 
     def json(self):
@@ -43,6 +45,8 @@ class Comment(Document):
             'depth': self.depth,
             'lat': self.lat,
             'long': self.long,
+            'temperature': self.temperature,
+            'oxygen_ml_l': self.oxygen_ml_l,
             'video_url': self.video_url,
         }
         return comment

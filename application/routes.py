@@ -33,6 +33,8 @@ def add_comment():
     depth = request.values.get('depth')
     lat = request.values.get('lat')
     long = request.values.get('long')
+    temperature = request.values.get('temperature')
+    oxygen_ml_l = request.values.get('oxygen_ml_l')
     if not uuid or not sequence or not timestamp or not image_url or not reviewers or not annotator:
         return {400: 'Missing required values'}, 400
     try:
@@ -47,6 +49,8 @@ def add_comment():
             depth=depth,
             lat=lat,
             long=long,
+            temperature=temperature,
+            oxygen_ml_l=oxygen_ml_l,
         )
         for reviewer in reviewers:
             comment.reviewer_comments.append(ReviewerCommentList(reviewer=reviewer, comment=''))
@@ -132,7 +136,7 @@ def get_all_comments():
             'video_url': obj['video_url'],
             'sequence': obj['sequence'],
             'depth': obj['depth'],
-            'unread': obj['unread']
+            'unread': obj['unread'],
         }
     return comments, 200
 
@@ -161,7 +165,7 @@ def get_unread_comments():
             'video_url': obj['video_url'],
             'sequence': obj['sequence'],
             'depth': obj['depth'],
-            'unread': obj['unread']
+            'unread': obj['unread'],
         }
     return comments, 200
 
@@ -177,7 +181,8 @@ def get_sequence_comments(sequence_num):
             'reviewer_comments': obj['reviewer_comments'],
             'image_url': obj['image_url'],
             'video_url': obj['video_url'],
-            'unread': obj['unread']
+            'depth': obj['depth'],
+            'unread': obj['unread'],
         }
     return comments, 200
 
@@ -195,7 +200,7 @@ def get_reviewer_comments(reviewer_name):
             'video_url': obj['video_url'],
             'sequence': obj['sequence'],
             'depth': obj['depth'],
-            'unread': obj['unread']
+            'unread': obj['unread'],
         }
     return comments, 200
 
@@ -219,7 +224,9 @@ def sync_ctd():
         record.update(
             set__depth=str(updated_ctd[uuid]['depth']),
             set__lat=str(updated_ctd[uuid]['lat']),
-            set__long=str(updated_ctd[uuid]['long'])
+            set__long=str(updated_ctd[uuid]['long']),
+            set__temperature=str(updated_ctd[uuid]['temperature']),
+            set__oxygen_ml_l=str(updated_ctd[uuid]['oxygen_ml_l']),
         )
     return {200: 'CTD synced'}, 200
 
@@ -309,7 +316,7 @@ def review(reviewer_name):
                 record['concept'] = server_record['concept']
                 # check for "identity-certainty: maybe" and "identity-reference"
                 for association in server_record['associations']:
-                    if association['link_name'] == 'identity-certainty' and association['link_value'] == 'maybe':
+                    if association['link_name'] == 'identity-certainty' and 'maybe' in association['link_value']:
                         record['concept'] += '?'
                     if association['link_name'] == 'identity-reference':
                         # dive num + id ref to account for duplicate numbers across dives
