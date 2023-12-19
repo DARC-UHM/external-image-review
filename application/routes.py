@@ -316,8 +316,8 @@ def review(reviewer_name):
                 record['concept'] = server_record['concept']
                 # check for "identity-certainty: maybe" and "identity-reference"
                 for association in server_record['associations']:
-                    if association['link_name'] == 'identity-certainty' and 'maybe' in association['link_value']:
-                        record['concept'] += '?'
+                    if association['link_name'] == 'identity-certainty':
+                        record['id_certainty'] = association['link_value']
                     if association['link_name'] == 'identity-reference':
                         # dive num + id ref to account for duplicate numbers across dives
                         record['id_reference'] = f'{record["sequence"][-2:]}:{association["link_value"]}'
