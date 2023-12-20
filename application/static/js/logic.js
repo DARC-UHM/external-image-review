@@ -171,20 +171,20 @@ $(document).ready(() => {
                             : ''
                         }
                         ${comment.temperature
-                            ? `<div className="row">
-                                <div className="col-5 col-sm-4">
+                            ? `<div class="row">
+                                <div class="col-5 col-sm-4">
                                     Temperature:
                                 </div>
-                                <div className="col values">${comment.temperature} °C</div>
+                                <div class="col values">${comment.temperature} °C</div>
                             </div>`
                             : ''
                         }
                         ${comment.oxygen_ml_l
-                            ? `<div className="row">
-                                <div className="col-5 col-sm-4">
+                            ? `<div class="row">
+                                <div class="col-5 col-sm-4">
                                     Oxygen:
                                 </div>
-                                <div className="col values">${comment.oxygen_ml_l} mL/L</div>
+                                <div class="col values">${comment.oxygen_ml_l} mL/L</div>
                             </div>`
                             : ''
                         }
