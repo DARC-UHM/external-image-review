@@ -129,14 +129,14 @@ $(document).ready(() => {
                             <div class="col-5 col-sm-4">
                                 Tentative ID:
                             </div>
-                            <div class="col values">${comment.concept}</div>
+                            <div class="col values">${comment.concept}${comment.id_certainty?.includes('maybe') ? '?' : ''}</div>
                         </div>
                         ${comment.id_certainty && comment.id_certainty !== 'maybe'
                             ? `<div class="row">
                                 <div class="col-5 col-sm-4">
                                     ID Remarks:
                                 </div>
-                                <div class="col values">${comment.id_certainty.replaceAll('maybe', '')}</div>
+                                <div class="col values">${comment.id_certainty.replaceAll('maybe', '').replace( /^; /i, '')}</div>
                             </div>`
                             : ''
                         }
