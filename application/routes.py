@@ -127,25 +127,7 @@ def delete_comment(uuid):
 @app.get('/comment/all')
 def get_all_comments():
     comments = {}
-    db_records = Comment.objects.order_by('sequence')
-    for record in db_records:
-        obj = record.json()
-        comments[obj['uuid']] = {
-            'reviewer_comments': obj['reviewer_comments'],
-            'image_url': obj['image_url'],
-            'video_url': obj['video_url'],
-            'sequence': obj['sequence'],
-            'depth': obj['depth'],
-            'unread': obj['unread'],
-        }
-    return comments, 200
-
-
-# returns all comments saved in the database with extra info
-@app.get('/comment/all-v')
-def get_all_comments_verbose():
-    comments = {}
-    db_records = Comment.objects.order_by('sequence')
+    db_records = Comment.objects()
     for record in db_records:
         obj = record.json()
         comments[obj['uuid']] = record.json()
@@ -159,14 +141,7 @@ def get_unread_comments():
     db_records = Comment.objects(unread=True)
     for record in db_records:
         obj = record.json()
-        comments[obj['uuid']] = {
-            'reviewer_comments': obj['reviewer_comments'],
-            'image_url': obj['image_url'],
-            'video_url': obj['video_url'],
-            'sequence': obj['sequence'],
-            'depth': obj['depth'],
-            'unread': obj['unread'],
-        }
+        comments[obj['uuid']] = record.json()
     return comments, 200
 
 
@@ -177,13 +152,7 @@ def get_sequence_comments(sequence_num):
     db_records = Comment.objects(sequence=sequence_num)
     for record in db_records:
         obj = record.json()
-        comments[obj['uuid']] = {
-            'reviewer_comments': obj['reviewer_comments'],
-            'image_url': obj['image_url'],
-            'video_url': obj['video_url'],
-            'depth': obj['depth'],
-            'unread': obj['unread'],
-        }
+        comments[obj['uuid']] = record.json()
     return comments, 200
 
 
@@ -194,14 +163,7 @@ def get_reviewer_comments(reviewer_name):
     db_records = Comment.objects(reviewer_comments__reviewer=reviewer_name)
     for record in db_records:
         obj = record.json()
-        comments[obj['uuid']] = {
-            'reviewer_comments': obj['reviewer_comments'],
-            'image_url': obj['image_url'],
-            'video_url': obj['video_url'],
-            'sequence': obj['sequence'],
-            'depth': obj['depth'],
-            'unread': obj['unread'],
-        }
+        comments[obj['uuid']] = record.json()
     return comments, 200
 
 
@@ -327,10 +289,13 @@ def review(reviewer_name):
     return render_template('external_review.html', data=data), 200
 
 
-# returns a list of reviewers with comments in the database
-@app.get('/active-reviewers')
-def active_reviewers():
-    return Comment.objects().distinct(field='reviewer_comments.reviewer')
+# returns number of unread comments, number of total comments, and a list of reviewers with comments in the database
+@app.get('/stats')
+def stats():
+    active_reviewers = Comment.objects().distinct(field='reviewer_comments.reviewer')
+    unread_comments = Comment.objects(unread=True).count()
+    total_comments = Comment.objects().count()
+    return {'unread_comments': unread_comments, 'total_comments': total_comments, 'active_reviewers': active_reviewers}, 200
 
 
 # route to save reviewer's comments, redirects to success page
