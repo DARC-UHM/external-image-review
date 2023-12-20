@@ -309,7 +309,7 @@ def review(reviewer_name):
         # show all comments or only return records that the reviewer has not yet commented on
         if return_all_comments or next((x for x in record['reviewer_comments'] if x['reviewer'] == reviewer_name))['comment'] == '':
             # filter by annotator if specified
-            if request.args.get('annotator') and request.args.get('annotator') != record['annotator']:
+            if request.args.getlist('annotator') and record['annotator'] not in request.args.getlist('annotator'):
                 continue
             comments.append(record)
             # get the record info from the server
