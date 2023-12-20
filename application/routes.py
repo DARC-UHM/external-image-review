@@ -306,9 +306,11 @@ def review(reviewer_name):
     matched_records = Comment.objects(reviewer_comments__reviewer=reviewer_name)
     for record in matched_records:
         record = record.json()
-        if return_all_comments or \
-                next((x for x in record['reviewer_comments'] if x['reviewer'] == reviewer_name))['comment'] == '':
-            # only return records that the reviewer has not yet commented on
+        # show all comments or only return records that the reviewer has not yet commented on
+        if return_all_comments or next((x for x in record['reviewer_comments'] if x['reviewer'] == reviewer_name))['comment'] == '':
+            # filter by annotator if specified
+            if request.args.get('annotator') and request.args.get('annotator') != record['annotator']:
+                continue
             comments.append(record)
             # get the record info from the server
             with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{record["uuid"]}') as r:
