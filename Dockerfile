@@ -14,4 +14,4 @@ RUN pip install -r requirements.txt
 EXPOSE 5000
 
 # Set the directive to specify the executable that will run when the container is initiated
-ENTRYPOINT ["gunicorn", "run:app", "-b", ":5000", "--threads", "2", "--certfile", "server.pem", "--keyfile", "server.key"]
+ENTRYPOINT ["gunicorn", "run:app", "-b", ":5000", "--threads", "2", "--certfile", "cert/server.pem", "--keyfile", "cert/server.key"]
