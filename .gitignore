@@ -3,3 +3,4 @@ __pycache__
 comments
 .DS_Store
 env.sh
+certs
