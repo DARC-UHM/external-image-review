@@ -7,7 +7,7 @@ services:
       - MONGO_USERNAME=${DB_USER}
       - MONGO_PASSWORD=${DB_PASS}
     ports:
-      - "443:5000"
+      - "5000:5000"
     links:
       - mongodb
   mongodb:
