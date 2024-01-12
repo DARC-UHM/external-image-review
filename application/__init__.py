@@ -1,5 +1,6 @@
 import os
 from flask import Flask
+from flask_sslify import SSLify
 from mongoengine import connect
 
 mongo_username = os.environ["MONGO_USERNAME"]
@@ -15,5 +16,7 @@ connect(
     authentication_source='admin'
 )
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
+
+sslify = SSLify(app)
 
 from application import routes

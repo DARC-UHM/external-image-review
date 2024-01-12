@@ -1,5 +1,6 @@
 flask
 flask-cors
+flask_sslify
 requests
 jinja2
 mongoengine
