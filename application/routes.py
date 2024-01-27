@@ -1,8 +1,10 @@
+import os
 import requests
 import json
 
 from datetime import datetime, timedelta
-from flask import render_template, request, redirect
+from functools import wraps
+from flask import render_template, request, redirect, jsonify
 from flask_cors import CORS, cross_origin
 from mongoengine import NotUniqueError, DoesNotExist
 
@@ -13,6 +15,18 @@ from schema.reviewer import Reviewer
 
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+API_KEY = os.environ.get('API_KEY')
+
+
+def require_api_key(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        provided_api_key = request.headers.get('API-Key')
+        if provided_api_key == API_KEY:
+            return func(*args, **kwargs)
+        else:
+            return jsonify({"error": "Unauthorized"}), 401
+    return wrapper
 
 
 @app.route('/favicon.ico')
@@ -22,6 +36,7 @@ def favicon():
 
 # add a new comment
 @app.post('/comment/add')
+@require_api_key  # TODO protect other endpoints
 def add_comment():
     uuid = request.values.get('uuid')
     sequence = request.values.get('sequence')
@@ -36,7 +51,7 @@ def add_comment():
     temperature = request.values.get('temperature')
     oxygen_ml_l = request.values.get('oxygen_ml_l')
     if not uuid or not sequence or not timestamp or not image_url or not reviewers or not annotator:
-        return {400: 'Missing required values'}, 400
+        return jsonify({400: 'Missing required values'}), 400
     try:
         comment = Comment(
             uuid=uuid,
@@ -56,8 +71,8 @@ def add_comment():
             comment.reviewer_comments.append(ReviewerCommentList(reviewer=reviewer, comment=''))
         comment.save()
     except NotUniqueError:
-        return {409: 'Already a comment record for given uuid'}, 409
-    return comment.json(), 201
+        return jsonify({409: 'Already a comment record for given uuid'}), 409
+    return jsonify(comment.json()), 201
 
 
 # update a comment's text given a reviewer and an observation uuid
@@ -66,7 +81,7 @@ def update_comment(reviewer, uuid):
     try:
         db_record = Comment.objects.get(uuid=uuid)
     except DoesNotExist:
-        return {404: 'No comment records matching given uuid'}, 404
+        return jsonify({404: 'No comment records matching given uuid'}), 404
     for reviewer_comment in db_record.reviewer_comments:
         if reviewer_comment['reviewer'] == reviewer:
             if reviewer_comment['comment'] != request.values.get('comment'):
@@ -74,9 +89,9 @@ def update_comment(reviewer, uuid):
                 reviewer_comment['date_modified'] = (datetime.now() - timedelta(hours=10))
                 db_record.unread = True
                 db_record.save()
-                return Comment.objects.get(uuid=uuid).json(), 200
-            return 'No updates made', 200
-    return {404: 'No comment records matching given reviewer'}, 404
+                return jsonify(Comment.objects.get(uuid=uuid).json()), 200
+            return jsonify({200: 'No updates made'}), 200
+    return jsonify({404: 'No comment records matching given reviewer'}), 404
 
 
 # update a comment's reviewers given an observation uuid
@@ -85,7 +100,7 @@ def update_comment_reviewer(uuid):
     try:
         db_record = Comment.objects.get(uuid=uuid)
     except DoesNotExist:
-        return {404: 'No comment records matching given uuid'}, 404
+        return jsonify({404: 'No comment records matching given uuid'}), 404
     reviewers = json.loads(request.values.get('reviewers'))
     temp_reviewer_comments = []
     for reviewer_comment in db_record.reviewer_comments:
@@ -96,7 +111,7 @@ def update_comment_reviewer(uuid):
         temp_reviewer_comments.append(ReviewerCommentList(reviewer=reviewer, comment=''))
     db_record.reviewer_comments = temp_reviewer_comments
     db_record.save()
-    return Comment.objects.get(uuid=uuid).json(), 200
+    return jsonify(Comment.objects.get(uuid=uuid).json()), 200
 
 
 # mark a comment as read
@@ -105,11 +120,11 @@ def mark_comment_read(uuid):
     try:
         db_record = Comment.objects.get(uuid=uuid)
     except DoesNotExist:
-        return {404: 'No comment records matching given uuid'}, 404
+        return jsonify({404: 'No comment records matching given uuid'}), 404
     db_record.update(
         unread=False,
     )
-    return Comment.objects.get(uuid=uuid).json(), 200
+    return jsonify(Comment.objects.get(uuid=uuid).json()), 200
 
 
 # delete a comment given an observation uuid
@@ -118,9 +133,9 @@ def delete_comment(uuid):
     try:
         db_record = Comment.objects.get(uuid=uuid)
     except DoesNotExist:
-        return {404: 'No comment records matching given uuid'}, 404
+        return jsonify({404: 'No comment records matching given uuid'}), 404
     db_record.delete()
-    return {200: 'Comment deleted'}, 200
+    return jsonify({200: 'Comment deleted'}), 200
 
 
 # returns all comments saved in the database
@@ -131,7 +146,7 @@ def get_all_comments():
     for record in db_records:
         obj = record.json()
         comments[obj['uuid']] = record.json()
-    return comments, 200
+    return jsonify(comments), 200
 
 
 # returns all unread comments
@@ -142,7 +157,7 @@ def get_unread_comments():
     for record in db_records:
         obj = record.json()
         comments[obj['uuid']] = record.json()
-    return comments, 200
+    return jsonify(comments), 200
 
 
 # returns all comments in a given sequence
@@ -153,7 +168,7 @@ def get_sequence_comments(sequence_num):
     for record in db_records:
         obj = record.json()
         comments[obj['uuid']] = record.json()
-    return comments, 200
+    return jsonify(comments), 200
 
 
 # returns all comments for a given reviewer
@@ -164,7 +179,7 @@ def get_reviewer_comments(reviewer_name):
     for record in db_records:
         obj = record.json()
         comments[obj['uuid']] = record.json()
-    return comments, 200
+    return jsonify(comments), 200
 
 
 # returns one comment
@@ -173,8 +188,8 @@ def get_reviewer_comments(reviewer_name):
 def get_comment(uuid):
     db_record = Comment.objects(uuid=uuid)
     if not db_record:
-        return {404: 'No comment with given uuid'}, 404
-    return db_record[0].json(), 200
+        return jsonify({404: 'No comment with given uuid'}), 404
+    return jsonify(db_record[0].json()), 200
 
 
 # update ctd data for all comments in the db
@@ -190,7 +205,7 @@ def sync_ctd():
             set__temperature=str(updated_ctd[uuid]['temperature']),
             set__oxygen_ml_l=str(updated_ctd[uuid]['oxygen_ml_l']),
         )
-    return {200: 'CTD synced'}, 200
+    return jsonify({200: 'CTD synced'}), 200
 
 
 # add a new reviewer to the database
@@ -202,7 +217,7 @@ def add_reviewer():
     phylum = request.values.get('phylum')
     focus = request.values.get('focus')
     if not name or not phylum:
-        return {400: 'Missing required values'}, 400
+        return jsonify({400: 'Missing required values'}), 400
     try:
         reviewer = Reviewer(
             name=name,
@@ -212,8 +227,8 @@ def add_reviewer():
             focus=focus
         ).save()
     except NotUniqueError:
-        return {409: 'Already a comment record for given uuid'}, 409
-    return reviewer.json(), 201
+        return jsonify({409: 'Already a comment record for given uuid'}), 409
+    return jsonify(reviewer.json()), 201
 
 
 # update a reviewer's information
@@ -227,7 +242,7 @@ def update_reviewer_info(old_name):
     try:
         db_record = Reviewer.objects.get(name=old_name)
     except DoesNotExist:
-        return {404: 'No reviewer records found with matching name'}, 404
+        return jsonify({404: 'No reviewer records found with matching name'}), 404
     db_record.update(
         set__name=new_name,
         set__email=email or '',
@@ -235,7 +250,7 @@ def update_reviewer_info(old_name):
         set__phylum=phylum or '',
         set__focus=focus or ''
     )
-    return Reviewer.objects.get(name=new_name).json(), 200
+    return jsonify(Reviewer.objects.get(name=new_name).json()), 200
 
 
 # delete a reviewer
@@ -245,8 +260,8 @@ def delete_reviewer(name):
         db_record = Reviewer.objects.get(name=name)
         db_record.delete()
     except DoesNotExist:
-        return {404: 'No comment records matching given uuid'}, 404
-    return {200: 'Reviewer deleted'}, 200
+        return jsonify({404: 'No comment records matching given uuid'}), 404
+    return jsonify({200: 'Reviewer deleted'}), 200
 
 
 # returns all reviewers saved in the database
@@ -256,7 +271,7 @@ def get_all_reviewers():
     db_records = Reviewer.objects()
     for record in db_records:
         reviewers.append(record.json())
-    return reviewers, 200
+    return jsonify(reviewers), 200
 
 
 # the link to share with external reviewers
@@ -295,7 +310,11 @@ def stats():
     active_reviewers = Comment.objects().distinct(field='reviewer_comments.reviewer')
     unread_comments = Comment.objects(unread=True).count()
     total_comments = Comment.objects().count()
-    return {'unread_comments': unread_comments, 'total_comments': total_comments, 'active_reviewers': active_reviewers}, 200
+    return jsonify({
+        'unread_comments': unread_comments,
+        'total_comments': total_comments,
+        'active_reviewers': active_reviewers,
+    }), 200
 
 
 # route to save reviewer's comments, redirects to success page
@@ -316,7 +335,7 @@ def save_comments():
     if count_success > 0:
         return redirect(f'success?name={reviewer_name}&count={count_success}')
     else:
-        return {500: f'Internal server error - could not update {list_failures}'}, 500
+        return jsonify({500: f'Internal server error - could not update {list_failures}'}), 500
 
 
 # displays a save success page
