@@ -13,8 +13,9 @@ class Comment(Document):
     """ Schema for comment collection """
 
     uuid = StringField(unique=True, required=True, max_length=50)
+    scientific_name = StringField(max_length=100)  # for tator comments
     sequence = StringField(required=True, max_length=50)
-    timestamp = StringField(required=True, max_length=30)
+    timestamp = StringField(max_length=30)
     image_url = StringField(required=True, max_length=200)
     reviewer_comments = ListField(EmbeddedDocumentField(ReviewerCommentList))
     annotator = StringField(required=True, max_length=50)
@@ -36,6 +37,7 @@ class Comment(Document):
             })
         comment = {
             'uuid': self.uuid,
+            'scientific_name': self.scientific_name,
             'sequence': self.sequence,
             'timestamp': self.timestamp,
             'image_url': self.image_url,

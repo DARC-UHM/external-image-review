@@ -34,6 +34,7 @@ def favicon():
 @require_api_key
 def add_comment():
     uuid = request.values.get('uuid')
+    scientific_name = request.values.get('scientific_name')
     sequence = request.values.get('sequence')
     timestamp = request.values.get('timestamp')
     image_url = request.values.get('image_url')
@@ -45,11 +46,12 @@ def add_comment():
     long = request.values.get('long')
     temperature = request.values.get('temperature')
     oxygen_ml_l = request.values.get('oxygen_ml_l')
-    if not uuid or not sequence or not timestamp or not image_url or not reviewers or not annotator:
+    if not uuid or not sequence or not image_url or not reviewers or not annotator:
         return jsonify({400: 'Missing required values'}), 400
     try:
         comment = Comment(
             uuid=uuid,
+            scientific_name=scientific_name,
             sequence=sequence,
             timestamp=timestamp,
             image_url=image_url,
