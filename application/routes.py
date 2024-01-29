@@ -4,8 +4,8 @@ import json
 
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import render_template, request, redirect, jsonify
-from flask_cors import CORS, cross_origin
+from flask import render_template, request, redirect, jsonify, send_file
+from flask_cors import cross_origin
 from mongoengine import NotUniqueError, DoesNotExist
 
 from application import app
@@ -13,16 +13,11 @@ from schema.comment import Comment, ReviewerCommentList
 from schema.reviewer import Reviewer
 
 
-cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
-API_KEY = os.environ.get('API_KEY')
-
-
 def require_api_key(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         provided_api_key = request.headers.get('API-Key')
-        if provided_api_key == API_KEY:
+        if provided_api_key == app.config.get('API_KEY'):
             return func(*args, **kwargs)
         else:
             return jsonify({'error': 'Unauthorized'}), 401
@@ -342,7 +337,7 @@ def save_comments():
         data = {'comment': request.values.get(uuid)}
         with requests.put(
             f'{request.url_root}/comment/update/{reviewer_name}/{uuid}',
-            headers={'API-Key': API_KEY},
+            headers={'API-Key': app.config.get('API_KEY')},
             data=data,
         ) as r:
             if r.status_code == 200:
@@ -368,6 +363,26 @@ def success():
 def video():
     data = {'link': request.args.get('link'), 'time': request.args.get('time')}
     return render_template('video.html', data=data), 200
+
+
+@app.post('/image-upload')
+@require_api_key
+def image_upload():
+    if 'image' not in request.files:
+        return jsonify({400: 'No image provided'}), 400
+    img = request.files['image']
+    if img.filename == '':
+        return jsonify({400: 'No selected file'}), 400
+    img.save(os.path.join(app.config.get('TATOR_IMAGE_FOLDER'), img.filename))
+    return jsonify({201: 'uploaded'}), 201
+
+
+@app.get('/image/<image_name>')
+def image(image_name):
+    try:
+        return send_file(os.path.join(app.config.get("TATOR_IMAGE_FOLDER"), image_name))
+    except FileNotFoundError:
+        return jsonify({404: 'Image not found'}), 404
 
 
 @app.errorhandler(404)
