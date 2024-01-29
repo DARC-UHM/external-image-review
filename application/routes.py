@@ -25,7 +25,7 @@ def require_api_key(func):
         if provided_api_key == API_KEY:
             return func(*args, **kwargs)
         else:
-            return jsonify({"error": "Unauthorized"}), 401
+            return jsonify({'error': 'Unauthorized'}), 401
     return wrapper
 
 
@@ -36,7 +36,7 @@ def favicon():
 
 # add a new comment
 @app.post('/comment/add')
-@require_api_key  # TODO protect other endpoints
+@require_api_key
 def add_comment():
     uuid = request.values.get('uuid')
     sequence = request.values.get('sequence')
@@ -77,6 +77,7 @@ def add_comment():
 
 # update a comment's text given a reviewer and an observation uuid
 @app.put('/comment/update/<reviewer>/<uuid>')
+@require_api_key
 def update_comment(reviewer, uuid):
     try:
         db_record = Comment.objects.get(uuid=uuid)
@@ -96,6 +97,7 @@ def update_comment(reviewer, uuid):
 
 # update a comment's reviewers given an observation uuid
 @app.put('/comment/update-reviewers/<uuid>')
+@require_api_key
 def update_comment_reviewer(uuid):
     try:
         db_record = Comment.objects.get(uuid=uuid)
@@ -129,6 +131,7 @@ def mark_comment_read(uuid):
 
 # delete a comment given an observation uuid
 @app.delete('/comment/delete/<uuid>')
+@require_api_key
 def delete_comment(uuid):
     try:
         db_record = Comment.objects.get(uuid=uuid)
@@ -140,6 +143,7 @@ def delete_comment(uuid):
 
 # returns all comments saved in the database
 @app.get('/comment/all')
+@require_api_key
 def get_all_comments():
     comments = {}
     db_records = Comment.objects()
@@ -151,6 +155,7 @@ def get_all_comments():
 
 # returns all unread comments
 @app.get('/comment/unread')
+@require_api_key
 def get_unread_comments():
     comments = {}
     db_records = Comment.objects(unread=True)
@@ -162,6 +167,7 @@ def get_unread_comments():
 
 # returns all comments in a given sequence
 @app.get('/comment/sequence/<sequence_num>')
+@require_api_key
 def get_sequence_comments(sequence_num):
     comments = {}
     db_records = Comment.objects(sequence=sequence_num)
@@ -173,6 +179,7 @@ def get_sequence_comments(sequence_num):
 
 # returns all comments for a given reviewer
 @app.get('/comment/reviewer/<reviewer_name>')
+@require_api_key
 def get_reviewer_comments(reviewer_name):
     comments = {}
     db_records = Comment.objects(reviewer_comments__reviewer=reviewer_name)
@@ -194,6 +201,7 @@ def get_comment(uuid):
 
 # update ctd data for all comments in the db
 @app.put('/sync-ctd')
+@require_api_key
 def sync_ctd():
     updated_ctd = json.loads(request.data)
     for uuid in updated_ctd.keys():
@@ -210,6 +218,7 @@ def sync_ctd():
 
 # add a new reviewer to the database
 @app.post('/reviewer/add')
+@require_api_key
 def add_reviewer():
     name = request.values.get('name')
     email = request.values.get('email')
@@ -233,6 +242,7 @@ def add_reviewer():
 
 # update a reviewer's information
 @app.put('/reviewer/update/<old_name>')
+@require_api_key
 def update_reviewer_info(old_name):
     new_name = request.values.get('new_name')  # if the name didn't change, this will be the same as old_name
     email = request.values.get('email')
@@ -255,6 +265,7 @@ def update_reviewer_info(old_name):
 
 # delete a reviewer
 @app.delete('/reviewer/delete/<name>')
+@require_api_key
 def delete_reviewer(name):
     try:
         db_record = Reviewer.objects.get(name=name)
@@ -266,6 +277,7 @@ def delete_reviewer(name):
 
 # returns all reviewers saved in the database
 @app.get('/reviewer/all')
+@require_api_key
 def get_all_reviewers():
     reviewers = []
     db_records = Reviewer.objects()
@@ -306,6 +318,7 @@ def review(reviewer_name):
 
 # returns number of unread comments, number of total comments, and a list of reviewers with comments in the database
 @app.get('/stats')
+@require_api_key
 def stats():
     active_reviewers = Comment.objects().distinct(field='reviewer_comments.reviewer')
     unread_comments = Comment.objects(unread=True).count()
@@ -327,7 +340,11 @@ def save_comments():
         if uuid == reviewer_name:
             break
         data = {'comment': request.values.get(uuid)}
-        with requests.put(f'{request.url_root}/comment/update/{reviewer_name}/{uuid}', data=data) as r:
+        with requests.put(
+            f'{request.url_root}/comment/update/{reviewer_name}/{uuid}',
+            headers={'API-Key': API_KEY},
+            data=data,
+        ) as r:
             if r.status_code == 200:
                 count_success += 1
             else:
