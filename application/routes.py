@@ -30,7 +30,7 @@ def favicon():
 
 
 # add a new comment
-@app.post('/comment/add')
+@app.post('/comment')
 @require_api_key
 def add_comment():
     uuid = request.values.get('uuid')
@@ -46,6 +46,7 @@ def add_comment():
     long = request.values.get('long')
     temperature = request.values.get('temperature')
     oxygen_ml_l = request.values.get('oxygen_ml_l')
+    print(request.values)
     if not uuid or not sequence or not image_url or not reviewers or not annotator:
         return jsonify({400: 'Missing required values'}), 400
     try:
@@ -73,7 +74,7 @@ def add_comment():
 
 
 # update a comment's text given a reviewer and an observation uuid
-@app.put('/comment/update/<reviewer>/<uuid>')
+@app.patch('/comment/<reviewer>/<uuid>')
 @require_api_key
 def update_comment(reviewer, uuid):
     try:
@@ -93,7 +94,7 @@ def update_comment(reviewer, uuid):
 
 
 # update a comment's reviewers given an observation uuid
-@app.put('/comment/update-reviewers/<uuid>')
+@app.put('/comment/reviewers/<uuid>')
 @require_api_key
 def update_comment_reviewer(uuid):
     try:
@@ -127,7 +128,7 @@ def mark_comment_read(uuid):
 
 
 # delete a comment given an observation uuid
-@app.delete('/comment/delete/<uuid>')
+@app.delete('/comment/<uuid>')
 @require_api_key
 def delete_comment(uuid):
     try:
@@ -214,7 +215,7 @@ def sync_ctd():
 
 
 # add a new reviewer to the database
-@app.post('/reviewer/add')
+@app.post('/reviewer')
 @require_api_key
 def add_reviewer():
     name = request.values.get('name')
@@ -238,7 +239,7 @@ def add_reviewer():
 
 
 # update a reviewer's information
-@app.put('/reviewer/update/<old_name>')
+@app.patch('/reviewer/<old_name>')
 @require_api_key
 def update_reviewer_info(old_name):
     new_name = request.values.get('new_name')  # if the name didn't change, this will be the same as old_name
@@ -261,7 +262,7 @@ def update_reviewer_info(old_name):
 
 
 # delete a reviewer
-@app.delete('/reviewer/delete/<name>')
+@app.delete('/reviewer/<name>')
 @require_api_key
 def delete_reviewer(name):
     try:
@@ -337,8 +338,8 @@ def save_comments():
         if uuid == reviewer_name:
             break
         data = {'comment': request.values.get(uuid)}
-        with requests.put(
-            f'{request.url_root}/comment/update/{reviewer_name}/{uuid}',
+        with requests.patch(
+            f'{request.url_root}/comment/{reviewer_name}/{uuid}',
             headers={'API-Key': app.config.get('API_KEY')},
             data=data,
         ) as r:
@@ -367,7 +368,7 @@ def video():
     return render_template('video.html', data=data), 200
 
 
-@app.post('/image-upload')
+@app.post('/image')
 @require_api_key
 def image_upload():
     if 'image' not in request.files:
