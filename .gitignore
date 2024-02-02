@@ -1,7 +1,8 @@
-.idea
-__pycache__
+.idea/
+__pycache__/
+cert/
 .DS_Store
+*.log
 env.sh
 .env
-cert
 tator-images/*

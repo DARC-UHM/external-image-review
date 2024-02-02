@@ -20,6 +20,7 @@ def require_api_key(func):
         if provided_api_key == app.config.get('API_KEY'):
             return func(*args, **kwargs)
         else:
+            app.logger.warning(f'UNAUTHORIZED API ATTEMPT - IP Address: {request.remote_addr}')
             return jsonify({'error': 'Unauthorized'}), 401
     return wrapper
 
@@ -287,6 +288,7 @@ def get_all_reviewers():
 # the link to share with external reviewers
 @app.get('/review/<reviewer_name>')
 def review(reviewer_name):
+    app.logger.info(f'Access {reviewer_name}\'s review page - IP Address: {request.remote_addr}')
     comments = []
     return_all_comments = request.args.get('all') == 'true'
     reviewer_name = reviewer_name.replace('-', ' ')
@@ -390,4 +392,5 @@ def image(image_name):
 
 @app.errorhandler(404)
 def page_not_found(e):
+    app.logger.info(f'Tried to access page {request.url} - IP Address: {request.remote_addr}')
     return render_template('404.html'), 404
