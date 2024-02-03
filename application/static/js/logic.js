@@ -129,7 +129,7 @@ $(document).ready(() => {
                             <div class="col-5 col-sm-4">
                                 Tentative ID:
                             </div>
-                            <div class="col values">${comment.concept}${comment.id_certainty?.includes('maybe') ? '?' : ''}</div>
+                            <div class="col values">${comment.concept || comment.scientific_name}${comment.id_certainty?.includes('maybe') ? '?' : ''}</div>
                         </div>
                         ${comment.id_certainty && comment.id_certainty !== 'maybe'
                             ? `<div class="row">
@@ -198,7 +198,10 @@ $(document).ready(() => {
                         }</textarea>
                         <div class="row mt-3">
                             <div class="col">
-                                <a href="${videoLink}" target="_blank" class="mediaButton mt-2">See video</a>
+                                ${videoLink
+                                    ? `<a href="${videoLink}" target="_blank" class="mediaButton mt-2">See video</a>`
+                                    : '<span style="opacity: 60%;">Video not available</span>'
+                                }
                             </div>
                         </div>
                     </div>

@@ -143,6 +143,12 @@ def delete_comment(uuid):
         db_record = Comment.objects.get(uuid=uuid)
     except DoesNotExist:
         return jsonify({404: 'No comment records matching given uuid'}), 404
+    if db_record['scientific_name']:  # tator localization
+        img_name = db_record['image_url'].split('/')[-1]
+        try:
+            os.remove(os.path.join(os.getcwd(), app.config.get('TATOR_IMAGE_FOLDER'), img_name))
+        except FileNotFoundError:
+            app.logger.warning(f'Failed to delete image: {img_name}')
     db_record.delete()
     return jsonify({200: 'Comment deleted'}), 200
 
@@ -308,17 +314,18 @@ def review(reviewer_name):
             if request.args.getlist('annotator') and record['annotator'] not in request.args.getlist('annotator'):
                 continue
             comments.append(record)
-            # get the record info from the server
-            with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{record["uuid"]}') as r:
-                server_record = r.json()
-                record['concept'] = server_record['concept']
-                # check for "identity-certainty: maybe" and "identity-reference"
-                for association in server_record['associations']:
-                    if association['link_name'] == 'identity-certainty':
-                        record['id_certainty'] = association['link_value']
-                    if association['link_name'] == 'identity-reference':
-                        # dive num + id ref to account for duplicate numbers across dives
-                        record['id_reference'] = f'{record["sequence"][-2:]}:{association["link_value"]}'
+            # for VARS annotations, get the record info from the server
+            if record['scientific_name'] is None:  # VARS annotation
+                with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{record["uuid"]}') as r:
+                    server_record = r.json()
+                    record['concept'] = server_record['concept']
+                    # check for "identity-certainty: maybe" and "identity-reference"
+                    for association in server_record['associations']:
+                        if association['link_name'] == 'identity-certainty':
+                            record['id_certainty'] = association['link_value']
+                        if association['link_name'] == 'identity-reference':
+                            # dive num + id ref to account for duplicate numbers across dives
+                            record['id_reference'] = f'{record["sequence"][-2:]}:{association["link_value"]}'
     data = {'comments': comments, 'reviewer': reviewer_name}
     return render_template('external_review.html', data=data), 200
 
