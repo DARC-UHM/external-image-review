@@ -47,9 +47,16 @@ def add_comment():
     long = request.values.get('long')
     temperature = request.values.get('temperature')
     oxygen_ml_l = request.values.get('oxygen_ml_l')
-    print(request.values)
-    if not uuid or not sequence or not image_url or not reviewers or not annotator:
+    if not uuid or not sequence or not reviewers or not annotator:
         return jsonify({400: 'Missing required values'}), 400
+    if scientific_name:  # tator localization
+        if 'image' not in request.files:
+            return jsonify({400: 'No image provided'}), 400
+        img = request.files['image']
+        if img.filename == '':
+            return jsonify({400: 'No selected file'}), 400
+        img.save(os.path.join(app.config.get('TATOR_IMAGE_FOLDER'), img.filename))
+        image_url = f'{request.url_root}image/{img.filename}'
     try:
         comment = Comment(
             uuid=uuid,
@@ -370,23 +377,12 @@ def video():
     return render_template('video.html', data=data), 200
 
 
-@app.post('/image')
-@require_api_key
-def image_upload():
-    if 'image' not in request.files:
-        return jsonify({400: 'No image provided'}), 400
-    img = request.files['image']
-    if img.filename == '':
-        return jsonify({400: 'No selected file'}), 400
-    img.save(os.path.join(app.config.get('TATOR_IMAGE_FOLDER'), img.filename))
-    return jsonify({201: 'uploaded'}), 201
-
-
 @app.get('/image/<image_name>')
 def image(image_name):
-    try:
-        return send_file(os.path.join(app.config.get("TATOR_IMAGE_FOLDER"), image_name))
-    except FileNotFoundError:
+    file_path = os.path.join(os.getcwd(), app.config.get("TATOR_IMAGE_FOLDER"), image_name)
+    if os.path.exists(file_path):
+        return send_file(file_path)
+    else:
         return jsonify({404: 'Image not found'}), 404
 
 
