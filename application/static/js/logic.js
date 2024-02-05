@@ -140,18 +140,21 @@ $(document).ready(() => {
                             </div>`
                             : ''
                         }
-                        <div class="row">
-                            <div class="col-5 col-sm-4">
-                                Annotator:
+                        ${comment.timestamp
+                            ? `<div class="row">
+                                <div class="col-5 col-sm-4">
+                                    Annotator:
+                                </div>
+                                <div class="col values">${comment.annotator}</div>
                             </div>
-                            <div class="col values">${comment.annotator}</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-5 col-sm-4">
-                                Timestamp:
-                            </div>
-                            <div class="col values">${comment.timestamp}</div>
-                        </div>
+                            <div class="row">
+                                <div class="col-5 col-sm-4">
+                                    Timestamp:
+                                </div>
+                                <div class="col values">${comment.timestamp}</div>
+                            </div>`
+                            : ''
+                        }
                         ${comment.lat
                             ? `<div class="row">
                                 <div class="col-5 col-sm-4">
