@@ -5,4 +5,4 @@ cert/
 *.log
 env.sh
 .env
-tator-images/*
+tator-images/*.png
