@@ -36,6 +36,7 @@ def favicon():
 def add_comment():
     uuid = request.values.get('uuid')
     scientific_name = request.values.get('scientific_name')
+    tator_overlay = request.values.get('tator_overlay')
     sequence = request.values.get('sequence')
     timestamp = request.values.get('timestamp')
     image_url = request.values.get('image_url')
@@ -61,6 +62,7 @@ def add_comment():
         comment = Comment(
             uuid=uuid,
             scientific_name=scientific_name,
+            tator_overlay=tator_overlay,
             sequence=sequence,
             timestamp=timestamp,
             image_url=image_url,

@@ -14,6 +14,7 @@ class Comment(Document):
 
     uuid = StringField(unique=True, required=True, max_length=50)
     scientific_name = StringField(max_length=100)  # for tator comments
+    tator_overlay = StringField(max_length=700)  # for tator comments (JSON string, length allows for about 30 points)
     sequence = StringField(required=True, max_length=50)
     timestamp = StringField(max_length=30)
     image_url = StringField(required=True, max_length=200)
@@ -38,6 +39,7 @@ class Comment(Document):
         comment = {
             'uuid': self.uuid,
             'scientific_name': self.scientific_name,
+            'tator_overlay': self.tator_overlay,
             'sequence': self.sequence,
             'timestamp': self.timestamp,
             'image_url': self.image_url,
