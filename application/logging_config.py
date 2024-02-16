@@ -25,5 +25,5 @@ logging_config = {
             'formatter': 'default',
         },
     },
-    'root': {'level': 'DEBUG', 'handlers': ['console', 'file']},
+    'root': {'level': 'INFO', 'handlers': ['console', 'file']},
 }
