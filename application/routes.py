@@ -317,7 +317,7 @@ def review(reviewer_name):
                 continue
             comments.append(record)
             # for VARS annotations, get the record info from the server
-            if record['scientific_name'] is None:  # VARS annotation
+            if record['scientific_name'] is None or record['scientific_name'] == '':  # VARS annotation
                 with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{record["uuid"]}') as r:
                     server_record = r.json()
                     record['concept'] = server_record['concept']
