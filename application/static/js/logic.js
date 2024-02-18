@@ -83,7 +83,7 @@ $(document).ready(() => {
         const photos = [comment.image_url];
         let videoLink = comment.video_url;
 
-        if (videoLink.includes('.mov')) {
+        if (videoLink?.includes('.mov')) {
             videoLink = `/video?link=${videoLink.split('#t=')[0]}&time=${videoLink.split('#t=')[1]}`;
         }
 
