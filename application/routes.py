@@ -5,6 +5,7 @@ import json
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import render_template, request, redirect, jsonify, send_file
+from flask_mail import Mail, Message
 from flask_cors import cross_origin
 from mongoengine import NotUniqueError, DoesNotExist
 
@@ -22,6 +23,7 @@ def require_api_key(func):
         else:
             app.logger.warning(f'UNAUTHORIZED API ATTEMPT - IP Address: {request.remote_addr}')
             return jsonify({'error': 'Unauthorized'}), 401
+
     return wrapper
 
 
@@ -349,6 +351,7 @@ def stats():
 # route to save reviewer's comments, redirects to success page
 @app.post('/save-comments')
 def save_comments():
+    mail = Mail(app)
     reviewer_name = request.values.get('reviewer')
     count_success = 0
     list_failures = []
@@ -357,15 +360,26 @@ def save_comments():
             break
         data = {'comment': request.values.get(uuid)}
         with requests.patch(
-            f'{request.url_root}/comment/{reviewer_name}/{uuid}',
-            headers={'API-Key': app.config.get('API_KEY')},
-            data=data,
+                f'{request.url_root}/comment/{reviewer_name}/{uuid}',
+                headers={'API-Key': app.config.get('API_KEY')},
+                data=data,
         ) as r:
             if r.status_code == 200:
                 count_success += 1
             else:
                 list_failures.append(uuid)
     if count_success > 0:
+        msg = Message(
+            f'DARC Review - New Comments from {reviewer_name}',
+            sender=app.config.get('MAIL_USERNAME'),
+            recipients=app.config.get('DARC_EMAILS').split(','),
+        )
+        msg.body = 'Aloha,\n\n' + \
+                   f'{reviewer_name} just saved {count_success} new comments to the review database.\n\n' + \
+                   f'There are now {Comment.objects(unread=True).count()} unread comments in the database.\n\n' + \
+                   'Mahalo,\n\n' + \
+                   'DARC Review'
+        mail.send(msg)
         return redirect(f'success?name={reviewer_name}&count={count_success}')
     else:
         return jsonify({500: f'Internal server error - could not update {list_failures}'}), 500

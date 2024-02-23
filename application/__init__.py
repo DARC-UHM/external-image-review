@@ -3,6 +3,7 @@ import os
 from logging.config import dictConfig
 from dotenv import load_dotenv
 from flask import Flask
+from flask_mail import Mail
 from flask_cors import CORS
 from flask_sslify import SSLify
 from mongoengine import connect
@@ -23,12 +24,10 @@ connect(
     password=mongo_password,
     authentication_source='admin'
 )
-app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
-app.config['CORS_HEADERS'] = 'Content-Type'
-app.config['API_KEY'] = os.environ.get('API_KEY')
-app.config['TATOR_IMAGE_FOLDER'] = 'tator-images'
+app.config.from_object('application.config.Config')
 
 cors = CORS(app)
 sslify = SSLify(app)
+mail = Mail(app)
 
 from application import routes
