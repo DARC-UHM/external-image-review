@@ -424,6 +424,7 @@ def get_attracted():
 
 
 @app.post('/attracted')
+@require_api_key
 def add_attracted():
     scientific_name = request.values.get('scientific_name')
     attracted = request.values.get('attracted')
@@ -436,6 +437,7 @@ def add_attracted():
 
 
 @app.patch('/attracted/<scientific_name>')
+@require_api_key
 def update_attracted(scientific_name):
     attracted = request.values.get('attracted')
     if not scientific_name or not attracted:
@@ -449,6 +451,7 @@ def update_attracted(scientific_name):
 
 
 @app.delete('/attracted/<scientific_name>')
+@require_api_key
 def delete_attracted(scientific_name):
     try:
         db_record = Attracted.objects.get(scientific_name=scientific_name)
