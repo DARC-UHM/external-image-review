@@ -10,5 +10,6 @@ class Config:
     MAIL_PORT = os.environ.get('MAIL_PORT')
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False

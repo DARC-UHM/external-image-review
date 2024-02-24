@@ -357,7 +357,7 @@ def stats():
 def save_comments():
     mail = Mail(app)
     reviewer_name = request.values.get('reviewer')
-    annotator_emails = []
+    annotator_emails = [app.config.get('ADMIN_EMAIL')]
     for annotator in json.loads(request.values.get('annotators').replace('\'', '"')):
         try:
             annotator_emails.append(Annotator.objects.get(name=annotator).email)
