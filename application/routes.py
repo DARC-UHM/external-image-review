@@ -13,6 +13,7 @@ from application import app
 from schema.comment import Comment, ReviewerCommentList
 from schema.reviewer import Reviewer
 from schema.annotator import Annotator
+from schema.attracted import Attracted
 
 
 def require_api_key(func):
@@ -415,6 +416,46 @@ def image(image_name):
         return send_file(file_path)
     else:
         return jsonify({404: 'Image not found'}), 404
+
+
+@app.get('/attracted')
+def get_attracted():
+    return jsonify({attracted.scientific_name: attracted.attracted for attracted in Attracted.objects()}), 200
+
+
+@app.post('/attracted')
+def add_attracted():
+    scientific_name = request.values.get('scientific_name')
+    attracted = request.values.get('attracted')
+    if not scientific_name or not attracted:
+        return jsonify({400: 'Missing required values'}), 400
+    if Attracted.objects(scientific_name=scientific_name):
+        return jsonify({409: 'Record already exists'}), 409
+    attr = Attracted(scientific_name=scientific_name, attracted=attracted).save()
+    return jsonify(attr.json()), 201
+
+
+@app.patch('/attracted/<scientific_name>')
+def update_attracted(scientific_name):
+    attracted = request.values.get('attracted')
+    if not scientific_name or not attracted:
+        return jsonify({400: 'Missing required values'}), 400
+    try:
+        db_record = Attracted.objects.get(scientific_name=scientific_name)
+        db_record.update(set__attracted=attracted)
+    except DoesNotExist:
+        return jsonify({404: 'No record with given scientific name'}), 404
+    return jsonify(Attracted.objects.get(scientific_name=scientific_name).json()), 200
+
+
+@app.delete('/attracted/<scientific_name>')
+def delete_attracted(scientific_name):
+    try:
+        db_record = Attracted.objects.get(scientific_name=scientific_name)
+        db_record.delete()
+    except DoesNotExist:
+        return jsonify({404: 'No record with given scientific name'}), 404
+    return jsonify({200: 'Record deleted'}), 200
 
 
 @app.errorhandler(404)
