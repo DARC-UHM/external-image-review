@@ -19,6 +19,7 @@
             <div id="comments" class="col mt-3">
             </div>
             <input type="hidden" name="reviewer" value="{{ data.reviewer }}">
+            <input type="hidden" name="annotators" value="{{ data.annotators }}">
             <input id="reviewerSubmit" type="submit" onclick="turnOffWarning()" value="Submit Review" class="btn btn-success my-3">
         </form>
         {% else %}

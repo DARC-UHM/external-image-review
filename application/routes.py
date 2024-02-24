@@ -12,6 +12,7 @@ from mongoengine import NotUniqueError, DoesNotExist
 from application import app
 from schema.comment import Comment, ReviewerCommentList
 from schema.reviewer import Reviewer
+from schema.annotator import Annotator
 
 
 def require_api_key(func):
@@ -310,7 +311,9 @@ def review(reviewer_name):
     return_all_comments = request.args.get('all') == 'true'
     reviewer_name = reviewer_name.replace('-', ' ')
     matched_records = Comment.objects(reviewer_comments__reviewer=reviewer_name)
+    annotators = set()
     for record in matched_records:
+        annotators.add(record.annotator)
         record = record.json()
         # show all comments or only return records that the reviewer has not yet commented on
         if return_all_comments or next((x for x in record['reviewer_comments'] if x['reviewer'] == reviewer_name))['comment'] == '':
@@ -330,7 +333,7 @@ def review(reviewer_name):
                         if association['link_name'] == 'identity-reference':
                             # dive num + id ref to account for duplicate numbers across dives
                             record['id_reference'] = f'{record["sequence"][-2:]}:{association["link_value"]}'
-    data = {'comments': comments, 'reviewer': reviewer_name}
+    data = {'comments': comments, 'reviewer': reviewer_name, 'annotators': [annotator for annotator in annotators]}
     return render_template('external_review.html', data=data), 200
 
 
@@ -353,11 +356,17 @@ def stats():
 def save_comments():
     mail = Mail(app)
     reviewer_name = request.values.get('reviewer')
+    annotator_emails = []
+    for annotator in json.loads(request.values.get('annotators').replace('\'', '"')):
+        try:
+            annotator_emails.append(Annotator.objects.get(name=annotator).email)
+        except DoesNotExist:
+            pass
     count_success = 0
     list_failures = []
     for uuid in request.values:
-        if uuid == reviewer_name:
-            break
+        if uuid == reviewer_name or uuid == 'annotators':
+            continue
         data = {'comment': request.values.get(uuid)}
         with requests.patch(
                 f'{request.url_root}/comment/{reviewer_name}/{uuid}',
@@ -372,13 +381,12 @@ def save_comments():
         msg = Message(
             f'DARC Review - New Comments from {reviewer_name}',
             sender=app.config.get('MAIL_USERNAME'),
-            recipients=app.config.get('DARC_EMAILS').split(','),
+            recipients=annotator_emails,
         )
         msg.body = 'Aloha,\n\n' + \
-                   f'{reviewer_name} just saved {count_success} new comments to the review database.\n\n' + \
-                   f'There are now {Comment.objects(unread=True).count()} unread comments in the database.\n\n' + \
-                   'Mahalo,\n\n' + \
-                   'DARC Review'
+                   f'{reviewer_name} just added comments to your annotations in the external review database. ' + \
+                   f'There are now {Comment.objects(unread=True).count()} total unread comments.\n\n' + \
+                   'DARC Review\n'
         mail.send(msg)
         return redirect(f'success?name={reviewer_name}&count={count_success}')
     else:

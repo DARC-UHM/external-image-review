@@ -12,4 +12,3 @@ class Config:
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
-    DARC_EMAILS = os.environ.get('DARC_EMAILS')
