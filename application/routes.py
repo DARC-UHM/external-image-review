@@ -76,7 +76,13 @@ def add_comment():
             oxygen_ml_l=oxygen_ml_l,
         )
         for reviewer in reviewers:
-            comment.reviewer_comments.append(ReviewerCommentList(reviewer=reviewer, comment=''))
+            comment.reviewer_comments.append(
+                ReviewerCommentList(
+                    reviewer=reviewer,
+                    comment='',
+                    date_modified=(datetime.now() - timedelta(hours=10)),
+                )
+            )
         comment.save()
     except NotUniqueError:
         return jsonify({409: 'Already a comment record for given uuid'}), 409
