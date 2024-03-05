@@ -128,7 +128,13 @@ def update_comment_reviewer(uuid):
             temp_reviewer_comments.append(reviewer_comment)
             reviewers.remove(reviewer_comment['reviewer'])
     for reviewer in reviewers:
-        temp_reviewer_comments.append(ReviewerCommentList(reviewer=reviewer, comment=''))
+        temp_reviewer_comments.append(
+            ReviewerCommentList(
+                reviewer=reviewer,
+                comment='',
+                date_modified=(datetime.now() - timedelta(hours=10)),
+            )
+        )
     db_record.reviewer_comments = temp_reviewer_comments
     db_record.save()
     return jsonify(Comment.objects.get(uuid=uuid).json()), 200
