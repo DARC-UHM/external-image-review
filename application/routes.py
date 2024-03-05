@@ -5,12 +5,15 @@ import json
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import render_template, request, redirect, jsonify, send_file
+from flask_mail import Mail, Message
 from flask_cors import cross_origin
 from mongoengine import NotUniqueError, DoesNotExist
 
 from application import app
 from schema.comment import Comment, ReviewerCommentList
 from schema.reviewer import Reviewer
+from schema.annotator import Annotator
+from schema.attracted import Attracted
 
 
 def require_api_key(func):
@@ -22,6 +25,7 @@ def require_api_key(func):
         else:
             app.logger.warning(f'UNAUTHORIZED API ATTEMPT - IP Address: {request.remote_addr}')
             return jsonify({'error': 'Unauthorized'}), 401
+
     return wrapper
 
 
@@ -314,7 +318,9 @@ def review(reviewer_name):
     return_all_comments = request.args.get('all') == 'true'
     reviewer_name = reviewer_name.replace('-', ' ')
     matched_records = Comment.objects(reviewer_comments__reviewer=reviewer_name)
+    annotators = set()
     for record in matched_records:
+        annotators.add(record.annotator)
         record = record.json()
         # show all comments or only return records that the reviewer has not yet commented on
         if return_all_comments or next((x for x in record['reviewer_comments'] if x['reviewer'] == reviewer_name))['comment'] == '':
@@ -334,7 +340,7 @@ def review(reviewer_name):
                         if association['link_name'] == 'identity-reference':
                             # dive num + id ref to account for duplicate numbers across dives
                             record['id_reference'] = f'{record["sequence"][-2:]}:{association["link_value"]}'
-    data = {'comments': comments, 'reviewer': reviewer_name}
+    data = {'comments': comments, 'reviewer': reviewer_name, 'annotators': [annotator for annotator in annotators]}
     return render_template('external_review.html', data=data), 200
 
 
@@ -355,23 +361,40 @@ def stats():
 # route to save reviewer's comments, redirects to success page
 @app.post('/save-comments')
 def save_comments():
+    mail = Mail(app)
     reviewer_name = request.values.get('reviewer')
+    annotator_emails = [app.config.get('ADMIN_EMAIL')]
+    for annotator in json.loads(request.values.get('annotators').replace('\'', '"')):
+        try:
+            annotator_emails.append(Annotator.objects.get(name=annotator).email)
+        except DoesNotExist:
+            pass
     count_success = 0
     list_failures = []
     for uuid in request.values:
-        if uuid == reviewer_name:
-            break
+        if uuid == reviewer_name or uuid == 'annotators':
+            continue
         data = {'comment': request.values.get(uuid)}
         with requests.patch(
-            f'{request.url_root}/comment/{reviewer_name}/{uuid}',
-            headers={'API-Key': app.config.get('API_KEY')},
-            data=data,
+                f'{request.url_root}/comment/{reviewer_name}/{uuid}',
+                headers={'API-Key': app.config.get('API_KEY')},
+                data=data,
         ) as r:
             if r.status_code == 200:
                 count_success += 1
             else:
                 list_failures.append(uuid)
     if count_success > 0:
+        msg = Message(
+            f'DARC Review - New Comments from {reviewer_name}',
+            sender=app.config.get('MAIL_USERNAME'),
+            recipients=annotator_emails,
+        )
+        msg.body = 'Aloha,\n\n' + \
+                   f'{reviewer_name} just added comments to your annotations in the external review database. ' + \
+                   f'There are now {Comment.objects(unread=True).count()} total unread comments.\n\n' + \
+                   'DARC Review\n'
+        mail.send(msg)
         return redirect(f'success?name={reviewer_name}&count={count_success}')
     else:
         return jsonify({500: f'Internal server error - could not update {list_failures}'}), 500
@@ -399,6 +422,49 @@ def image(image_name):
         return send_file(file_path)
     else:
         return jsonify({404: 'Image not found'}), 404
+
+
+@app.get('/attracted')
+def get_attracted():
+    return jsonify({attracted.scientific_name: attracted.attracted for attracted in Attracted.objects()}), 200
+
+
+@app.post('/attracted')
+@require_api_key
+def add_attracted():
+    scientific_name = request.values.get('scientific_name')
+    attracted = request.values.get('attracted')
+    if not scientific_name or not attracted:
+        return jsonify({400: 'Missing required values'}), 400
+    if Attracted.objects(scientific_name=scientific_name):
+        return jsonify({409: 'Record already exists'}), 409
+    attr = Attracted(scientific_name=scientific_name, attracted=attracted).save()
+    return jsonify(attr.json()), 201
+
+
+@app.patch('/attracted/<scientific_name>')
+@require_api_key
+def update_attracted(scientific_name):
+    attracted = request.values.get('attracted')
+    if not scientific_name or not attracted:
+        return jsonify({400: 'Missing required values'}), 400
+    try:
+        db_record = Attracted.objects.get(scientific_name=scientific_name)
+        db_record.update(set__attracted=attracted)
+    except DoesNotExist:
+        return jsonify({404: 'No record with given scientific name'}), 404
+    return jsonify(Attracted.objects.get(scientific_name=scientific_name).json()), 200
+
+
+@app.delete('/attracted/<scientific_name>')
+@require_api_key
+def delete_attracted(scientific_name):
+    try:
+        db_record = Attracted.objects.get(scientific_name=scientific_name)
+        db_record.delete()
+    except DoesNotExist:
+        return jsonify({404: 'No record with given scientific name'}), 404
+    return jsonify({200: 'Record deleted'}), 200
 
 
 @app.errorhandler(404)
