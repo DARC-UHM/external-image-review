@@ -195,6 +195,18 @@ def get_unread_comments():
     return jsonify(comments), 200
 
 
+# returns all read comments
+@app.get('/comment/read')
+@require_api_key
+def get_read_comments():
+    comments = {}
+    db_records = Comment.objects(unread=False)
+    for record in db_records:
+        obj = record.json()
+        comments[obj['uuid']] = record.json()
+    return jsonify(comments), 200
+
+
 # returns all comments in a given sequence
 @app.get('/comment/sequence/<sequence_num>')
 @require_api_key
