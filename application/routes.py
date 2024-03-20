@@ -200,7 +200,8 @@ def get_unread_comments():
 @require_api_key
 def get_read_comments():
     comments = {}
-    db_records = Comment.objects(unread=False)
+    # get comments with unread=False and each reviewer_comment.comment != ''
+    db_records = Comment.objects(unread=False, reviewer_comments__comment__ne='')
     for record in db_records:
         obj = record.json()
         comments[obj['uuid']] = record.json()
@@ -368,9 +369,11 @@ def review(reviewer_name):
 def stats():
     active_reviewers = Comment.objects().distinct(field='reviewer_comments.reviewer')
     unread_comments = Comment.objects(unread=True).count()
+    read_comments = Comment.objects(unread=False, reviewer_comments__comment__ne='').count()
     total_comments = Comment.objects().count()
     return jsonify({
         'unread_comments': unread_comments,
+        'read_comments': read_comments,
         'total_comments': total_comments,
         'active_reviewers': active_reviewers,
     }), 200
