@@ -153,6 +153,19 @@ def mark_comment_read(uuid):
     return jsonify(Comment.objects.get(uuid=uuid).json()), 200
 
 
+# mark a comment as unread
+@app.put('/comment/mark-unread/<uuid>')
+def mark_comment_unread(uuid):
+    try:
+        db_record = Comment.objects.get(uuid=uuid)
+    except DoesNotExist:
+        return jsonify({404: 'No comment records matching given uuid'}), 404
+    db_record.update(
+        unread=True,
+    )
+    return jsonify(Comment.objects.get(uuid=uuid).json()), 200
+
+
 # delete a comment given an observation uuid
 @app.delete('/comment/<uuid>')
 @require_api_key
