@@ -395,15 +395,15 @@ def stats():
 def save_comments():
     mail = Mail(app)
     reviewer_name = request.values.get('reviewer')
-    annotators = set()
-    annotator_emails = [app.config.get('ADMIN_EMAIL')]
-    total_num_comments = round((len(request.values) - 1) / 3)
+    total_num_comments = round((len(request.values) - 1) / 3)  # each comment has 3 val: uuids, comment, and annotator
     count_success = 0
     list_failures = []
+    annotator_emails = [app.config.get('ADMIN_EMAIL')]
+    for annotator in Annotator.objects():
+        annotator_emails.append(annotator.email)  # just add all annotators to the email list
     for comment_num in range(total_num_comments):
         uuids = request.values.get(f'{comment_num}:uuids').split(';')
         comment = request.values.get(f'{comment_num}:comment')
-        annotator = request.values.get(f'{comment_num}:annotator')
         if comment == '':  # skip empty comments
             continue
         for uuid in uuids:
@@ -413,17 +413,11 @@ def save_comments():
                     data={'comment': comment},
             )
             if res.status_code == 200:
-                annotators.add(annotator)
                 count_success += 1
             elif res.status_code == 304:
                 pass
             else:
                 list_failures.append(uuid)
-    for annotator in annotators:
-        try:
-            annotator_emails.append(Annotator.objects.get(name=annotator).email)
-        except DoesNotExist:
-            pass
     if count_success > 0:
         msg = Message(
             f'DARC Review - New Comments from {reviewer_name}',
@@ -431,7 +425,7 @@ def save_comments():
             recipients=annotator_emails,
         )
         msg.body = 'Aloha,\n\n' + \
-               f'{reviewer_name} just added {count_success} new comments to annotations in the external review database. ' + \
+               f'{reviewer_name} just added {count_success} new comments to the external review database. ' + \
                f'There are now {Comment.objects(unread=True).count()} total unread comments.\n\n' + \
                'DARC Review\n'
         mail.send(msg)
