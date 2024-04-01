@@ -8,9 +8,9 @@
 </head>
 <body id="index" class="text-center my-3 mx-5">
     <img src="/static/img/logo_darc.png" class="mt-4" width="30%" style="max-width: 300px; min-width: 200px"/>
-    <h2 class="mt-5" style="font-weight: 600;">Successfully saved {{ data.count }} record{% if data.count|int > 1 or data.count|int == 0 %}s{% endif %}.</h2>
-    <h5 class="my-5">Thank you for your review!</h5>
-    <a class="mediaButton" href="/review/{{ data.name }}">
+    <h2 class="my-5" style="font-weight: 600;">Thank you!</h2>
+    <h5 class="mb-5">Successfully saved {{ data.count }} record{% if data.count|int > 1 or data.count|int == 0 %}s{% endif %}.</h5>
+    <a class="mediaButton" href="/review/{{ data.name }}?all=true">
         <p>Return to previous page</p>
     </a>
     <script src="/static/js/bootstrap.bundle.js"></script>

@@ -151,3 +151,38 @@ textarea {
 .slide {
   display: none;
 }
+
+.loader-bg-hidden {
+    display: none;
+}
+
+.loader-bg {
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    background: rgba(0, 0, 0, 0.47);
+    z-index: 1070;
+}
+
+.loader {
+    border: 6px solid #dedede;
+    border-top: 6px solid #79b1e8;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1.5s linear infinite;
+    margin-bottom: 50px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

@@ -45,7 +45,10 @@ function addViewAllParam() {
 
 async function saveComments() {
     event.preventDefault();
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
     const formData = new FormData($('#commentForm')[0]);
+    console.log(formData);
     for (const comment of formData.entries()) {
         if (comment[0].includes(';')) {
             const uuids = comment[0].split(';');
@@ -68,6 +71,8 @@ async function saveComments() {
     } catch (err) {
         console.log(err);
     }
+    $('#load-overlay').removeClass('loader-bg-hidden');
+    $('#load-overlay').addClass('loader-bg');
 }
 
 $(document).ready(() => {
@@ -194,11 +199,13 @@ $(document).ready(() => {
                         <div class="mt-3">
                             Comments:
                         </div>
-                        <textarea class="reviewer mt-2" name="${idRefUuids.length ? idRefUuids.join(';') : comment.uuid}" rows="3" placeholder="Enter comments">${
+                        <textarea class="reviewer mt-2" name="${i}:comment" rows="3" placeholder="Enter comments">${
                             comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)
                             ? comment.reviewer_comments.find((comment) => comment.reviewer === reviewer).comment
                             : ''
                         }</textarea>
+                        <input type="hidden" name="${i}:annotator" value="${comment.annotator}">
+                        <input type="hidden" name="${i}:uuids" value="${idRefUuids.length ? idRefUuids.join(';') : [comment.uuid]}">
                         <div class="row mt-3">
                             <div class="col">
                                 ${videoLink

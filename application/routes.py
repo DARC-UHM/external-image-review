@@ -109,7 +109,7 @@ def update_comment(reviewer, uuid):
                 db_record.unread = True
                 db_record.save()
                 return jsonify(Comment.objects.get(uuid=uuid).json()), 200
-            return jsonify({200: 'No updates made'}), 200
+            return jsonify({304: 'No updates made'}), 304
     return jsonify({404: 'No comment records matching given reviewer'}), 404
 
 
@@ -350,9 +350,7 @@ def review(reviewer_name):
     return_all_comments = request.args.get('all') == 'true'
     reviewer_name = reviewer_name.replace('-', ' ')
     matched_records = Comment.objects(reviewer_comments__reviewer=reviewer_name)
-    annotators = set()
     for record in matched_records:
-        annotators.add(record.annotator)
         record = record.json()
         # show all comments or only return records that the reviewer has not yet commented on
         if return_all_comments or next((x for x in record['reviewer_comments'] if x['reviewer'] == reviewer_name))['comment'] == '':
@@ -372,7 +370,7 @@ def review(reviewer_name):
                         if association['link_name'] == 'identity-reference':
                             # dive num + id ref to account for duplicate numbers across dives
                             record['id_reference'] = f'{record["sequence"][-2:]}:{association["link_value"]}'
-    data = {'comments': comments, 'reviewer': reviewer_name, 'annotators': [annotator for annotator in annotators]}
+    data = {'comments': comments, 'reviewer': reviewer_name}
     return render_template('external_review.html', data=data), 200
 
 
@@ -397,27 +395,35 @@ def stats():
 def save_comments():
     mail = Mail(app)
     reviewer_name = request.values.get('reviewer')
+    annotators = set()
     annotator_emails = [app.config.get('ADMIN_EMAIL')]
-    for annotator in json.loads(request.values.get('annotators').replace('\'', '"')):
+    total_num_comments = round((len(request.values) - 1) / 3)
+    count_success = 0
+    list_failures = []
+    for comment_num in range(total_num_comments):
+        uuids = request.values.get(f'{comment_num}:uuids').split(';')
+        comment = request.values.get(f'{comment_num}:comment')
+        annotator = request.values.get(f'{comment_num}:annotator')
+        if comment == '':  # skip empty comments
+            continue
+        for uuid in uuids:
+            res = requests.patch(
+                    f'{request.url_root}/comment/{reviewer_name}/{uuid}',
+                    headers={'API-Key': app.config.get('API_KEY')},
+                    data={'comment': comment},
+            )
+            if res.status_code == 200:
+                annotators.add(annotator)
+                count_success += 1
+            elif res.status_code == 304:
+                pass
+            else:
+                list_failures.append(uuid)
+    for annotator in annotators:
         try:
             annotator_emails.append(Annotator.objects.get(name=annotator).email)
         except DoesNotExist:
             pass
-    count_success = 0
-    list_failures = []
-    for uuid in request.values:
-        if uuid == reviewer_name or uuid == 'annotators':
-            continue
-        data = {'comment': request.values.get(uuid)}
-        with requests.patch(
-                f'{request.url_root}/comment/{reviewer_name}/{uuid}',
-                headers={'API-Key': app.config.get('API_KEY')},
-                data=data,
-        ) as r:
-            if r.status_code == 200:
-                count_success += 1
-            else:
-                list_failures.append(uuid)
     if count_success > 0:
         msg = Message(
             f'DARC Review - New Comments from {reviewer_name}',
@@ -425,13 +431,15 @@ def save_comments():
             recipients=annotator_emails,
         )
         msg.body = 'Aloha,\n\n' + \
-                   f'{reviewer_name} just added comments to your annotations in the external review database. ' + \
-                   f'There are now {Comment.objects(unread=True).count()} total unread comments.\n\n' + \
-                   'DARC Review\n'
+               f'{reviewer_name} just added {count_success} new comments to annotations in the external review database. ' + \
+               f'There are now {Comment.objects(unread=True).count()} total unread comments.\n\n' + \
+               'DARC Review\n'
         mail.send(msg)
         return redirect(f'success?name={reviewer_name}&count={count_success}')
-    else:
+    elif list_failures:
         return jsonify({500: f'Internal server error - could not update {list_failures}'}), 500
+    else:
+        return redirect(f'success?name={reviewer_name}&count={count_success}')
 
 
 # displays a save success page

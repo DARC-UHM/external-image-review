@@ -19,7 +19,6 @@
             <div id="comments" class="col mt-3">
             </div>
             <input type="hidden" name="reviewer" value="{{ data.reviewer }}">
-            <input type="hidden" name="annotators" value="{{ data.annotators }}">
             <input id="reviewerSubmit" type="submit" onclick="turnOffWarning()" value="Submit Review" class="btn btn-success my-3">
         </form>
         {% else %}
@@ -41,6 +40,11 @@
             <a href="https://www.soest.hawaii.edu" target="_blank">
                 <img src="/static/img/university-of-hawaii-manoa.png" alt="University of Hawaii logo" width="70" height="70" />
             </a>
+        </div>
+    </div>
+    <div id="load-overlay" class="loader-bg-hidden">
+        <div class="col d-flex justify-content-center">
+            <div class="loader"></div>
         </div>
     </div>
 
