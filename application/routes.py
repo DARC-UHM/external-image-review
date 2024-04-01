@@ -492,6 +492,12 @@ def update_attracted(scientific_name):
     return jsonify(Attracted.objects.get(scientific_name=scientific_name).json()), 200
 
 
+@app.get('/qaqc-checklist/<sequences>')
+@require_api_key
+def qaqc_checklist(sequences):
+    sequences = sequences.split('&')
+
+
 @app.delete('/attracted/<scientific_name>')
 @require_api_key
 def delete_attracted(scientific_name):
