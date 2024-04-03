@@ -58,21 +58,17 @@ async function saveComments() {
             }
         }
     }
-    try {
-        const res = await fetch('/save-comments', {
-            method: 'POST',
-            body: formData,
-        });
-        if (res.ok && res.redirected) {
-            window.location.href = res.url;
-        } else {
-            console.log('Error saving comments');
-        }
-    } catch (err) {
-        console.log(err);
+    const res = await fetch('/save-comments', {
+        method: 'POST',
+        body: formData,
+    });
+    if (res.ok && res.redirected) {
+        window.location.href = res.url;
+    } else {
+        $('#failedCommentFlash')[0].style.display = 'block';
     }
-    $('#load-overlay').removeClass('loader-bg-hidden');
-    $('#load-overlay').addClass('loader-bg');
+    $('#load-overlay').removeClass('loader-bg');
+    $('#load-overlay').addClass('loader-bg-hidden');
 }
 
 $(document).ready(() => {

@@ -496,6 +496,7 @@ def update_attracted(scientific_name):
 @require_api_key
 def qaqc_checklist(sequences):
     sequences = sequences.split('&')
+    return {}
 
 
 @app.delete('/attracted/<scientific_name>')
@@ -513,3 +514,12 @@ def delete_attracted(scientific_name):
 def page_not_found(e):
     app.logger.info(f'Tried to access page {request.url} - IP Address: {request.remote_addr}')
     return render_template('404.html'), 404
+
+
+@app.errorhandler(500)
+@app.errorhandler(Exception)
+def internal_server_error(e):
+    app.logger.error(f'Internal server error - IP Address: {request.remote_addr}')
+    app.logger.error(type(e).__name__)
+    app.logger.error(e)
+    return render_template('500.html'), 500

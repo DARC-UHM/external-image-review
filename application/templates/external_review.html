@@ -7,6 +7,13 @@
     <link rel="stylesheet" href="/static/css/style.css" />
 </head>
 <body>
+    <div id="flash-messages-container">
+        <div id="failedCommentFlash" class="alert alert-danger alert-dismissible px-5" style="position:fixed; left: 50%; transform: translate(-50%, 0); z-index: 50; display: none;">
+            <span class="px-2" style="font-weight: 500;">Failed to save comments - please try again. If the issue persists, please contact a DARC team member.</span>
+            <button type="button" class="btn-close small" aria-label="Close" onclick="$('#failedCommentFlash')[0].style.display = 'none';"></button>
+            <div class="alert-bottom-bar alert-bottom-bar-success"></div>
+        </div>
+    </div>
     <div class="text-center my-3 mx-4 mx-md-5">
         <button class="secret-button" onclick="addViewAllParam()">View all</button>
         <h2 style="font-weight: 600;">Image Review</h2>
