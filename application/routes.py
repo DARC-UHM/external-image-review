@@ -1,6 +1,9 @@
 import os
+from json import JSONDecodeError
+
 import requests
 import json
+import threading
 
 from datetime import datetime, timedelta
 from functools import wraps
@@ -25,8 +28,12 @@ def require_api_key(func):
         else:
             app.logger.warning(f'UNAUTHORIZED API ATTEMPT - IP Address: {request.remote_addr}')
             return jsonify({'error': 'Unauthorized'}), 401
-
     return wrapper
+
+
+def send_email(msg):
+    mail = Mail(app)
+    mail.send(msg)
 
 
 @app.route('/favicon.ico')
@@ -361,7 +368,11 @@ def review(reviewer_name):
             # for VARS annotations, get the record info from the server
             if record['scientific_name'] is None or record['scientific_name'] == '':  # VARS annotation
                 with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{record["uuid"]}') as r:
-                    server_record = r.json()
+                    try:
+                        server_record = r.json()
+                    except JSONDecodeError:
+                        app.logger.error(f'Failed to decode JSON for {record["uuid"]}')
+                        continue
                     record['concept'] = server_record['concept']
                     # check for "identity-certainty: maybe" and "identity-reference"
                     for association in server_record['associations']:
@@ -393,7 +404,6 @@ def stats():
 # route to save reviewer's comments, redirects to success page
 @app.post('/save-comments')
 def save_comments():
-    mail = Mail(app)
     reviewer_name = request.values.get('reviewer')
     total_num_comments = round((len(request.values) - 1) / 3)  # each comment has 3 val: uuids, comment, and annotator
     count_success = 0
@@ -428,7 +438,8 @@ def save_comments():
                f'{reviewer_name} just added {count_success} new comments to the external review database. ' + \
                f'There are now {Comment.objects(unread=True).count()} total unread comments.\n\n' + \
                'DARC Review\n'
-        mail.send(msg)
+        email_thread = threading.Thread(target=send_email, args=(msg,))
+        email_thread.start()
         return redirect(f'success?name={reviewer_name}&count={count_success}')
     elif list_failures:
         return jsonify({500: f'Internal server error - could not update {list_failures}'}), 500
@@ -516,7 +527,6 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 
-@app.errorhandler(500)
 @app.errorhandler(Exception)
 def internal_server_error(e):
     app.logger.error(f'Internal server error - IP Address: {request.remote_addr}')
