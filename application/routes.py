@@ -32,8 +32,9 @@ def require_api_key(func):
 
 
 def send_email(msg):
-    mail = Mail(app)
-    mail.send(msg)
+    with app.app_context():
+        mail = Mail(app)
+        mail.send(msg)
 
 
 @app.route('/favicon.ico')
@@ -371,7 +372,8 @@ def review(reviewer_name):
                     try:
                         server_record = r.json()
                     except JSONDecodeError:
-                        app.logger.error(f'Failed to decode JSON for {record["uuid"]}')
+                        comments = [x for x in comments if x['uuid'] != record['uuid']]  # remove record from list
+                        app.logger.error(f'Failed to decode JSON for {record["uuid"]} (reviewer: {reviewer_name})')
                         continue
                     record['concept'] = server_record['concept']
                     # check for "identity-certainty: maybe" and "identity-reference"
@@ -405,29 +407,24 @@ def stats():
 @app.post('/save-comments')
 def save_comments():
     reviewer_name = request.values.get('reviewer')
-    total_num_comments = round((len(request.values) - 1) / 3)  # each comment has 3 val: uuids, comment, and annotator
+    comments = json.loads(request.values.get('comments'))
+    annotator_emails = [app.config.get('ADMIN_EMAIL')]
     count_success = 0
     list_failures = []
-    annotator_emails = [app.config.get('ADMIN_EMAIL')]
     for annotator in Annotator.objects():
         annotator_emails.append(annotator.email)  # just add all annotators to the email list
-    for comment_num in range(total_num_comments):
-        uuids = request.values.get(f'{comment_num}:uuids').split(';')
-        comment = request.values.get(f'{comment_num}:comment')
-        if comment == '':  # skip empty comments
-            continue
-        for uuid in uuids:
-            res = requests.patch(
-                    f'{request.url_root}/comment/{reviewer_name}/{uuid}',
-                    headers={'API-Key': app.config.get('API_KEY')},
-                    data={'comment': comment},
-            )
-            if res.status_code == 200:
-                count_success += 1
-            elif res.status_code == 304:
-                pass
-            else:
-                list_failures.append(uuid)
+    for comment in comments:
+        res = requests.patch(
+                f'{request.url_root}/comment/{reviewer_name}/{comment["uuid"]}',
+                headers={'API-Key': app.config.get('API_KEY')},
+                data={'comment': comment["comment"]},
+        )
+        if res.status_code == 200:
+            count_success += 1
+        elif res.status_code == 304:
+            pass
+        else:
+            list_failures.append(comment['uuid'])
     if count_success > 0:
         msg = Message(
             f'DARC Review - New Comments from {reviewer_name}',
@@ -441,10 +438,10 @@ def save_comments():
         email_thread = threading.Thread(target=send_email, args=(msg,))
         email_thread.start()
         return redirect(f'success?name={reviewer_name}&count={count_success}')
-    elif list_failures:
+    if list_failures:
+        app.logger.error(f'Failed to update comments for {list_failures}')
         return jsonify({500: f'Internal server error - could not update {list_failures}'}), 500
-    else:
-        return redirect(f'success?name={reviewer_name}&count={count_success}')
+    return redirect(f'success?name={reviewer_name}&count={count_success}')
 
 
 # displays a save success page

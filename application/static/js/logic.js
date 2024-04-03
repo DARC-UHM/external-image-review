@@ -48,19 +48,28 @@ async function saveComments() {
     $('#load-overlay').removeClass('loader-bg-hidden');
     $('#load-overlay').addClass('loader-bg');
     const formData = new FormData($('#commentForm')[0]);
-    console.log(formData);
+    const finalFormData = new FormData();
+    const commentNums = []
+    const finalComments = [];
     for (const comment of formData.entries()) {
-        if (comment[0].includes(';')) {
-            const uuids = comment[0].split(';');
-            formData.delete(comment[0]);
-            for (let i = 0; i < uuids.length; i += 1) {
-                formData.append(uuids[i], comment[1]);
+        if (comment[0].includes('comment')) {
+            commentNums.push(comment[0].split('_')[1]);
+        }
+    }
+    for (const num of commentNums) {
+        const comment = formData.get(`comment_${num}`);
+        const uuids = formData.getAll(`uuid_${num}`);
+        if (comment) {
+            for (const uuid of uuids) {
+                finalComments.push({uuid, comment});
             }
         }
     }
+    finalFormData.append('reviewer', formData.get('reviewer'));
+    finalFormData.append('comments', JSON.stringify(finalComments));
     const res = await fetch('/save-comments', {
         method: 'POST',
-        body: formData,
+        body: finalFormData,
     });
     if (res.ok && res.redirected) {
         window.location.href = res.url;
@@ -195,13 +204,15 @@ $(document).ready(() => {
                         <div class="mt-3">
                             Comments:
                         </div>
-                        <textarea class="reviewer mt-2" name="${i}:comment" rows="3" placeholder="Enter comments">${
+                        <textarea class="reviewer mt-2" name="comment_${i}" rows="3" placeholder="Enter comments">${
                             comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)
                             ? comment.reviewer_comments.find((comment) => comment.reviewer === reviewer).comment
                             : ''
                         }</textarea>
-                        <input type="hidden" name="${i}:annotator" value="${comment.annotator}">
-                        <input type="hidden" name="${i}:uuids" value="${idRefUuids.length ? idRefUuids.join(';') : [comment.uuid]}">
+                        ${idRefUuids.length
+                            ? idRefUuids.map((uuid) => `<input type="hidden" name="uuid_${i}" value="${uuid}">`).join('')
+                            : `<input type="hidden" name="uuid_${i}" value="${comment.uuid}">`
+                        }
                         <div class="row mt-3">
                             <div class="col">
                                 ${videoLink
