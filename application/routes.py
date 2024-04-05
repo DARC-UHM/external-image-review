@@ -17,6 +17,7 @@ from schema.comment import Comment, ReviewerCommentList
 from schema.reviewer import Reviewer
 from schema.annotator import Annotator
 from schema.attracted import Attracted
+from schema.vars_qaqc_checklist import VarsQaqcChecklist
 
 
 def require_api_key(func):
@@ -500,11 +501,75 @@ def update_attracted(scientific_name):
     return jsonify(Attracted.objects.get(scientific_name=scientific_name).json()), 200
 
 
-@app.get('/qaqc-checklist/<sequences>')
+@app.get('/vars-qaqc-checklist/<sequences>')
 @require_api_key
-def qaqc_checklist(sequences):
-    sequences = sequences.split('&')
-    return {}
+def vars_qaqc_checklist(sequences):
+    if not sequences:
+        return jsonify({400: 'No sequence name provided'}), 400
+    try:
+        checklist = VarsQaqcChecklist.objects.get(sequence_names=sequences)
+    except DoesNotExist:
+        # create a new checklist
+        checklist = VarsQaqcChecklist(
+            sequence_names=sequences,
+            multiple_associations=0,
+            primary_substrate=0,
+            identical_s1_s2=0,
+            duplicate_s2=0,
+            upon_substrate=0,
+            timestamp_substrate=0,
+            missing_upon=0,
+            missing_ancillary=0,
+            ref_id_concept_name=0,
+            ref_id_associations=0,
+            blank_associations=0,
+            suspicious_host=0,
+            expected_association=0,
+            time_diff_host_upon=0,
+            unique_fields=0,
+        ).save()
+    return jsonify(checklist.json()), 200
+
+
+@app.patch('/vars-qaqc-checklist/<sequences>')
+@require_api_key
+def patch_vars_qaqc_checklist(sequences):
+    if not sequences:
+        return jsonify({400: 'No sequence name provided'}), 400
+    updated_checklist = json.loads(request.data)
+    checklist = VarsQaqcChecklist.objects.get(sequence_names=sequences)
+    checklist.update(
+        set__multiple_associations=updated_checklist['multipleAssociationsCheckbox'],
+        set__primary_substrate=updated_checklist['primarySubstrateCheckbox'],
+        set__identical_s1_s2=updated_checklist['identicalS1S2Checkbox'],
+        set__duplicate_s2=updated_checklist['duplicateS2Checkbox'],
+        set__upon_substrate=updated_checklist['uponSubstrateCheckbox'],
+        set__timestamp_substrate=updated_checklist['timestampSubstrateCheckbox'],
+        set__missing_upon=updated_checklist['missingUponCheckbox'],
+        set__missing_ancillary=updated_checklist['missingAncillaryCheckbox'],
+        set__ref_id_concept_name=updated_checklist['refIdConceptNameCheckbox'],
+        set__ref_id_associations=updated_checklist['refIdAssociationsCheckbox'],
+        set__blank_associations=updated_checklist['blankAssociationsCheckbox'],
+        set__suspicious_host=updated_checklist['suspiciousHostCheckbox'],
+        set__expected_association=updated_checklist['expectedAssociationCheckbox'],
+        set__time_diff_host_upon=updated_checklist['timeDiffHostUponCheckbox'],
+        set__unique_fields=updated_checklist['uniqueFieldsCheckbox'],
+    )
+    return jsonify(VarsQaqcChecklist.objects.get(sequence_names=sequences).json()), 200
+
+
+@app.get('/tator-qaqc-checklist/<deployments>')
+@require_api_key
+def tator_qaqc_checklist(deployments):
+    # todo
+    pass
+
+
+@app.patch('/tator-qaqc-checklist/<deployments>')
+@require_api_key
+def patch_tator_qaqc_checklist(deployments):
+    # todo
+    pass
 
 
 @app.delete('/attracted/<scientific_name>')

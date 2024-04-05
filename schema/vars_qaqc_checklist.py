@@ -1,8 +1,8 @@
 from mongoengine import Document, IntField, StringField
 
 
-class QaqcChecklist(Document):
-    """ Schema for QAQC checklist collection """
+class VarsQaqcChecklist(Document):
+    """ Schema for VARS QAQC checklist collection """
     sequence_names = StringField(required=True, max_length=750)
     multiple_associations = IntField(required=True, min_value=0, max_value=2)
     primary_substrate = IntField(required=True, min_value=0, max_value=2)
@@ -22,7 +22,6 @@ class QaqcChecklist(Document):
 
     def json(self):
         return {
-            'sequenceNames': self.sequence_names,
             'multipleAssociationsCheckbox': self.multiple_associations,
             'primarySubstrateCheckbox': self.primary_substrate,
             'identicalS1S2Checkbox': self.identical_s1_s2,
