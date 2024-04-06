@@ -243,16 +243,37 @@ def get_sequence_comments(sequence_num):
     return jsonify(comments), 200
 
 
-# returns all comments for a given reviewer
+# returns comments for a given reviewer
 @app.get('/comment/reviewer/<reviewer_name>')
 @require_api_key
 def get_reviewer_comments(reviewer_name):
+    unread_comments = Comment.objects(unread=True, reviewer_comments__reviewer=reviewer_name).count()
+    read_comments = Comment.objects(
+        unread=False,
+        reviewer_comments__comment__ne='',
+        reviewer_comments__reviewer=reviewer_name,
+    ).count()
+    total_comments = Comment.objects(reviewer_comments__reviewer=reviewer_name).count()
     comments = {}
-    db_records = Comment.objects(reviewer_comments__reviewer=reviewer_name)
+    if request.args.get('unread') == 'true':
+        db_records = Comment.objects(unread=True, reviewer_comments__reviewer=reviewer_name)
+    elif request.args.get('read') == 'true':
+        db_records = Comment.objects(
+            unread=False,
+            reviewer_comments__comment__ne='',
+            reviewer_comments__reviewer=reviewer_name,
+        )
+    else:
+        db_records = Comment.objects(reviewer_comments__reviewer=reviewer_name)
     for record in db_records:
         obj = record.json()
         comments[obj['uuid']] = record.json()
-    return jsonify(comments), 200
+    return jsonify({
+        'unread_comments': unread_comments,
+        'read_comments': read_comments,
+        'total_comments': total_comments,
+        'comments': comments,
+    }), 200
 
 
 # returns one comment
