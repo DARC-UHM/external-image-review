@@ -1,4 +1,5 @@
 import os
+import re
 from json import JSONDecodeError
 
 import requests
@@ -426,6 +427,45 @@ def stats():
     }), 200
 
 
+@app.get('/stats/<sequence_num>')
+def sequence_stats(sequence_num):
+    if not sequence_num:
+        return jsonify({400: 'No sequence number provided'}), 400
+    comments = Comment.objects(sequence=re.compile(f'.*{sequence_num}.*'))
+    total_no_response = 0
+    total_response = 0
+    reviewers = {}
+    taxa = {}
+    for comment in comments:
+        comment = comment.json()
+        with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{comment["uuid"]}') as r:
+            try:
+                server_record = r.json()
+                if server_record['concept'] not in taxa:
+                    taxa[server_record['concept']] = 1
+                else:
+                    taxa[server_record['concept']] += 1
+            except JSONDecodeError:
+                continue
+        for reviewer_comment in comment['reviewer_comments']:
+            if reviewer_comment['reviewer'] not in reviewers:
+                reviewers[reviewer_comment['reviewer']] = 1
+            else:
+                reviewers[reviewer_comment['reviewer']] += 1
+            if reviewer_comment['comment'] == '':
+                total_no_response += 1
+            else:
+                total_response += 1
+    return jsonify({
+        'total_comments': total_response + total_no_response,
+        'number_responses': total_response,
+        'number_no_response': total_no_response,
+        'number_sent_to_reviewer': reviewers,
+        'number_taxa': taxa,
+    }), 200
+
+
+
 # route to save reviewer's comments, redirects to success page
 @app.post('/save-comments')
 def save_comments():
@@ -523,6 +563,17 @@ def update_attracted(scientific_name):
     return jsonify(Attracted.objects.get(scientific_name=scientific_name).json()), 200
 
 
+@app.delete('/attracted/<scientific_name>')
+@require_api_key
+def delete_attracted(scientific_name):
+    try:
+        db_record = Attracted.objects.get(scientific_name=scientific_name)
+        db_record.delete()
+    except DoesNotExist:
+        return jsonify({404: 'No record with given scientific name'}), 404
+    return jsonify({200: 'Record deleted'}), 200
+
+
 @app.get('/vars-qaqc-checklist/<sequences>')
 @require_api_key
 def vars_qaqc_checklist(sequences):
@@ -598,17 +649,6 @@ def patch_tator_qaqc_checklist(deployments):
     checklist[next(iter(updated_checkbox.keys()))] = next(iter(updated_checkbox.values()))
     checklist.save()
     return jsonify(checklist.json()), 200
-
-
-@app.delete('/attracted/<scientific_name>')
-@require_api_key
-def delete_attracted(scientific_name):
-    try:
-        db_record = Attracted.objects.get(scientific_name=scientific_name)
-        db_record.delete()
-    except DoesNotExist:
-        return jsonify({404: 'No record with given scientific name'}), 404
-    return jsonify({200: 'Record deleted'}), 200
 
 
 @app.errorhandler(404)
