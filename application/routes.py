@@ -17,6 +17,7 @@ from schema.comment import Comment, ReviewerCommentList
 from schema.reviewer import Reviewer
 from schema.annotator import Annotator
 from schema.attracted import Attracted
+from schema.tator_qaqc_checklist import TatorQaqcChecklist
 from schema.vars_qaqc_checklist import VarsQaqcChecklist
 
 
@@ -536,40 +537,46 @@ def vars_qaqc_checklist(sequences):
 def patch_vars_qaqc_checklist(sequences):
     if not sequences:
         return jsonify({400: 'No sequence name provided'}), 400
-    updated_checklist = json.loads(request.data)
+    updated_checkbox = request.json
     checklist = VarsQaqcChecklist.objects.get(sequence_names=sequences)
-    checklist.update(
-        set__multiple_associations=updated_checklist['multipleAssociationsCheckbox'],
-        set__primary_substrate=updated_checklist['primarySubstrateCheckbox'],
-        set__identical_s1_s2=updated_checklist['identicalS1S2Checkbox'],
-        set__duplicate_s2=updated_checklist['duplicateS2Checkbox'],
-        set__upon_substrate=updated_checklist['uponSubstrateCheckbox'],
-        set__timestamp_substrate=updated_checklist['timestampSubstrateCheckbox'],
-        set__missing_upon=updated_checklist['missingUponCheckbox'],
-        set__missing_ancillary=updated_checklist['missingAncillaryCheckbox'],
-        set__ref_id_concept_name=updated_checklist['refIdConceptNameCheckbox'],
-        set__ref_id_associations=updated_checklist['refIdAssociationsCheckbox'],
-        set__blank_associations=updated_checklist['blankAssociationsCheckbox'],
-        set__suspicious_host=updated_checklist['suspiciousHostCheckbox'],
-        set__expected_association=updated_checklist['expectedAssociationCheckbox'],
-        set__time_diff_host_upon=updated_checklist['timeDiffHostUponCheckbox'],
-        set__unique_fields=updated_checklist['uniqueFieldsCheckbox'],
-    )
-    return jsonify(VarsQaqcChecklist.objects.get(sequence_names=sequences).json()), 200
+    checklist[next(iter(updated_checkbox.keys()))] = next(iter(updated_checkbox.values()))
+    checklist.save()
+    return jsonify(checklist.json()), 200
 
 
 @app.get('/tator-qaqc-checklist/<deployments>')
 @require_api_key
 def tator_qaqc_checklist(deployments):
-    # todo
-    pass
+    if not deployments:
+        return jsonify({400: 'No deployment name provided'}), 400
+    try:
+        checklist = TatorQaqcChecklist.objects.get(deployment_names=deployments)
+    except DoesNotExist:
+        # create a new checklist
+        checklist = TatorQaqcChecklist(
+            deployment_names=deployments,
+            names_accepted=0,
+            missing_qualifier=0,
+            stet_reason=0,
+            tentative_id=0,
+            attracted=0,
+            notes_remarks=0,
+            unique_taxa=0,
+            media_attributes=0,
+        ).save()
+    return jsonify(checklist.json()), 200
 
 
 @app.patch('/tator-qaqc-checklist/<deployments>')
 @require_api_key
 def patch_tator_qaqc_checklist(deployments):
-    # todo
-    pass
+    if not deployments:
+        return jsonify({400: 'No deployment name provided'}), 400
+    updated_checkbox = request.json
+    checklist = TatorQaqcChecklist.objects.get(deployment_names=deployments)
+    checklist[next(iter(updated_checkbox.keys()))] = next(iter(updated_checkbox.values()))
+    checklist.save()
+    return jsonify(checklist.json()), 200
 
 
 @app.delete('/attracted/<scientific_name>')
