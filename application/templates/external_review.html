@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="/static/css/bootstrap.css" />
     <link rel="stylesheet" href="/static/css/style.css" />
 </head>
-<body>
+<body class="min-vh-100 d-flex flex-column">
     <div id="flash-messages-container">
         <div id="failedCommentFlash" class="alert alert-danger alert-dismissible px-5" style="position:fixed; left: 50%; transform: translate(-50%, 0); z-index: 50; display: none;">
             <span class="px-2" style="font-weight: 500;">Failed to save comments - please try again. If the issue persists, please contact a DARC team member.</span>
@@ -14,7 +14,7 @@
             <div class="alert-bottom-bar alert-bottom-bar-success"></div>
         </div>
     </div>
-    <div class="text-center my-3 mx-4 mx-md-5">
+    <div class="text-center my-3 mx-4 mx-md-5 mb-5">
         <button class="secret-button" onclick="addViewAllParam()">View all</button>
         <h2 style="font-weight: 600;">Image Review</h2>
         {% if data.comments|length > 0 %}
@@ -32,20 +32,24 @@
         No images found.
         {% endif %}
     </div>
-    <div class="row footer px-md-5 py-2 m-0 mt-5">
+    <div class="row footer px-md-5 pb-3 pt-3 m-0 mt-auto">
         <div class="col mt-1">
-            <a class="mediaButton" target="_blank" href="https://www.soest.hawaii.edu/DARC/index.php"><strong>Deep-sea Animal Research Center</strong></a><br>
+            <a class="mediaButton" target="_blank" href="https://www.soest.hawaii.edu/DARC/index.php" style="font-weight: 600;">
+              Deep-Sea Animal Research Center
+            </a><br>
             School of Ocean and Earth Science and Technology<br>
-            University of Hawaii at Manoa<br>
-            Honolulu, HI 96822
+            University of Hawai‘i at Manoa<br>
         </div>
 
         <div class="col d-flex justify-content-end align-items-center">
             <a href="https://www.soest.hawaii.edu/DARC/index.php" target="_blank">
-                <img src="/static/img/logo_darc.png" alt="DARC logo" class="me-2" width="70" height="70" />
+                <img src="/static/img/darc.png" alt="DARC logo" class="me-2" width="60" height="60" />
             </a>
-            <a href="https://www.soest.hawaii.edu" target="_blank">
-                <img src="/static/img/university-of-hawaii-manoa.png" alt="University of Hawaii logo" width="70" height="70" />
+            <a href="https://www.soest.hawaii.edu/soestwp/" target="_blank">
+                <img src="/static/img/soest.png" alt="SOEST logo" class="me-2 rounded" width="55" height="55" />
+            </a>
+            <a href="https://manoa.hawaii.edu/" target="_blank">
+                <img src="/static/img/university-of-hawaii.png" alt="University of Hawaii logo" width="60" height="60" />
             </a>
         </div>
     </div>
