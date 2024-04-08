@@ -93,6 +93,7 @@ $(document).ready(() => {
         const photos = [comment.image_url];
         let videoLink = comment.video_url;
         let rovCruiseDive = '';
+        let sampleReference = null;
 
         if (comment.sequence?.includes('Hercules')) {
             const cruiseDive = comment.sequence.split('Hercules ')[1];
@@ -123,6 +124,7 @@ $(document).ready(() => {
                     photos.push(sortedComments[j].image_url); // add those photos to this comment
                     slideshowIndices[numSlideshows - 1][1] += 1;
                     idRefUuids.push(sortedComments[j].uuid);
+                    sampleReference = sortedComments[j].sample_reference || sampleReference;
                 }
             }
         }
@@ -239,7 +241,7 @@ $(document).ready(() => {
                                 }
                             </div>
                         </div>
-                        ${comment.sample_reference
+                        ${sampleReference
                             ? `<div class="row mt-4">
                                 <div class="col align-items-center d-flex">
                                     <div class="position-relative" title="A sample of this specimen was collected">
@@ -253,7 +255,7 @@ $(document).ready(() => {
                                         </div>
                                     </div>
                                     <div class="ms-3 mt-2" title="Wet-lab sample ID">
-                                        ${comment.sample_reference}
+                                        ${sampleReference}
                                     </div>
                                 </div>
                             </div>`
