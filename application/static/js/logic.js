@@ -92,6 +92,17 @@ $(document).ready(() => {
         const comment = sortedComments[i];
         const photos = [comment.image_url];
         let videoLink = comment.video_url;
+        let rovCruiseDive = '';
+
+        if (comment.sequence?.includes('Hercules')) {
+            const cruiseDive = comment.sequence.split('Hercules ')[1];
+            rovCruiseDive = `Hercules-${cruiseDive.substring(0, 3)}-${cruiseDive.substring(3)}`;
+        } else if (comment.sequence?.includes('Deep Discoverer')) {
+            const cruiseDive = comment.sequence.split('Deep Discoverer ')[1];
+            rovCruiseDive = `Deep Discoverer-${cruiseDive.substring(0, 4)}-${cruiseDive.substring(4)}`;
+        } else {
+            rovCruiseDive = comment.sequence;
+        }
 
         if (videoLink?.includes('.mov')) {
             videoLink = `/video?link=${videoLink.split('#t=')[0]}&time=${videoLink.split('#t=')[1]}`;
@@ -151,7 +162,14 @@ $(document).ready(() => {
                             : ''
                         }
                         ${comment.timestamp
-                            ? `<div class="row">
+                            ? `
+                            <div class="row">
+                                <div class="col-5 col-sm-4">
+                                    ROV-Cruise-Dive:
+                                </div>
+                                <div class="col values">${rovCruiseDive}</div>
+                            </div>
+                            <div class="row">
                                 <div class="col-5 col-sm-4">
                                     Annotator:
                                 </div>
@@ -221,6 +239,26 @@ $(document).ready(() => {
                                 }
                             </div>
                         </div>
+                        ${comment.sample_reference
+                            ? `<div class="row mt-4">
+                                <div class="col align-items-center d-flex">
+                                    <div class="position-relative" title="A sample of this specimen was collected">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-basket-fill" viewBox="0 0 16 16">
+                                          <path d="M5.071 1.243a.5.5 0 0 1 .858.514L3.383 6h9.234L10.07 1.757a.5.5 0 1 1 .858-.514L13.783 6H15.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v5a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V9H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 6h1.717zM3.5 10.5a.5.5 0 1 0-1 0v3a.5.5 0 0 0 1 0zm2.5 0a.5.5 0 1 0-1 0v3a.5.5 0 0 0 1 0zm2.5 0a.5.5 0 1 0-1 0v3a.5.5 0 0 0 1 0zm2.5 0a.5.5 0 1 0-1 0v3a.5.5 0 0 0 1 0zm2.5 0a.5.5 0 1 0-1 0v3a.5.5 0 0 0 1 0z"/>
+                                        </svg>
+                                        <div class="position-absolute top-0 left-0" style="margin-top: 12px; margin-left: 12px;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="lightgreen" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+                                              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="ms-3 mt-2" title="Wet-lab sample ID">
+                                        ${comment.sample_reference}
+                                    </div>
+                                </div>
+                            </div>`
+                            : ''
+                        }
                     </div>
                 </div>
                 <div class="col-md text-center py-3">

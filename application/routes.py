@@ -407,6 +407,8 @@ def review(reviewer_name):
                         if association['link_name'] == 'identity-reference':
                             # dive num + id ref to account for duplicate numbers across dives
                             record['id_reference'] = f'{record["sequence"][-2:]}:{association["link_value"]}'
+                        if association['link_name'] == 'sample-reference':
+                            record['sample_reference'] = association['link_value']
     data = {'comments': comments, 'reviewer': reviewer_name}
     return render_template('external_review.html', data=data), 200
 
@@ -463,7 +465,6 @@ def sequence_stats(sequence_num):
         'number_sent_to_reviewer': reviewers,
         'number_taxa': taxa,
     }), 200
-
 
 
 # route to save reviewer's comments, redirects to success page
