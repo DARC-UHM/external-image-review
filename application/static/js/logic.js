@@ -93,7 +93,7 @@ $(document).ready(() => {
         const photos = [comment.image_url];
         let videoLink = comment.video_url;
         let rovCruiseDive = '';
-        let sampleReference = null;
+        let sampleReference = comment.sample_reference;
 
         if (comment.sequence?.includes('Hercules')) {
             const cruiseDive = comment.sequence.split('Hercules ')[1];

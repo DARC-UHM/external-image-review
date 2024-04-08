@@ -14,6 +14,7 @@ from flask_cors import cross_origin
 from mongoengine import NotUniqueError, DoesNotExist
 
 from application import app
+from application.vars_summary import VarsSummary
 from schema.comment import Comment, ReviewerCommentList
 from schema.reviewer import Reviewer
 from schema.annotator import Annotator
@@ -392,7 +393,7 @@ def review(reviewer_name):
             comments.append(record)
             # for VARS annotations, get the record info from the server
             if record['scientific_name'] is None or record['scientific_name'] == '':  # VARS annotation
-                with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{record["uuid"]}') as r:
+                with requests.get(f'{app.config.get("HURLSTOR_URL")}:8082/anno/v1/annotations/{record["uuid"]}') as r:
                     try:
                         server_record = r.json()
                     except JSONDecodeError:
@@ -429,41 +430,28 @@ def stats():
     }), 200
 
 
-@app.get('/stats/<sequence_num>')
+@app.get('/stats/vars/<sequence_num>')
 def sequence_stats(sequence_num):
     if not sequence_num:
         return jsonify({400: 'No sequence number provided'}), 400
+    summary = VarsSummary(sequence_num)
+    if not summary.matched_sequences:
+        return jsonify({404: 'No sequences in VARS match given sequence number'}), 404
+    summary.get_summary()
     comments = Comment.objects(sequence=re.compile(f'.*{sequence_num}.*'))
-    total_no_response = 0
-    total_response = 0
-    reviewers = {}
-    taxa = {}
+    reviewers_responded = set()
     for comment in comments:
         comment = comment.json()
-        with requests.get(f'http://hurlstor.soest.hawaii.edu:8082/anno/v1/annotations/{comment["uuid"]}') as r:
-            try:
-                server_record = r.json()
-                if server_record['concept'] not in taxa:
-                    taxa[server_record['concept']] = 1
-                else:
-                    taxa[server_record['concept']] += 1
-            except JSONDecodeError:
-                continue
         for reviewer_comment in comment['reviewer_comments']:
-            if reviewer_comment['reviewer'] not in reviewers:
-                reviewers[reviewer_comment['reviewer']] = 1
-            else:
-                reviewers[reviewer_comment['reviewer']] += 1
             if reviewer_comment['comment'] == '':
-                total_no_response += 1
+                continue
             else:
-                total_response += 1
+                reviewers_responded.add(reviewer_comment['reviewer'])
     return jsonify({
-        'total_comments': total_response + total_no_response,
-        'number_responses': total_response,
-        'number_no_response': total_no_response,
-        'number_sent_to_reviewer': reviewers,
-        'number_taxa': taxa,
+        'annotation_count': summary.annotation_count,
+        'individual_count': summary.individual_count,
+        'phylum_counts': summary.phylum_counts,
+        'reviewers_responded': list(reviewers_responded),
     }), 200
 
 
