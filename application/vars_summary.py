@@ -10,8 +10,11 @@ TERM_NORMAL = '\033[1;37;0m'
 class VarsSummary:
     def __init__(self, sequence_num: str):
         self.phylogeny = {}
+        self.annotators = set()
         self.annotation_count = 0
         self.individual_count = 0
+        self.video_hours = 0
+        self.image_count = 0
         self.phylum_counts = {}
         # get list of sequences from vars
         with requests.get('http://hurlstor.soest.hawaii.edu:8084/vam/v1/videosequences/names') as req:
@@ -63,10 +66,16 @@ class VarsSummary:
         no_match_records = set()
         for sequence in self.matched_sequences:
             with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
-                self.annotation_count += len(r.json()['annotations'])
-                for annotation in r.json()['annotations']:
+                _json = r.json()
+                self.annotation_count += len(_json['annotations'])
+                for video in _json['media']:
+                    self.video_hours += video['duration_millis'] / 1000 / 60 / 60
+                for annotation in _json['annotations']:
                     if annotation['concept'][0].islower():  # ignore non-taxonomic concepts
                         continue
+                    if len(annotation['image_references']) > 0:
+                        self.image_count += 1
+                    self.annotators.add(annotation['observer'])
                     id_ref = None
                     cat_abundance = None
                     pop_quantity = None
@@ -110,3 +119,4 @@ class VarsSummary:
                     self.individual_count += this_count
                     self.phylum_counts[this_phylum] = self.phylum_counts.get(this_phylum, 0) + this_count
         self.save_phylogeny()
+        self.annotators.remove('python-script')
