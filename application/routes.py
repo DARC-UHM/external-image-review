@@ -432,6 +432,7 @@ def stats():
 
 @app.get('/stats/vars/<sequence_num>')
 def sequence_stats(sequence_num):
+    app.logger.info(f'Got stats for VARS: {sequence_num} - IP Address: {request.remote_addr}')
     if not sequence_num:
         return jsonify({400: 'No sequence number provided'}), 400
     summary = VarsSummary(sequence_num)
