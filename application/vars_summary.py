@@ -120,4 +120,4 @@ class VarsSummary:
                     self.individual_count += this_count
                     self.phylum_counts[this_phylum] = self.phylum_counts.get(this_phylum, 0) + this_count
         self.save_phylogeny()
-        self.annotators.remove('python-script')
+        self.annotators.discard('python-script')
