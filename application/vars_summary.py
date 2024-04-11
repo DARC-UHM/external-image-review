@@ -13,7 +13,7 @@ class VarsSummary:
         self.annotators = set()
         self.annotation_count = 0
         self.individual_count = 0
-        self.video_hours = 0
+        self.video_millis = 0
         self.image_count = 0
         self.phylum_counts = {}
         # get list of sequences from vars
@@ -69,7 +69,8 @@ class VarsSummary:
                 _json = r.json()
                 self.annotation_count += len(_json['annotations'])
                 for video in _json['media']:
-                    self.video_hours += video['duration_millis'] / 1000 / 60 / 60
+                    if 'image collection' not in video['video_name']:
+                        self.video_millis += video['duration_millis']
                 for annotation in _json['annotations']:
                     if annotation['concept'][0].islower():  # ignore non-taxonomic concepts
                         continue

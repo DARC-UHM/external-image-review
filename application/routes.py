@@ -454,7 +454,7 @@ def sequence_stats(sequence_num):
         'annotation_count': summary.annotation_count,
         'individual_count': summary.individual_count,
         'image_count': summary.image_count,
-        'video_hours': round(summary.video_hours, 2),
+        'video_hours': round(summary.video_millis / 1000 / 60 / 60, 2),
         'phylum_counts': summary.phylum_counts,
         'reviewers_responded': list(reviewers_responded),
     }), 200
