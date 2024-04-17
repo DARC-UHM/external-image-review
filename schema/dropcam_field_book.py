@@ -6,7 +6,7 @@ class DeploymentData(EmbeddedDocument):
     deployment_name = StringField(required=True, max_length=30)
     lat = StringField(required=True, max_length=30)
     long = StringField(required=True, max_length=30)
-    depth = IntField(required=True)
+    depth_m = IntField(required=True)
     bait_type = StringField(required=True, max_length=30)
     deployment_depth = StringField(required=True, max_length=30)
 
@@ -15,7 +15,7 @@ class DeploymentData(EmbeddedDocument):
             'deployment_name': self.deployment_name,
             'lat': self.lat,
             'long': self.long,
-            'depth': self.depth,
+            'depth_m': self.depth_m,
             'bait_type': self.bait_type,
             'deployment_depth': self.deployment_depth,
         }

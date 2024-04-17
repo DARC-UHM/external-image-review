@@ -16,6 +16,7 @@ from mongoengine import NotUniqueError, DoesNotExist
 from application import app
 from application.vars_summary import VarsSummary
 from schema.comment import Comment, ReviewerCommentList
+from schema.dropcam_field_book import DropcamFieldBook
 from schema.reviewer import Reviewer
 from schema.annotator import Annotator
 from schema.attracted import Attracted
@@ -643,6 +644,28 @@ def patch_tator_qaqc_checklist(deployments):
     checklist[next(iter(updated_checkbox.keys()))] = next(iter(updated_checkbox.values()))
     checklist.save()
     return jsonify(checklist.json()), 200
+
+
+@app.get('/dropcam-fieldbook/<expedition>')
+def dropcam_field_book(expedition):
+    if not expedition:
+        return jsonify({400: 'No expedition name provided'}), 400
+    try:
+        field_book = DropcamFieldBook.objects.get(expedition_name=expedition)
+    except DoesNotExist:
+        return jsonify({404: 'No records found matching expedition name'}), 404
+    return jsonify(field_book.json()), 200
+
+
+@app.post('/dropcam-fieldbook')
+def add_dropcam_field_book():
+    print(request.json)
+    return jsonify({400: 'No expedition name provided'}), 400
+    try:
+        field_book = DropcamFieldBook(expedition_name=expedition).save()
+    except NotUniqueError:
+        return jsonify({409: 'Record already exists'}), 409
+    return jsonify(field_book.json()), 201
 
 
 @app.errorhandler(404)
