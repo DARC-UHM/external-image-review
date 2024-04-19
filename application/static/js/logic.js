@@ -91,6 +91,8 @@ $(document).ready(() => {
         const idRefUuids = [];
         const comment = sortedComments[i];
         const photos = [comment.image_url];
+        const lat = Math.round(comment.lat * 1000) / 1000;
+        const long = Math.round(comment.long * 1000) / 1000;
         let videoLink = comment.video_url;
         let rovCruiseDive = '';
         let sampleReference = comment.sample_reference;
@@ -167,10 +169,18 @@ $(document).ready(() => {
                             ? `
                                 <div class="row">
                                     <div class="col-5 col-sm-4">
-                                        Expedition-Deployment:
+                                        Expedition:
                                     </div>
                                     <div class="col values">
-                                        ${comment.expedition_name}-${comment.sequence}
+                                        ${comment.expedition_name}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-5 col-sm-4">
+                                        Deployment:
+                                    </div>
+                                    <div class="col values">
+                                        ${comment.sequence}
                                     </div>
                                 </div>
                             ` : `
@@ -204,7 +214,7 @@ $(document).ready(() => {
                                     <div class="col-5 col-sm-4">
                                         Location:
                                     </div>
-                                    <div class="col values"><a href="http://www.google.com/maps/place/${comment.lat},${comment.long}/@${comment.lat},${comment.long},5z/data=!3m1!1e3" target="_blank" class="mediaButton">${comment.lat}, ${comment.long}</a></div>
+                                    <div class="col values"><a href="http://www.google.com/maps/place/${lat},${long}/@${lat},${long},5z/data=!3m1!1e3" target="_blank" class="mediaButton">${lat}, ${long}</a></div>
                                 </div>
                             ` : ''
                         }

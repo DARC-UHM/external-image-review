@@ -51,47 +51,26 @@ def favicon():
 @app.post('/comment')
 @require_api_key
 def add_comment():
-    uuid = request.values.get('uuid')
-    scientific_name = request.values.get('scientific_name')
-    all_localizations = request.values.get('all_localizations')
-    sequence = request.values.get('sequence')
-    timestamp = request.values.get('timestamp')
-    image_url = request.values.get('image_url')
+    comment = {}
     reviewers = json.loads(request.values.get('reviewers'))
-    video_url = request.values.get('video_url')
-    annotator = request.values.get('annotator')
-    depth = request.values.get('depth')
-    lat = request.values.get('lat')
-    long = request.values.get('long')
-    temperature = request.values.get('temperature')
-    oxygen_ml_l = request.values.get('oxygen_ml_l')
-    if not uuid or not sequence or not reviewers or not annotator:
+    fields = ['uuid', 'scientific_name', 'all_localizations', 'sequence', 'timestamp', 'image_url',
+              'video_url', 'annotator', 'depth', 'lat', 'long', 'temperature', 'oxygen_ml_l']
+    for field in fields:
+        value = request.values.get(field)
+        if value is not None:
+            comment[field] = value
+    if not comment['uuid'] or not comment['sequence'] or not reviewers or not comment['annotator']:
         return jsonify({400: 'Missing required values'}), 400
-    if scientific_name:  # tator localization
+    if comment['scientific_name']:  # tator localization
         if 'image' not in request.files:
             return jsonify({400: 'No image provided'}), 400
         img = request.files['image']
         if img.filename == '':
             return jsonify({400: 'No selected file'}), 400
         img.save(os.path.join(app.config.get('TATOR_IMAGE_FOLDER'), img.filename))
-        image_url = f'{request.url_root}image/{img.filename}'
+        comment['image_url'] = f'{request.url_root}image/{img.filename}'
     try:
-        comment = Comment(
-            uuid=uuid,
-            scientific_name=scientific_name,
-            all_localizations=all_localizations,
-            sequence=sequence,
-            timestamp=timestamp,
-            image_url=image_url,
-            unread=False,
-            video_url=video_url,
-            annotator=annotator,
-            depth=depth,
-            lat=lat,
-            long=long,
-            temperature=temperature,
-            oxygen_ml_l=oxygen_ml_l,
-        )
+        comment = Comment(**comment)
         for reviewer in reviewers:
             comment.reviewer_comments.append(
                 ReviewerCommentList(
