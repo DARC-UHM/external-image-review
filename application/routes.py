@@ -416,10 +416,11 @@ def review(reviewer_name):
                 expedition = DropcamFieldBook.objects.get(section_id=record['section_id']).json()
                 # find deployment with matching sequence
                 deployment = next((x for x in expedition['deployments'] if x['deployment_name'] == record['sequence']), None)
-                record['expedition_name'] = expedition['expedition_name']
-                record['depth'] = deployment['depth_m']
-                record['lat'] = deployment['lat']
-                record['long'] = deployment['long']
+                if deployment is not None:
+                    record['expedition_name'] = expedition['expedition_name']
+                    record['depth'] = deployment['depth_m']
+                    record['lat'] = deployment['lat']
+                    record['long'] = deployment['long']
 
     data = {'comments': comments, 'reviewer': reviewer_name}
     return render_template('external_review.html', data=data), 200
