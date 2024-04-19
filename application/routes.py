@@ -57,7 +57,7 @@ def add_comment():
               'video_url', 'annotator', 'depth', 'lat', 'long', 'temperature', 'oxygen_ml_l', 'section_id']
     for field in fields:
         value = request.values.get(field)
-        if value is not None:
+        if value is not None and value != '':
             comment[field] = value
     if not comment['uuid'] or not comment['sequence'] or not reviewers or not comment['annotator']:
         return jsonify({400: 'Missing required values'}), 400
