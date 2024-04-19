@@ -413,8 +413,10 @@ def review(reviewer_name):
                             record['sample_reference'] = association['link_value']
             else:
                 # for Tator annotations, get depth, lat, long from db
-                expedition = DropcamFieldBook.objects.get(section_id=record['section_id']).json()
-                if expedition is None:
+                try:
+                    expedition = DropcamFieldBook.objects.get(section_id=record['section_id']).json()
+                except DoesNotExist:
+                    print(f'No expedition found for {record["section_id"]}')
                     continue
                 # find deployment with matching sequence
                 deployment = next((x for x in expedition['deployments'] if x['deployment_name'] == record['sequence']), None)
