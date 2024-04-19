@@ -20,7 +20,7 @@ class Comment(Document):
     image_url = StringField(required=True, max_length=200)
     reviewer_comments = ListField(EmbeddedDocumentField(ReviewerCommentList))
     annotator = StringField(required=True, max_length=50)
-    unread = BooleanField(required=True)
+    unread = BooleanField(required=True, default=False)
     depth = StringField(max_length=10)
     lat = StringField(max_length=10)
     long = StringField(max_length=10)

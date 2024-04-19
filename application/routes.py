@@ -54,7 +54,7 @@ def add_comment():
     comment = {}
     reviewers = json.loads(request.values.get('reviewers'))
     fields = ['uuid', 'scientific_name', 'all_localizations', 'sequence', 'timestamp', 'image_url',
-              'video_url', 'annotator', 'depth', 'lat', 'long', 'temperature', 'oxygen_ml_l']
+              'video_url', 'annotator', 'depth', 'lat', 'long', 'temperature', 'oxygen_ml_l', 'section_id']
     for field in fields:
         value = request.values.get(field)
         if value is not None:
