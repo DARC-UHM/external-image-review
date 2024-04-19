@@ -414,13 +414,16 @@ def review(reviewer_name):
             else:
                 # for Tator annotations, get depth, lat, long from db
                 expedition = DropcamFieldBook.objects.get(section_id=record['section_id']).json()
+                if expedition is None:
+                    continue
                 # find deployment with matching sequence
                 deployment = next((x for x in expedition['deployments'] if x['deployment_name'] == record['sequence']), None)
-                if deployment is not None:
-                    record['expedition_name'] = expedition['expedition_name']
-                    record['depth'] = deployment['depth_m']
-                    record['lat'] = deployment['lat']
-                    record['long'] = deployment['long']
+                if deployment is None:
+                    continue
+                record['expedition_name'] = expedition['expedition_name']
+                record['depth'] = deployment['depth_m']
+                record['lat'] = deployment['lat']
+                record['long'] = deployment['long']
 
     data = {'comments': comments, 'reviewer': reviewer_name}
     return render_template('external_review.html', data=data), 200
