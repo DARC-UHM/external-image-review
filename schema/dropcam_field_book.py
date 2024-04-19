@@ -1,14 +1,13 @@
-from mongoengine import Document, IntField, StringField, ListField, EmbeddedDocument, EmbeddedDocumentField
+from mongoengine import Document, IntField, FloatField, StringField, ListField, EmbeddedDocument, EmbeddedDocumentField
 
 
 class DeploymentData(EmbeddedDocument):
     """ Schema for dropcam deployment data collection """
-    deployment_name = StringField(required=True, max_length=30)
-    lat = StringField(required=True, max_length=30)
-    long = StringField(required=True, max_length=30)
-    depth_m = IntField(required=True)
+    deployment_name = StringField(required=True, unique=True, max_length=30)
+    lat = FloatField(required=True, max_length=30)
+    long = FloatField(required=True, max_length=30)
+    depth_m = FloatField()
     bait_type = StringField(required=True, max_length=30)
-    deployment_depth = StringField(required=True, max_length=30)
 
     def json(self):
         return {
@@ -17,7 +16,6 @@ class DeploymentData(EmbeddedDocument):
             'long': self.long,
             'depth_m': self.depth_m,
             'bait_type': self.bait_type,
-            'deployment_depth': self.deployment_depth,
         }
 
 

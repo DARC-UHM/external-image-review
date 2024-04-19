@@ -659,10 +659,23 @@ def dropcam_field_book(expedition):
 
 @app.post('/dropcam-fieldbook')
 def add_dropcam_field_book():
-    print(request.json)
-    return jsonify({400: 'No expedition name provided'}), 400
     try:
-        field_book = DropcamFieldBook(expedition_name=expedition).save()
+        expedition_fieldbook = request.json
+        field_book = DropcamFieldBook(
+            expedition_name=expedition_fieldbook['expedition_name'],
+            deployments=[
+                {
+                    'deployment_name': deployment['deployment_name'],
+                    'lat': deployment['lat'],
+                    'long': deployment['long'],
+                    'depth_m': deployment['depth_m'],
+                    'bait_type': deployment['bait_type'],
+                }
+                for deployment in expedition_fieldbook['deployments']
+            ]
+        ).save()
+    except JSONDecodeError:
+        return jsonify({400: 'Invalid JSON'}), 400
     except NotUniqueError:
         return jsonify({409: 'Record already exists'}), 409
     return jsonify(field_book.json()), 201
