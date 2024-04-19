@@ -392,8 +392,8 @@ def review(reviewer_name):
             if request.args.getlist('annotator') and record['annotator'] not in request.args.getlist('annotator'):
                 continue
             comments.append(record)
-            # for VARS annotations, get the record info from the server
             if record['scientific_name'] is None or record['scientific_name'] == '':  # VARS annotation
+                # for VARS annotations, get the record info from VARS server
                 with requests.get(f'{app.config.get("HURLSTOR_URL")}:8082/anno/v1/annotations/{record["uuid"]}') as r:
                     try:
                         server_record = r.json()
@@ -411,6 +411,16 @@ def review(reviewer_name):
                             record['id_reference'] = f'{record["sequence"][-2:]}:{association["link_value"]}'
                         if association['link_name'] == 'sample-reference':
                             record['sample_reference'] = association['link_value']
+            else:
+                # for Tator annotations, get depth, lat, long from db
+                expedition = DropcamFieldBook.objects.get(section_id=record['section_id']).json()
+                # find deployment with matching sequence
+                deployment = next((x for x in expedition['deployments'] if x['deployment_name'] == record['sequence']), None)
+                record['expedition_name'] = expedition['expedition_name']
+                record['depth'] = deployment['depth_m']
+                record['lat'] = deployment['lat']
+                record['long'] = deployment['long']
+
     data = {'comments': comments, 'reviewer': reviewer_name}
     return render_template('external_review.html', data=data), 200
 
