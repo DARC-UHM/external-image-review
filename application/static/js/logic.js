@@ -163,63 +163,80 @@ $(document).ready(() => {
                             </div>`
                             : ''
                         }
+                        ${comment.expedition_name
+                            ? `
+                                <div class="row">
+                                    <div class="col-5 col-sm-4">
+                                        Expedition-Deployment:
+                                    </div>
+                                    <div class="col values">
+                                        ${comment.expedition_name}-${comment.sequence}
+                                    </div>
+                                </div>
+                            ` : `
+                                <div class="row">
+                                    <div class="col-5 col-sm-4">
+                                        ROV-Cruise-Dive:
+                                    </div>
+                                    <div class="col values">${rovCruiseDive}</div>
+                                </div>
+                            `
+                        }
+                        <div class="row">
+                            <div class="col-5 col-sm-4">
+                                Annotator:
+                            </div>
+                            <div class="col values">${comment.annotator}</div>
+                        </div>
                         ${comment.timestamp
                             ? `
-                            <div class="row">
-                                <div class="col-5 col-sm-4">
-                                    ROV-Cruise-Dive:
+                                <div class="row">
+                                    <div class="col-5 col-sm-4">
+                                        Timestamp:
+                                    </div>
+                                    <div class="col values">${comment.timestamp}</div>
                                 </div>
-                                <div class="col values">${rovCruiseDive}</div>
-                            </div>
-                            <div class="row">
-                                <div class="col-5 col-sm-4">
-                                    Annotator:
-                                </div>
-                                <div class="col values">${comment.annotator}</div>
-                            </div>
-                            <div class="row">
-                                <div class="col-5 col-sm-4">
-                                    Timestamp:
-                                </div>
-                                <div class="col values">${comment.timestamp}</div>
-                            </div>`
-                            : ''
+                            ` : ''
                         }
                         ${comment.lat
-                            ? `<div class="row">
-                                <div class="col-5 col-sm-4">
-                                    Location:
+                            ? `
+                                <div class="row">
+                                    <div class="col-5 col-sm-4">
+                                        Location:
+                                    </div>
+                                    <div class="col values"><a href="http://www.google.com/maps/place/${comment.lat},${comment.long}/@${comment.lat},${comment.long},5z/data=!3m1!1e3" target="_blank" class="mediaButton">${comment.lat}, ${comment.long}</a></div>
                                 </div>
-                                <div class="col values"><a href="http://www.google.com/maps/place/${comment.lat},${comment.long}/@${comment.lat},${comment.long},5z/data=!3m1!1e3" target="_blank" class="mediaButton">${comment.lat}, ${comment.long}</a></div>
-                            </div>`
-                            : ''
+                            ` : ''
                         }
                         ${comment.depth
-                            ? `<div class="row">
-                                <div class="col-5 col-sm-4">
-                                    Depth:
+                            ? `
+                                <div class="row">
+                                    <div class="col-5 col-sm-4">
+                                        Depth:
+                                    </div>
+                                    <div class="col values">${comment.depth} m</div>
                                 </div>
-                                <div class="col values">${comment.depth} m</div>
-                            </div>`
-                            : ''
+                            ` : ''
                         }
                         ${comment.temperature
-                            ? `<div class="row">
-                                <div class="col-5 col-sm-4">
-                                    Temperature:
+                            ? `
+                                <div class="row">
+                                    <div class="col-5 col-sm-4">
+                                        Temperature:
+                                    </div>
+                                    <div class="col values">${comment.temperature} °C</div>
                                 </div>
-                                <div class="col values">${comment.temperature} °C</div>
-                            </div>`
-                            : ''
+                            ` : ''
                         }
                         ${comment.oxygen_ml_l
-                            ? `<div class="row">
-                                <div class="col-5 col-sm-4">
-                                    Oxygen:
+                            ? `
+                                <div class="row">
+                                    <div class="col-5 col-sm-4">
+                                        Oxygen:
+                                    </div>
+                                    <div class="col values">${comment.oxygen_ml_l} mL/L</div>
                                 </div>
-                                <div class="col values">${comment.oxygen_ml_l} mL/L</div>
-                            </div>`
-                            : ''
+                            ` : ''
                         }
                         <div class="mt-3">
                             Comments:

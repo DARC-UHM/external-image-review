@@ -1,4 +1,4 @@
-from mongoengine import Document, StringField, DateTimeField, BooleanField, ListField, EmbeddedDocument, EmbeddedDocumentField
+from mongoengine import Document, StringField, IntField, DateTimeField, BooleanField, ListField, EmbeddedDocument, EmbeddedDocumentField
 from datetime import datetime, timedelta
 
 
@@ -14,6 +14,7 @@ class Comment(Document):
     uuid = StringField(unique=True, required=True, max_length=50)
     scientific_name = StringField(max_length=100)  # for tator comments
     all_localizations = StringField(max_length=2500)  # for tator comments (JSON string, length allows for about 30 points)
+    section_id = IntField()
     sequence = StringField(required=True, max_length=50)
     timestamp = StringField(max_length=30)
     image_url = StringField(required=True, max_length=200)
@@ -39,6 +40,7 @@ class Comment(Document):
             'uuid': self.uuid,
             'scientific_name': self.scientific_name,
             'all_localizations': self.all_localizations,
+            'section_id': self.section_id,
             'sequence': self.sequence,
             'timestamp': self.timestamp,
             'image_url': self.image_url,
