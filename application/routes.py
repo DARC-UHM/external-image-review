@@ -646,22 +646,13 @@ def patch_tator_qaqc_checklist(deployments):
     return jsonify(checklist.json()), 200
 
 
-@app.get('/dropcam-fieldbook/<expedition>')
-def dropcam_field_book(expedition):
-    if not expedition:
-        return jsonify({400: 'No expedition name provided'}), 400
-    try:
-        field_book = DropcamFieldBook.objects.get(expedition_name=expedition)
-    except DoesNotExist:
-        return jsonify({404: 'No records found matching expedition name'}), 404
-    return jsonify(field_book.json()), 200
-
-
 @app.post('/dropcam-fieldbook')
+@require_api_key
 def add_dropcam_field_book():
     try:
         expedition_fieldbook = request.json
         field_book = DropcamFieldBook(
+            section_id=expedition_fieldbook['section_id'],
             expedition_name=expedition_fieldbook['expedition_name'],
             deployments=[
                 {
@@ -676,6 +667,8 @@ def add_dropcam_field_book():
         ).save()
     except JSONDecodeError:
         return jsonify({400: 'Invalid JSON'}), 400
+    except KeyError:
+        return jsonify({400: 'Missing required values'}), 400
     except NotUniqueError:
         return jsonify({409: 'Record already exists'}), 409
     return jsonify(field_book.json()), 201
