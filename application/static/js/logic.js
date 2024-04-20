@@ -248,6 +248,16 @@ $(document).ready(() => {
                                 </div>
                             ` : ''
                         }
+                        ${comment.bait_type
+                            ? `
+                                <div class="row">
+                                    <div class="col-5 col-sm-4">
+                                        Bait Type:
+                                    </div>
+                                    <div class="col values">${comment.bait_type[0].toUpperCase()}${comment.bait_type.slice(1)}</div>
+                                </div>
+                            ` : ''
+                        }
                         <div class="mt-3">
                             Comments:
                         </div>

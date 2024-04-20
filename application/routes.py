@@ -406,6 +406,7 @@ def review(reviewer_name):
                 record['depth'] = deployment['depth_m']
                 record['lat'] = deployment['lat']
                 record['long'] = deployment['long']
+                record['bait_type'] = deployment['bait_type']
 
     data = {'comments': comments, 'reviewer': reviewer_name}
     return render_template('external_review.html', data=data), 200
