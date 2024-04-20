@@ -62,6 +62,7 @@ def add_comment():
     if not comment['uuid'] or not comment['sequence'] or not reviewers or not comment['annotator']:
         return jsonify({400: 'Missing required values'}), 400
     if comment['scientific_name']:  # tator localization
+        comment['sequence'] = comment['sequence'].replace('-', '_')
         if 'image' not in request.files:
             return jsonify({400: 'No image provided'}), 400
         img = request.files['image']
