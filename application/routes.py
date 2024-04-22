@@ -86,6 +86,45 @@ def add_comment():
     return jsonify(comment.json()), 201
 
 
+@app.get('/tator-video/<video_name>')
+def tator_video(video_name):
+    file_path = os.path.join(os.getcwd(), app.config.get("TATOR_VIDEO_FOLDER"), video_name)
+    if os.path.exists(file_path):
+        return send_file(file_path)
+    else:
+        return jsonify({404: 'Video not found'}), 404
+
+
+@app.post('/tator-video')
+@require_api_key
+def add_video():
+    if 'video' not in request.files:
+        return jsonify({400: 'No video provided'}), 400
+    tator_video = request.files['video']
+    if tator_video.filename == '':
+        return jsonify({400: 'No selected file'}), 400
+    try:
+        comment = Comment.objects.get(uuid=tator_video.filename.split('.')[0])
+    except DoesNotExist:
+        return jsonify({404: 'No comment with given uuid'}), 404
+    tator_video.save(os.path.join(app.config.get('TATOR_VIDEO_FOLDER'), tator_video.filename))
+    comment.update(set__video_url=f'{request.url_root}tator-video/{tator_video.filename}')
+    return jsonify(comment.json()), 201
+
+
+# update comment's video_url
+@app.patch('/comment/video/<uuid>')
+@require_api_key
+def update_video(uuid):
+    try:
+        comment = Comment.objects.get(uuid=uuid)
+    except DoesNotExist:
+        return jsonify({404: 'No comment with given uuid'}), 404
+    comment['video_url'] = request.values.get('video_url')
+    comment.save()
+    return jsonify(comment.json()), 200
+
+
 # update a comment's text given a reviewer and an observation uuid
 @app.patch('/comment/<reviewer>/<uuid>')
 @require_api_key
