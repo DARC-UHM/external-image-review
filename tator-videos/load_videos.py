@@ -2,6 +2,7 @@ import urllib.request
 import requests
 import os
 import dotenv
+import sys
 
 DARC_REVIEW_URL = 'https://hurlstor.soest.hawaii.edu:5000'
 dotenv.load_dotenv()
@@ -28,8 +29,10 @@ darc_comments = requests.get(
     }
 ).json()
 
+print(f'{Total comments: {len(darc_comments.keys())}')
+
 for uuid, comment in darc_comments.items():
-    if 'scientific_name' in comment and comment['scientific_name'] is not None:
+    if 'scientific_name' in comment and comment['scientific_name'] is not None and comment['video_url'] is None:
         localization = requests.get(
             f'https://cloud.tator.io/rest/Localization/{uuid}',
             headers={
@@ -52,7 +55,12 @@ for uuid, comment in darc_comments.items():
             }
         else:
             media_ids[media_id]['localizations'].append({'_id': localization['id'], 'frame': localization['frame']})
+        print('.', end='')
+        sys.stdout.flush()
 
+print()
+print(f'Downloading {len(media_ids.keys())} videos...')
+ 
 for media_id, media_info in media_ids.items():
     # download video
     urllib.request.urlretrieve(
@@ -70,5 +78,8 @@ for media_id, media_info in media_ids.items():
                 'API-Key': os.getenv('DARC_REVIEW_API_KEY'),
             },
         )
+    print('.', end='')
+    sys.stdout.flush()
 
+print()
 print('Done')
