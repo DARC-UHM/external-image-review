@@ -29,7 +29,7 @@ darc_comments = requests.get(
     }
 ).json()
 
-print(f'{Total comments: {len(darc_comments.keys())}')
+print(f'Total comments: {len(darc_comments.keys())}')
 
 for uuid, comment in darc_comments.items():
     if 'scientific_name' in comment and comment['scientific_name'] is not None and comment['video_url'] is None:
