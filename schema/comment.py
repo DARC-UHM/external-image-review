@@ -44,6 +44,7 @@ class Comment(Document):
             'section_id': self.section_id,
             'sequence': self.sequence,
             'timestamp': self.timestamp,
+            'id_reference': self.id_reference,
             'image_url': self.image_url,
             'reviewer_comments': reviewer_comments,
             'annotator': self.annotator,
