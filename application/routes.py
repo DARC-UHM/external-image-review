@@ -410,6 +410,8 @@ def review(reviewer_name):
             # filter by annotator if specified
             if request.args.getlist('annotator') and record['annotator'] not in request.args.getlist('annotator'):
                 continue
+            if request.args.get('sequence') and request.args.get('sequence') not in record['sequence']:
+                continue
             comments.append(record)
             if record['scientific_name'] is None or record['scientific_name'] == '':  # VARS annotation
                 # for VARS annotations, get the record info from VARS server
