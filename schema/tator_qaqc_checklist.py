@@ -9,7 +9,7 @@ class TatorQaqcChecklist(Document):
     stet_reason = IntField(required=True, min_value=0, max_value=2)
     tentative_id = IntField(required=True, min_value=0, max_value=2)
     attracted = IntField(required=True, min_value=0, max_value=2)
-    stet_target_attracted = IntField(required=True, min_value=0, max_value=2)
+    non_target_not_attracted = IntField(required=True, min_value=0, max_value=2)
     same_name_qualifier = IntField(required=True, min_value=0, max_value=2)
     notes_remarks = IntField(required=True, min_value=0, max_value=2)
     unique_taxa = IntField(required=True, min_value=0, max_value=2)
@@ -22,7 +22,7 @@ class TatorQaqcChecklist(Document):
             'stet_reason': self.stet_reason,
             'tentative_id': self.tentative_id,
             'attracted': self.attracted,
-            'stet_target_attracted': self.stet_target_attracted,
+            'non_target_not_attracted': self.non_target_not_attracted,
             'same_name_qualifier': self.same_name_qualifier,
             'notes_remarks': self.notes_remarks,
             'unique_taxa': self.unique_taxa,

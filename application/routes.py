@@ -679,7 +679,7 @@ def tator_qaqc_checklist(deployments):
             stet_reason=0,
             tentative_id=0,
             attracted=0,
-            stet_target_attracted=0,
+            non_target_not_attracted=0,
             same_name_qualifier=0,
             notes_remarks=0,
             unique_taxa=0,
