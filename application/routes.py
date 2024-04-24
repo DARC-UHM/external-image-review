@@ -416,7 +416,7 @@ def review(reviewer_name):
     comments = []
     return_all_comments = request.args.get('all') == 'true'
     reviewer_name = reviewer_name.replace('-', ' ')
-    matched_records = Comment.objects(reviewer_comments__reviewer=reviewer_name)
+    matched_records = Comment.objects(reviewer_comments__reviewer=reviewer_name).order_by('scientific_name', 'sequence')
     for record in matched_records:
         record = record.json()
         # show all comments or only return records that the reviewer has not yet commented on
