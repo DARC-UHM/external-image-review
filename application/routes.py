@@ -53,8 +53,8 @@ def favicon():
 def add_comment():
     comment = {}
     reviewers = json.loads(request.values.get('reviewers'))
-    fields = ['uuid', 'scientific_name', 'all_localizations', 'sequence', 'timestamp', 'image_url',
-              'video_url', 'annotator', 'depth', 'lat', 'long', 'temperature', 'oxygen_ml_l', 'section_id']
+    fields = ['uuid', 'scientific_name', 'all_localizations', 'sequence', 'timestamp', 'image_url', 'video_url',
+              'id_reference', 'annotator', 'depth', 'lat', 'long', 'temperature', 'oxygen_ml_l', 'section_id']
     for field in fields:
         value = request.values.get(field)
         if value is not None and value != '':
@@ -86,30 +86,20 @@ def add_comment():
     return jsonify(comment.json()), 201
 
 
-@app.get('/tator-video/<video_name>')
-def tator_video(video_name):
-    file_path = os.path.join(os.getcwd(), app.config.get("TATOR_VIDEO_FOLDER"), video_name)
-    if os.path.exists(file_path):
-        return send_file(file_path)
-    else:
-        return jsonify({404: 'Video not found'}), 404
-
-
-@app.post('/tator-video')
-@require_api_key
-def add_video():
-    if 'video' not in request.files:
-        return jsonify({400: 'No video provided'}), 400
-    tator_video = request.files['video']
-    if tator_video.filename == '':
-        return jsonify({400: 'No selected file'}), 400
+@app.get('/tator-video/<media_id>')
+def tator_video(media_id):
+    req = requests.get(
+        url=f'https://cloud.tator.io/rest/Media/{media_id}?presigned=3600',
+        headers={
+            'accept': 'application/json',
+            'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}',
+        }
+    )
     try:
-        comment = Comment.objects.get(uuid=tator_video.filename.split('.')[0])
-    except DoesNotExist:
-        return jsonify({404: 'No comment with given uuid'}), 404
-    tator_video.save(os.path.join(app.config.get('TATOR_VIDEO_FOLDER'), tator_video.filename))
-    comment.update(set__video_url=f'{request.url_root}tator-video/{tator_video.filename}')
-    return jsonify(comment.json()), 201
+        media = req.json()
+    except JSONDecodeError:
+        return jsonify({404: 'No media found'}), 404
+    return redirect(media['media_files']['archival'][0]['path'])
 
 
 # update comment's video_url
