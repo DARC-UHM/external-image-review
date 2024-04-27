@@ -20,7 +20,7 @@ function turnOffWarning() {
     }
 }
 
-function plusSlides(slideshowIndex, slideMod, idRef) {
+function plusSlides(slideshowIndex, slideMod, uuid) {
     let slideIndex = slideshowIndices[slideshowIndex][0] + slideMod;
     if (slideIndex > slideshowIndices[slideshowIndex][1]) {
         slideIndex = 1;
@@ -30,10 +30,10 @@ function plusSlides(slideshowIndex, slideMod, idRef) {
     slideshowIndices[slideshowIndex][0] = slideIndex;
     // hide all slides
     for (let i = 1; i <= slideshowIndices[slideshowIndex][1]; i++) {
-        document.getElementById(`${idRef}-${i - 1}`).style.display = "none";
+        document.getElementById(`${uuid}-${i - 1}`).style.display = 'none';
     }
     // show one slide
-    document.getElementById(`${idRef}-${slideIndex - 1}`).style.display = "block";
+    document.getElementById(`${uuid}-${slideIndex - 1}`).style.display = 'block';
 
 }
 
@@ -91,6 +91,7 @@ $(document).ready(() => {
         const idRefUuids = [];
         const comment = sortedComments[i];
         const photos = [comment.image_url];
+        const localizations = [comment.all_localizations];
         const lat = comment.lat ? Number.parseFloat(comment.lat).toFixed(3) : null;
         const long = comment.long ? Number.parseFloat(comment.long).toFixed(3) : null;
         let videoLink = comment.video_url;
@@ -124,26 +125,36 @@ $(document).ready(() => {
             for (let j = i + 1; j < sortedComments.length; j += 1) {
                 if (sortedComments[j].id_reference && sortedComments[j].id_reference === sortedComments[i].id_reference) {
                     photos.push(sortedComments[j].image_url); // add those photos to this comment
+                    localizations.push(sortedComments[j].all_localizations);
                     slideshowIndices[numSlideshows - 1][1] += 1;
                     idRefUuids.push(sortedComments[j].uuid);
                     sampleReference = sortedComments[j].sample_reference || sampleReference;
                 }
             }
         }
-        let photoSlideshow = `<div id="${comment.id_reference}-0">
-                ${photos.length > 1 ? `<div class="numbertext">1 / ${photos.length}</div>` : ''}
-                <a href="${photos[0]}" target="_blank">
-                    <img src="${photos[0]}" style="width:100%; border-radius: 10px;">
-                </a>
-              </div>`;
 
-        for (let j = 1; j < photos.length; j += 1) {
-            photoSlideshow += `<div id="${comment.id_reference}-${j}" class="slide">
-                ${photos.length > 1 ? `<div class="numbertext">${j + 1} / ${photos.length}</div>` : ''}
-                <a href="${photos[j]}" target="_blank">
-                    <img src="${photos[j]}" style="width:100%; border-radius: 10px;">
-                </a>
-              </div>`;
+        let photoSlideshow = '';
+        for (let j = 0; j < photos.length; j += 1) {
+            photoSlideshow += `
+                <div id="${comment.uuid}-${j}" class="${j > 0 ? 'slide' : ''}" style="position-relative">
+                    ${photos.length > 1 ? `<div class="numbertext">${j + 1} / ${photos.length}</div>` : ''}
+                    <a href="${photos[j]}" target="_blank">
+                        <img src="${photos[j]}" style="width:100%; border-radius: 10px;">
+                    </a>
+                    <div id="${comment.uuid}-${j}_overlay">
+                        ${localizations[j] ? JSON.parse(localizations[j]).map((loco) => {
+                            if (loco.type === 48) { // 48 is a box
+                                return `<span
+                                            class="position-absolute tator-box"
+                                            style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%; width: ${loco.dimensions[0] * 100}%; height: ${loco.dimensions[1] * 100}%;"
+                                        ></span>`;
+                            }
+                            return `<span class="position-absolute tator-dot" style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%;"></span>`;
+                        }).join('')
+                        : ''}
+                    </div>
+                </div>
+            `;
         }
 
         $('#comments').append(`
@@ -303,11 +314,24 @@ $(document).ready(() => {
                 <div class="col-md text-center py-3">
                     <div class="slideshow-container w-100">
                         ${photoSlideshow}
-                        <a id="prev" onclick="plusSlides(${numSlideshows} - 1, -1, '${comment.id_reference}')" ${photos.length < 2 ? "hidden" : ""}>&#10094;</a>
-                        <a id="next" onclick="plusSlides(${numSlideshows} - 1, 1, '${comment.id_reference}')" ${photos.length < 2 ? "hidden" : ""}>&#10095;</a>
+                        <a id="prev" onclick="plusSlides(${numSlideshows} - 1, -1, '${comment.uuid}')" ${photos.length < 2 ? "hidden" : ""}>&#10094;</a>
+                        <a id="next" onclick="plusSlides(${numSlideshows} - 1, 1, '${comment.uuid}')" ${photos.length < 2 ? "hidden" : ""}>&#10095;</a>
                     </div>
                 </div>
             </div>
         `);
+
+        if (Object.keys(comment).includes('scientific_name') && comment.scientific_name) { // this is a tator localization
+            for (let j = 0; j < photos.length; j += 1) {
+                $(`#${comment.uuid}-${j}_overlay`).css('opacity', '0.5');
+                $(`#${comment.uuid}-${j}`).hover((e) => {
+                    if (e.type === 'mouseenter') {
+                        $(`#${comment.uuid}-${j}_overlay`).css('opacity', '0.8');
+                    } else if (e.type === 'mouseleave') {
+                        $(`#${comment.uuid}-${j}_overlay`).css('opacity', '0.5');
+                    }
+                });
+            }
+        }
     }
 });

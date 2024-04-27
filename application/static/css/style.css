@@ -186,3 +186,16 @@ textarea {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+.tator-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: yellow;
+}
+
+.tator-box {
+    background-color: rgba(203, 203, 14, 0.25);
+    border: 2px solid yellow;
+    border-radius: 2px;
+}

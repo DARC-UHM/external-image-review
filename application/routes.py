@@ -102,33 +102,6 @@ def tator_video(media_id):
     return redirect(media['media_files']['archival'][0]['path'])
 
 
-# update comment's video_url
-@app.patch('/comment/video/<uuid>')
-@require_api_key
-def update_video(uuid):
-    try:
-        comment = Comment.objects.get(uuid=uuid)
-    except DoesNotExist:
-        return jsonify({404: 'No comment with given uuid'}), 404
-    comment['video_url'] = request.values.get('video_url')
-    comment.save()
-    return jsonify(comment.json()), 200
-
-
-# update a comment's id_reference
-@app.patch('/comment/id-reference/<uuid>')
-@require_api_key
-def update_id_reference(uuid):
-    try:
-        comment = Comment.objects.get(uuid=uuid)
-    except DoesNotExist:
-        return jsonify({404: 'No comment records matching given uuid'}), 404
-    comment.update(
-        set__id_reference=request.values.get('id_reference'),
-    )
-    return jsonify(Comment.objects.get(uuid=uuid).json()), 200
-
-
 # update a comment's text given a reviewer and an observation uuid
 @app.patch('/comment/<reviewer>/<uuid>')
 @require_api_key
