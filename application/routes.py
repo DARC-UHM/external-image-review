@@ -390,7 +390,7 @@ def review(reviewer_name):
             if request.args.get('sequence') and request.args.get('sequence') not in record['sequence']:
                 continue
             comments.append(record)
-            if record['scientific_name'] is None or record['scientific_name'] == '':  # VARS annotation
+            if not record.get('scientific_name') or record['scientific_name'] == '':  # VARS annotation
                 # for VARS annotations, get the record info from VARS server
                 with requests.get(f'{app.config.get("HURLSTOR_URL")}:8082/anno/v1/annotations/{record["uuid"]}') as r:
                     try:

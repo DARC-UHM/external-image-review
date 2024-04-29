@@ -37,25 +37,12 @@ class Comment(Document):
                 'comment': reviewer_comment.comment,
                 'date_modified': reviewer_comment.date_modified.strftime('%d %b %H:%M HST')
             })
-        comment = {
-            'uuid': self.uuid,
-            'scientific_name': self.scientific_name,
-            'all_localizations': self.all_localizations,
-            'section_id': self.section_id,
-            'sequence': self.sequence,
-            'timestamp': self.timestamp,
-            'id_reference': self.id_reference,
-            'image_url': self.image_url,
-            'reviewer_comments': reviewer_comments,
-            'annotator': self.annotator,
-            'unread': self.unread,
-            'depth': self.depth,
-            'lat': self.lat,
-            'long': self.long,
-            'temperature': self.temperature,
-            'oxygen_ml_l': self.oxygen_ml_l,
-            'video_url': self.video_url,
-        }
+        attributes = ['uuid', 'scientific_name', 'all_localizations', 'id_reference', 'section_id', 'sequence',
+                      'timestamp', 'image_url', 'annotator', 'unread', 'depth', 'lat', 'long', 'temperature',
+                      'oxygen_ml_l', 'video_url']
+        # create a json object with only the fields that are not None
+        comment = {attr: getattr(self, attr) for attr in attributes if getattr(self, attr) is not None}
+        comment['reviewer_comments'] = reviewer_comments
         return comment
 
     meta = {
