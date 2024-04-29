@@ -125,7 +125,9 @@ $(document).ready(() => {
             for (let j = i + 1; j < sortedComments.length; j += 1) {
                 if (sortedComments[j].id_reference && sortedComments[j].id_reference === sortedComments[i].id_reference) {
                     photos.push(sortedComments[j].image_url); // add those photos to this comment
-                    localizations.push(sortedComments[j].all_localizations);
+                    if (sortedComments[j].all_localizations) {
+                        localizations.push(sortedComments[j].all_localizations);
+                    }
                     slideshowIndices[numSlideshows - 1][1] += 1;
                     idRefUuids.push(sortedComments[j].uuid);
                     sampleReference = sortedComments[j].sample_reference || sampleReference;
@@ -142,7 +144,7 @@ $(document).ready(() => {
                         <img src="${photos[j]}" style="width:100%; border-radius: 10px;">
                     </a>
                     <div id="${comment.uuid}-${j}_overlay">
-                        ${localizations[j] ? JSON.parse(localizations[j]).map((loco) => {
+                        ${localizations[j] && localizations.length ? JSON.parse(localizations[j]).map((loco) => {
                             if (loco.type === 48) { // 48 is a box
                                 return `<span
                                             class="position-absolute tator-box"
