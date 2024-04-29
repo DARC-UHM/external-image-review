@@ -144,7 +144,7 @@ $(document).ready(() => {
                         <img src="${photos[j]}" style="width:100%; border-radius: 10px;">
                     </a>
                     <div id="${comment.uuid}-${j}_overlay">
-                        ${localizations[j] && localizations.length ? JSON.parse(localizations[j]).map((loco) => {
+                        ${localizations[j] ? JSON.parse(localizations[j]).map((loco) => {
                             if (loco.type === 48) { // 48 is a box
                                 return `<span
                                             class="position-absolute tator-box"
