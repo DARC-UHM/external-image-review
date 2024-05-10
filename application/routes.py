@@ -663,6 +663,15 @@ def patch_tator_qaqc_checklist(deployments):
     return jsonify(checklist.json()), 200
 
 
+@app.get('/dropcam-fieldbook/<section_id>')
+@require_api_key
+def get_dropcam_field_book(section_id):
+    try:
+        return jsonify(DropcamFieldBook.objects.get(section_id=section_id).json()), 200
+    except DoesNotExist:
+        return jsonify({404: 'No record matching given section id'}), 404
+
+
 @app.post('/dropcam-fieldbook')
 @require_api_key
 def add_dropcam_field_book():
@@ -703,3 +712,4 @@ def internal_server_error(e):
     app.logger.error(type(e).__name__)
     app.logger.error(e)
     return render_template('500.html'), 500
+#     return render_template('500.html'), 500
