@@ -663,6 +663,20 @@ def patch_tator_qaqc_checklist(deployments):
     return jsonify(checklist.json()), 200
 
 
+@app.patch('/video-url/<uuid>')
+@require_api_key
+def update_video_url(uuid):
+    video_url = request.values.get('video_url')
+    if not video_url:
+        return jsonify({400: 'No video url provided'}), 400
+    try:
+        db_record = Comment.objects.get(uuid=uuid)
+        db_record.update(set__video_url=video_url)
+    except DoesNotExist:
+        return jsonify({404: 'No record with given uuid'}), 404
+    return jsonify(Comment.objects.get(uuid=uuid).json()), 200
+
+
 @app.get('/dropcam-fieldbook/<section_id>')
 @require_api_key
 def get_dropcam_field_book(section_id):
