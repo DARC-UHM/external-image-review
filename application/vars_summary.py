@@ -13,6 +13,7 @@ class VarsSummary:
         self.annotators = set()
         self.annotation_count = 0
         self.individual_count = 0
+        self.unique_taxa_individuals = {}
         self.video_millis = 0
         self.image_count = 0
         self.phylum_counts = {}
@@ -119,5 +120,12 @@ class VarsSummary:
 
                     self.individual_count += this_count
                     self.phylum_counts[this_phylum] = self.phylum_counts.get(this_phylum, 0) + this_count
+                    self.unique_taxa_individuals[annotation['concept']] = self.unique_taxa_individuals.get(annotation['concept'], 0) + this_count
+        phylum_keys = list(self.phylum_counts.keys())
+        self.phylum_counts['Other'] = 0
+        for phylum in phylum_keys:
+            if self.phylum_counts[phylum] < 100:
+                self.phylum_counts['Other'] += self.phylum_counts[phylum]
+                del self.phylum_counts[phylum]
         self.save_phylogeny()
         self.annotators.discard('python-script')

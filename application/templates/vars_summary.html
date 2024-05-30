@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>DARC | {{ sequence_num }} Summary</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/css/bootstrap.css" />
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <script src="/static/js/echarts.min.js"></script>
+</head>
+<body id="index" class="my-4 mx-5">
+    <div>
+        <h1 class="m-0" style="font-size: 3rem;"><strong>{{ sequence_num }}</strong></h1>
+        <h5 class="my-2">Alaska | June 21-29, 2023</h5>
+        <div class="row">
+            <div class="col">
+                <h2 class="my-2"><strong>Stats</strong></h2>
+                <div>
+                    <div class="d-flex">
+                        <h3 id="numDives" class="m-0 p-0 fw-bold"></h3>
+                        <h4 class="mt-auto mb-0 ms-2 p-0">dives</h4>
+                    </div>
+                    <div class="d-flex">
+                        <h3 id="hoursVideo" class="m-0 p-0 fw-bold"></h3>
+                        <h4 class="mt-auto mb-0 ms-2 p-0">hours of video</h4>
+                    </div>
+                    <div class="d-flex">
+                        <h3 id="numImages" class="m-0 p-0 fw-bold"></h3>
+                        <h4 class="mt-auto mb-0 ms-2 p-0">images captured</h4>
+                    </div>
+                    <div class="d-flex">
+                        <h3 id="numAnnotations" class="m-0 p-0 fw-bold"></h3>
+                        <h4 class="mt-auto mb-0 ms-2 p-0">annotations</h4>
+                    </div>
+                    <div class="d-flex">
+                        <h3 id="numIndividuals" class="m-0 p-0 fw-bold"></h3>
+                        <h4 class="mt-auto mb-0 ms-2 p-0">individuals</h4>
+                    </div>
+                </div>
+                <div class="my-4">
+                    <h2 class="my-2"><strong>Annotators</strong></h2>
+                    <div id="annotators"></div>
+                </div>
+                <div class="my-4">
+                    <h2 class="my-2"><strong>Taxonomic ID Contributors</strong></h2>
+                    <div id="taxonomicIDContributors"></div>
+                </div>
+            </div>
+            <div class="col">
+                <h2 class="my-2"><strong>Distribution by Phylum</strong></h2>
+                <div id="phylumChart" style="width: 600px;height:400px;"></div>
+            </div>
+            <div class="col">
+                <h2 class="my-2"><strong>Taxa List</strong></h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div id="load-overlay" class="loader-bg">
+        <div class="col d-flex justify-content-center">
+            <div class="loader"></div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const res = await fetch('/stats/vars/{{ sequence_num }}');
+            const data = await res.json();
+            document.getElementById('load-overlay').classList.remove('loader-bg');
+            document.getElementById('load-overlay').classList.add('loader-bg-hidden');
+            document.getElementById('numDives').innerText = data.dive_count;
+            document.getElementById('hoursVideo').innerText = data.video_hours;
+            document.getElementById('numImages').innerText = data.image_count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            document.getElementById('numAnnotations').innerText = data.annotation_count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            document.getElementById('numIndividuals').innerText = data.individual_count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+            const annotators = [];
+            for (const annotator of data.annotators) {
+                if (annotator === 'hcarlson') {
+                    annotators.push('Harold Carlson');
+                } else {
+                    annotators.push(annotator.replace(/([a-zA-Z]+)([A-Z])/g, '$1 $2'));
+                }
+            }
+            document.getElementById('annotators').innerHTML = annotators.map(annotator =>
+                `<h5 class="m-0 p-0">${annotator}</h5>`).join('');
+
+            const sortedReviewers = data.reviewers_responded.sort();
+            document.getElementById('taxonomicIDContributors').innerHTML = sortedReviewers.map(reviewer =>
+                `<h6 class="m-0 p-0">${reviewer}</h6>`).join('');
+
+            /* phylum chart */
+            const phylumCounts = [];
+            for (const phylum of Object.keys(data.phylum_counts)) {
+                phylumCounts.push({ value: data.phylum_counts[phylum], name: phylum });
+            }
+
+            const customDarkTheme = {
+                textStyle: {
+                    color: '#fff'
+                },
+                title: {
+                    textStyle: {
+                        color: '#fff'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(50,50,50,0.7)',
+                    textStyle: {
+                        color: '#fff'
+                    }
+                },
+                legend: {
+                    textStyle: {
+                        color: '#fff'
+                    }
+                },
+            };
+
+            const chartDom = document.getElementById('phylumChart');
+            const myChart = echarts.init(chartDom, customDarkTheme);
+            const option = {
+                tooltip: {
+                    trigger: 'item'
+                },
+                legend: {
+                    orient: 'vertical',
+                    top: 'center',
+                    left: '2%'
+                },
+                series: [
+                    {
+                        name: '',
+                        type: 'pie',
+                        radius: ['40%', '70%'],
+                        avoidLabelOverlap: false,
+                        label: {
+                        show: false,
+                        position: 'center'
+                    },
+                        emphasis: {
+                            label: {
+                                show: false,
+                                fontSize: 40,
+                                fontWeight: 'bold'
+                            }
+                        },
+                        labelLine: {
+                            show: false
+                        },
+                        data: phylumCounts
+                    }
+                ]
+            };
+            myChart.setOption(option);
+
+            /* taxa list */
+            const taxaList = document.querySelector('tbody');
+            for (const taxon of Object.keys(data.unique_taxa_individuals).sort()) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${taxon}</td><td>${data.unique_taxa_individuals[taxon]}</td>`;
+                taxaList.appendChild(row);
+            }
+
+        });
+
+
+    </script>
+    <script src="/static/js/bootstrap.bundle.js"></script>
+</body>
+</html>

@@ -469,11 +469,17 @@ def sequence_stats(sequence_num):
         'dive_count': len(summary.matched_sequences),
         'annotation_count': summary.annotation_count,
         'individual_count': summary.individual_count,
+        'unique_taxa_individuals': summary.unique_taxa_individuals,
         'image_count': summary.image_count,
         'video_hours': round(summary.video_millis / 1000 / 60 / 60, 2),
         'phylum_counts': summary.phylum_counts,
         'reviewers_responded': list(reviewers_responded),
     }), 200
+
+
+@app.get('/summary/vars/<sequence_num>')
+def summary(sequence_num):
+    return render_template('vars_summary.html', sequence_num=sequence_num), 200
 
 
 # route to save reviewer's comments, redirects to success page
