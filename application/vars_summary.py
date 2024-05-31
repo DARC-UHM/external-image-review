@@ -2,6 +2,8 @@ import json
 import os
 import requests
 
+from datetime import datetime
+
 TERM_RED = '\033[1;31;48m'
 TERM_YELLOW = '\033[1;93m'
 TERM_NORMAL = '\033[1;37;0m'
@@ -17,6 +19,7 @@ class VarsSummary:
         self.video_millis = 0
         self.image_count = 0
         self.phylum_counts = {}
+        self.date = ''
         # get list of sequences from vars
         with requests.get('http://hurlstor.soest.hawaii.edu:8084/vam/v1/videosequences/names') as req:
             self.matched_sequences = [sequence for sequence in req.json() if sequence_num in sequence]
@@ -65,6 +68,8 @@ class VarsSummary:
         self.load_phylogeny()
         identity_references = set()
         no_match_records = set()
+        start_date = datetime.now()
+        end_date = datetime.fromtimestamp(0)
         for sequence in self.matched_sequences:
             with requests.get(f'http://hurlstor.soest.hawaii.edu:8086/query/dive/{sequence.replace(" ", "%20")}') as r:
                 _json = r.json()
@@ -72,6 +77,10 @@ class VarsSummary:
                 for video in _json['media']:
                     if 'image collection' not in video['video_name']:
                         self.video_millis += video['duration_millis']
+                        if datetime.strptime(video['start_timestamp'], '%Y-%m-%dT%H:%M:%SZ') < start_date:
+                            start_date = datetime.strptime(video['start_timestamp'], '%Y-%m-%dT%H:%M:%SZ')
+                        if datetime.strptime(video['start_timestamp'], '%Y-%m-%dT%H:%M:%SZ') > end_date:
+                            end_date = datetime.strptime(video['start_timestamp'], '%Y-%m-%dT%H:%M:%SZ')
                 for annotation in _json['annotations']:
                     if annotation['concept'][0].islower():  # ignore non-taxonomic concepts
                         continue
@@ -129,3 +138,7 @@ class VarsSummary:
                 del self.phylum_counts[phylum]
         self.save_phylogeny()
         self.annotators.discard('python-script')
+        if start_date.month == end_date.month:
+            self.date = f'{start_date.strftime("%d")} - {end_date.strftime("%d %B %Y")}'
+        else:
+            self.date = f'{start_date.strftime("%d %B")} - {end_date.strftime("%d %B %Y")}'

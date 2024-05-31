@@ -10,7 +10,7 @@
 <body id="index" class="my-4 mx-5">
     <div>
         <h1 class="m-0" style="font-size: 3rem;"><strong>{{ sequence_num }}</strong></h1>
-        <h5 class="my-2">Alaska | June 21-29, 2023</h5>
+        <h5 id="date" class="my-2"></h5>
         <div class="row">
             <div class="col">
                 <h2 class="my-2"><strong>Stats</strong></h2>
@@ -72,6 +72,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const res = await fetch('/stats/vars/{{ sequence_num }}');
             const data = await res.json();
+            document.getElementById('date').innerText = data.date;
             document.getElementById('load-overlay').classList.remove('loader-bg');
             document.getElementById('load-overlay').classList.add('loader-bg-hidden');
             document.getElementById('numDives').innerText = data.dive_count;

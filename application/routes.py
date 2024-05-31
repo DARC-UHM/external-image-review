@@ -465,6 +465,7 @@ def sequence_stats(sequence_num):
             else:
                 reviewers_responded.add(reviewer_comment['reviewer'])
     return jsonify({
+        'date': summary.date,
         'annotators': list(summary.annotators),
         'dive_count': len(summary.matched_sequences),
         'annotation_count': summary.annotation_count,
