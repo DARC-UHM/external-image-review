@@ -125,8 +125,12 @@ class VarsSummary:
                             case '\u003e100':
                                 this_count = 100
                     elif pop_quantity and pop_quantity != '':
-                        this_count = int(pop_quantity)
-
+                        try:
+                            this_count = int(pop_quantity)
+                        except ValueError:
+                            print(f'{TERM_RED}Invalid population quantity for {annotation["concept"]}: {pop_quantity}{TERM_NORMAL}')
+                            if 'many' in pop_quantity:
+                                this_count = 50
                     self.individual_count += this_count
                     self.phylum_counts[this_phylum] = self.phylum_counts.get(this_phylum, 0) + this_count
                     self.unique_taxa_individuals[annotation['concept']] = self.unique_taxa_individuals.get(annotation['concept'], 0) + this_count

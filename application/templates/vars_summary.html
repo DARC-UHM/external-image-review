@@ -71,7 +71,16 @@
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const res = await fetch('/stats/vars/{{ sequence_num }}');
-            const data = await res.json();
+            document.getElementById('load-overlay').classList.remove('loader-bg');
+            document.getElementById('load-overlay').classList.add('loader-bg-hidden');
+            let data;
+            try {
+                data = await res.json();
+            } catch (e) {
+                console.error(e);
+                alert('Couldn\'t load data. Please try again later.');
+                return;
+            }
             document.getElementById('date').innerText = data.date;
             document.getElementById('load-overlay').classList.remove('loader-bg');
             document.getElementById('load-overlay').classList.add('loader-bg-hidden');
