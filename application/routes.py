@@ -717,7 +717,24 @@ def add_dropcam_field_book():
     except KeyError:
         return jsonify({400: 'Missing required values'}), 400
     except NotUniqueError:
-        return jsonify({409: 'Record already exists'}), 409
+        # delete current record and replace with new one
+        expedition_fieldbook = request.json
+        DropcamFieldBook.objects.get(section_id=expedition_fieldbook['section_id']).delete()
+        field_book = DropcamFieldBook(
+            section_id=expedition_fieldbook['section_id'],
+            expedition_name=expedition_fieldbook['expedition_name'],
+            deployments=[
+                {
+                    'deployment_name': deployment['deployment_name'],
+                    'lat': deployment['lat'],
+                    'long': deployment['long'],
+                    'depth_m': deployment['depth_m'],
+                    'bait_type': deployment['bait_type'],
+                }
+                for deployment in expedition_fieldbook['deployments']
+            ]
+        ).save()
+        return jsonify(field_book.json()), 200
     return jsonify(field_book.json()), 201
 
 
