@@ -652,6 +652,7 @@ def tator_qaqc_checklist(deployments):
             non_target_not_attracted=0,
             same_name_qualifier=0,
             notes_remarks=0,
+            re_examined=0,
             unique_taxa=0,
             media_attributes=0,
         ).save()
