@@ -140,7 +140,7 @@ $(document).ready(() => {
             photoSlideshow += `
                 <div id="${comment.uuid}-${j}" class="${j > 0 ? 'slide' : ''}" style="position-relative">
                     ${photos.length > 1 ? `<div class="numbertext">${j + 1} / ${photos.length}</div>` : ''}
-                    <a href="${photos[j]}" target="_blank">
+                    <a href="${photos[j].split('?')[0]}" target="_blank">
                         <img src="${photos[j]}" style="width:100%; border-radius: 10px;">
                     </a>
                     <div id="${comment.uuid}-${j}_overlay">
@@ -167,7 +167,7 @@ $(document).ready(() => {
                             <div class="col-5 col-sm-4">
                                 Tentative ID:
                             </div>
-                            <div class="col values">${comment.concept || comment.scientific_name}${comment.id_certainty?.includes('maybe') ? '?' : ''}</div>
+                            <div class="col values">${comment.concept}${comment.id_certainty?.includes('maybe') ? '?' : ''}</div>
                         </div>
                         ${comment.id_certainty && comment.id_certainty !== 'maybe'
                             ? `<div class="row">
@@ -323,7 +323,7 @@ $(document).ready(() => {
             </div>
         `);
 
-        if (Object.keys(comment).includes('scientific_name') && comment.scientific_name) { // this is a tator localization
+        if (Object.keys(comment).includes('all_localizations') && comment.all_localizations) { // this is a tator localization
             for (let j = 0; j < photos.length; j += 1) {
                 $(`#${comment.uuid}-${j}_overlay`).css('opacity', '0.5');
                 $(`#${comment.uuid}-${j}`).hover((e) => {

@@ -1,3 +1,4 @@
+import base64
 import os
 import re
 from json import JSONDecodeError
@@ -8,7 +9,7 @@ import threading
 
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import render_template, request, redirect, jsonify, send_file
+from flask import render_template, request, redirect, jsonify, send_file, Response
 from flask_mail import Mail, Message
 from flask_cors import cross_origin
 from mongoengine import NotUniqueError, DoesNotExist
@@ -53,23 +54,16 @@ def favicon():
 def add_comment():
     comment = {}
     reviewers = json.loads(request.values.get('reviewers'))
-    fields = ['uuid', 'scientific_name', 'all_localizations', 'sequence', 'timestamp', 'image_url', 'video_url',
-              'id_reference', 'annotator', 'depth', 'lat', 'long', 'temperature', 'oxygen_ml_l', 'section_id']
+    fields = ['uuid', 'all_localizations', 'sequence', 'timestamp', 'image_url', 'video_url', 'id_reference',
+              'annotator', 'depth', 'lat', 'long', 'temperature', 'oxygen_ml_l', 'section_id']
     for field in fields:
         value = request.values.get(field)
         if value is not None and value != '':
             comment[field] = value
     if not comment['uuid'] or not comment['sequence'] or not reviewers or not comment['annotator']:
         return jsonify({400: 'Missing required values'}), 400
-    if comment.get('scientific_name'):  # tator localization
+    if comment.get('all_localizations'):  # tator localization
         comment['sequence'] = comment['sequence'].replace('-', '_')
-        if 'image' not in request.files:
-            return jsonify({400: 'No image provided'}), 400
-        img = request.files['image']
-        if img.filename == '':
-            return jsonify({400: 'No selected file'}), 400
-        img.save(os.path.join(app.config.get('TATOR_IMAGE_FOLDER'), img.filename))
-        comment['image_url'] = f'{request.url_root}image/{img.filename}'
     try:
         comment = Comment(**comment)
         for reviewer in reviewers:
@@ -84,6 +78,21 @@ def add_comment():
     except NotUniqueError:
         return jsonify({409: 'Already a comment record for given uuid'}), 409
     return jsonify(comment.json()), 201
+
+
+@app.get('/tator-frame/<media_id>/<frame_number>')
+def tator_frame(media_id, frame_number):
+    url = f'{app.config.get("TATOR_URL")}/rest/GetFrame/{media_id}?frames={frame_number}'
+    if request.values.get('preview'):
+        url += '&quality=650'
+    res = requests.get(
+        url=url,
+        headers={'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}'}
+    )
+    if res.status_code == 200:
+        base64_image = base64.b64encode(res.content).decode('utf-8')
+        return Response(base64.b64decode(base64_image), content_type='image/png'), 200
+    return '', 500
 
 
 @app.get('/tator-video/<media_id>')
@@ -183,12 +192,6 @@ def delete_comment(uuid):
         db_record = Comment.objects.get(uuid=uuid)
     except DoesNotExist:
         return jsonify({404: 'No comment records matching given uuid'}), 404
-    if db_record['scientific_name']:  # tator localization
-        img_name = db_record['image_url'].split('/')[-1]
-        try:
-            os.remove(os.path.join(os.getcwd(), app.config.get('TATOR_IMAGE_FOLDER'), img_name))
-        except FileNotFoundError:
-            app.logger.warning(f'Failed to delete image: {img_name}')
     db_record.delete()
     return jsonify({200: 'Comment deleted'}), 200
 
@@ -379,7 +382,7 @@ def review(reviewer_name):
     comments = []
     return_all_comments = request.args.get('all') == 'true'
     reviewer_name = reviewer_name.replace('-', ' ')
-    matched_records = Comment.objects(reviewer_comments__reviewer=reviewer_name).order_by('scientific_name', 'sequence')
+    matched_records = Comment.objects(reviewer_comments__reviewer=reviewer_name).order_by('sequence')
     for record in matched_records:
         record = record.json()
         # show all comments or only return records that the reviewer has not yet commented on
@@ -390,7 +393,7 @@ def review(reviewer_name):
             if request.args.get('sequence') and request.args.get('sequence') not in record['sequence']:
                 continue
             comments.append(record)
-            if not record.get('scientific_name') or record['scientific_name'] == '':  # VARS annotation
+            if not record.get('all_localizations') or record['all_localizations'] == '':  # VARS annotation
                 # for VARS annotations, get the record info from VARS server
                 with requests.get(f'{app.config.get("HURLSTOR_URL")}:8082/anno/v1/annotations/{record["uuid"]}') as r:
                     try:
@@ -410,7 +413,17 @@ def review(reviewer_name):
                         if association['link_name'] == 'sample-reference':
                             record['sample_reference'] = association['link_value']
             else:
-                # for Tator annotations, get depth, lat, long from db
+                # for Tator annotations, get updated localization from tator, get depth, lat, long from local db
+                res = requests.get(
+                    url=f'{app.config.get("TATOR_URL")}/rest/Localization/45/{record["uuid"]}',
+                    headers={'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}'}
+                )
+                updated_localization = res.json()
+                record['id_certainty'] = updated_localization['attributes']['IdentificationRemarks']
+                record['image_url'] = f'{request.url_root}/tator-frame/{updated_localization["media"]}/{updated_localization["frame"]}?preview=true'
+                record['concept'] = f'{updated_localization["attributes"]["Scientific Name"]}'
+                if updated_localization['attributes']['Tentative ID'] != '':
+                    record['concept'] += f' ({updated_localization["attributes"]["Tentative ID"]}?)'
                 try:
                     expedition = DropcamFieldBook.objects.get(section_id=record['section_id']).json()
                 except DoesNotExist:
@@ -537,15 +550,6 @@ def success():
 def video():
     data = {'link': request.args.get('link'), 'time': request.args.get('time')}
     return render_template('video.html', data=data), 200
-
-
-@app.get('/image/<image_name>')
-def image(image_name):
-    file_path = os.path.join(os.getcwd(), app.config.get("TATOR_IMAGE_FOLDER"), image_name)
-    if os.path.exists(file_path):
-        return send_file(file_path)
-    else:
-        return jsonify({404: 'Image not found'}), 404
 
 
 @app.get('/attracted')
