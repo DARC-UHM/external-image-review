@@ -33,6 +33,7 @@ def require_api_key(func):
             return func(*args, **kwargs)
         else:
             app.logger.warning(f'UNAUTHORIZED API ATTEMPT - IP Address: {request.remote_addr}')
+            app.logger.info(f'URL: {request.url}')
             return jsonify({'error': 'Unauthorized'}), 401
     return wrapper
 
@@ -379,6 +380,7 @@ def get_all_reviewers():
 @app.get('/review/<reviewer_name>')
 def review(reviewer_name):
     app.logger.info(f'Access {reviewer_name}\'s review page - IP Address: {request.remote_addr}')
+    app.logger.info(request.url)
     comments = []
     return_all_comments = request.args.get('all') == 'true'
     reviewer_name = reviewer_name.replace('-', ' ')
@@ -395,7 +397,7 @@ def review(reviewer_name):
             comments.append(record)
             if not record.get('all_localizations') or record['all_localizations'] == '':  # VARS annotation
                 # for VARS annotations, get the record info from VARS server
-                with requests.get(f'{app.config.get("HURLSTOR_URL")}:8082/anno/v1/annotations/{record["uuid"]}') as r:
+                with requests.get(f'{app.config.get("HURLSTOR_URL")}:8082/v1/annotations/{record["uuid"]}') as r:
                     try:
                         server_record = r.json()
                     except JSONDecodeError:
