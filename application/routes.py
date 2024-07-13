@@ -1,17 +1,17 @@
 import base64
+import json
 import os
 import re
-from json import JSONDecodeError
-
 import requests
-import json
 import threading
+import traceback
 
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import render_template, request, redirect, jsonify, send_file, Response
 from flask_mail import Mail, Message
 from flask_cors import cross_origin
+from json import JSONDecodeError
 from mongoengine import NotUniqueError, DoesNotExist
 
 from application import app
@@ -756,5 +756,6 @@ def internal_server_error(e):
     app.logger.error(f'Internal server error - IP Address: {request.remote_addr}')
     app.logger.error(type(e).__name__)
     app.logger.error(e)
+    app.logger.error(traceback.format_exc())
     return render_template('500.html'), 500
 #     return render_template('500.html'), 500
