@@ -400,11 +400,11 @@ def review(reviewer_name):
                 with requests.get(f'{app.config.get("HURLSTOR_URL")}:8082/v1/annotations/{record["uuid"]}') as r:
                     try:
                         server_record = r.json()
-                    except JSONDecodeError:
+                        record['concept'] = server_record['concept']
+                    except (JSONDecodeError, KeyError):
                         comments = [x for x in comments if x['uuid'] != record['uuid']]  # remove record from list
                         app.logger.error(f'Failed to decode JSON for {record["uuid"]} (reviewer: {reviewer_name})')
                         continue
-                    record['concept'] = server_record['concept']
                     # check for "identity-certainty: maybe" and "identity-reference"
                     for association in server_record['associations']:
                         if association['link_name'] == 'identity-certainty':
