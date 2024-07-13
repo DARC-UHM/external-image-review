@@ -21,7 +21,7 @@ class VarsSummary:
         self.phylum_counts = {}
         self.date = ''
         # get list of sequences from vars
-        with requests.get('http://hurlstor.soest.hawaii.edu:8084/vam/v1/videosequences/names') as req:
+        with requests.get('http://hurlstor.soest.hawaii.edu:8084/v1/videosequences/names') as req:
             self.matched_sequences = [sequence for sequence in req.json() if sequence_num in sequence]
 
     def load_phylogeny(self):
@@ -44,7 +44,7 @@ class VarsSummary:
         """
         Fetches phylogeny for given concept from the VARS knowledge base.
         """
-        vars_tax_res = requests.get(url=f'http://hurlstor.soest.hawaii.edu:8083/kb/v1/phylogeny/up/{concept_name}')
+        vars_tax_res = requests.get(url=f'http://hurlstor.soest.hawaii.edu:8083/v1/phylogeny/up/{concept_name}')
         if vars_tax_res.status_code == 200:
             try:
                 # this get us to phylum
