@@ -622,6 +622,7 @@ def vars_qaqc_checklist(sequences):
             suspicious_host=0,
             expected_association=0,
             time_diff_host_upon=0,
+            bounding_boxes=0,
             unique_fields=0,
         ).save()
     return jsonify(checklist.json()), 200

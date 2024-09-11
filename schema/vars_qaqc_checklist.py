@@ -18,6 +18,7 @@ class VarsQaqcChecklist(Document):
     suspicious_host = IntField(required=True, min_value=0, max_value=2)
     expected_association = IntField(required=True, min_value=0, max_value=2)
     time_diff_host_upon = IntField(required=True, min_value=0, max_value=2)
+    bounding_boxes = IntField(required=True, min_value=0, max_value=2)
     unique_fields = IntField(required=True, min_value=0, max_value=2)
 
     def json(self):
@@ -36,5 +37,6 @@ class VarsQaqcChecklist(Document):
             'suspicious_host': self.suspicious_host,
             'expected_association': self.expected_association,
             'time_diff_host_upon': self.time_diff_host_upon,
+            'bounding_boxes': self.bounding_boxes,
             'unique_fields': self.unique_fields,
         }
