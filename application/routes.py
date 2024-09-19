@@ -389,27 +389,29 @@ def review(reviewer_name):
                         comments = [x for x in comments if x['uuid'] != record['uuid']]  # remove record from list
                         app.logger.error(f'Failed to decode JSON for {record["uuid"]} (reviewer: {reviewer_name})')
                         continue
-                    # check for "identity-certainty: maybe" and "identity-reference"
-                    for association in server_record['associations']:
-                        if association['link_name'] == 'identity-certainty':
-                            record['id_certainty'] = association['link_value']
-                        elif association['link_name'] == 'identity-reference':
-                            # dive num + id ref to account for duplicate numbers across dives
-                            record['id_reference'] = f'{record["sequence"][-2:]}:{association["link_value"]}'
-                        elif association['link_name'] == 'sample-reference':
-                            record['sample_reference'] = association['link_value']
-                    # get ctd
-                    for ancillary_data in server_record['ancillary_data']:
-                        if ancillary_data == 'latitude':
-                            record['lat'] = server_record['ancillary_data']['latitude']
-                        elif ancillary_data == 'longitude':
-                            record['long'] = server_record['ancillary_data']['longitude']
-                        elif ancillary_data == 'depth_meters':
-                            record['depth'] = server_record['ancillary_data']['depth_meters']
-                        elif ancillary_data == 'temperature_celsius':
-                            record['temperature'] = server_record['ancillary_data']['temperature_celsius']
-                        elif ancillary_data == 'oxygen_ml_l':
-                            record['oxygen_ml_l'] = server_record['ancillary_data']['oxygen_ml_l']
+                    if server_record.get('associations'):
+                        # check for "identity-certainty: maybe" and "identity-reference"
+                        for association in server_record['associations']:
+                            if association['link_name'] == 'identity-certainty':
+                                record['id_certainty'] = association['link_value']
+                            elif association['link_name'] == 'identity-reference':
+                                # dive num + id ref to account for duplicate numbers across dives
+                                record['id_reference'] = f'{record["sequence"][-2:]}:{association["link_value"]}'
+                            elif association['link_name'] == 'sample-reference':
+                                record['sample_reference'] = association['link_value']
+                    if server_record.get('ancillary_data'):
+                        # get ctd
+                        for ancillary_data in server_record['ancillary_data']:
+                            if ancillary_data == 'latitude':
+                                record['lat'] = server_record['ancillary_data']['latitude']
+                            elif ancillary_data == 'longitude':
+                                record['long'] = server_record['ancillary_data']['longitude']
+                            elif ancillary_data == 'depth_meters':
+                                record['depth'] = server_record['ancillary_data']['depth_meters']
+                            elif ancillary_data == 'temperature_celsius':
+                                record['temperature'] = server_record['ancillary_data']['temperature_celsius']
+                            elif ancillary_data == 'oxygen_ml_l':
+                                record['oxygen_ml_l'] = server_record['ancillary_data']['oxygen_ml_l']
 
             else:
                 # for Tator annotations, get updated localization from tator, get depth, lat, long from local db
