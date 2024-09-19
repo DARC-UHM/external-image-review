@@ -237,7 +237,7 @@ $(document).ready(() => {
                                     <div class="col-5 col-sm-4">
                                         Depth:
                                     </div>
-                                    <div class="col values">${comment.depth} m</div>
+                                    <div class="col values">${Math.round(comment.depth)} m</div>
                                 </div>
                             ` : ''
                         }
@@ -247,7 +247,7 @@ $(document).ready(() => {
                                     <div class="col-5 col-sm-4">
                                         Temperature:
                                     </div>
-                                    <div class="col values">${comment.temperature} °C</div>
+                                    <div class="col values">${comment.temperature.toFixed(2)} °C</div>
                                 </div>
                             ` : ''
                         }
@@ -257,7 +257,7 @@ $(document).ready(() => {
                                     <div class="col-5 col-sm-4">
                                         Oxygen:
                                     </div>
-                                    <div class="col values">${comment.oxygen_ml_l} mL/L</div>
+                                    <div class="col values">${comment.oxygen_ml_l.toFixed(2)} mL/L</div>
                                 </div>
                             ` : ''
                         }
