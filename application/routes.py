@@ -423,6 +423,9 @@ def review(reviewer_name):
                 record['id_certainty'] = updated_localization['attributes']['IdentificationRemarks']
                 record['image_url'] = f'{request.url_root}/tator-frame/{updated_localization["media"]}/{updated_localization["frame"]}?preview=true'
                 record['concept'] = f'{updated_localization["attributes"]["Scientific Name"]}'
+                record['depth'] = updated_localization['attributes'].get('Depth')
+                record['temperature'] = updated_localization['attributes'].get('DO Temperature (celsius)')
+                record['oxygen_ml_l'] = updated_localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
                 if updated_localization['attributes']['Tentative ID'] != '':
                     record['concept'] += f' ({updated_localization["attributes"]["Tentative ID"]}?)'
                 try:
@@ -435,10 +438,11 @@ def review(reviewer_name):
                 if deployment is None:
                     continue
                 record['expedition_name'] = expedition['expedition_name']
-                record['depth'] = deployment['depth_m']
                 record['lat'] = deployment['lat']
                 record['long'] = deployment['long']
                 record['bait_type'] = deployment['bait_type']
+                if not record['depth']:
+                    record['depth'] = deployment['depth_m']
 
     data = {'comments': comments, 'reviewer': reviewer_name}
     return render_template('external_review.html', data=data), 200
