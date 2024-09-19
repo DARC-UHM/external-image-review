@@ -56,7 +56,7 @@ def add_comment():
     comment = {}
     reviewers = json.loads(request.values.get('reviewers'))
     fields = ['uuid', 'all_localizations', 'sequence', 'timestamp', 'image_url', 'video_url', 'id_reference',
-              'annotator', 'depth', 'lat', 'long', 'temperature', 'oxygen_ml_l', 'section_id']
+              'annotator', 'section_id']
     for field in fields:
         value = request.values.get(field)
         if value is not None and value != '':
@@ -289,23 +289,6 @@ def get_comment(uuid):
     return jsonify(db_record[0].json()), 200
 
 
-# update ctd data for all comments in the db
-@app.put('/sync-ctd')
-@require_api_key
-def sync_ctd():
-    updated_ctd = json.loads(request.data)
-    for uuid in updated_ctd.keys():
-        record = Comment.objects.get(uuid=uuid)
-        record.update(
-            set__depth=str(updated_ctd[uuid]['depth']),
-            set__lat=str(updated_ctd[uuid]['lat']),
-            set__long=str(updated_ctd[uuid]['long']),
-            set__temperature=str(updated_ctd[uuid]['temperature']),
-            set__oxygen_ml_l=str(updated_ctd[uuid]['oxygen_ml_l']),
-        )
-    return jsonify({200: 'CTD synced'}), 200
-
-
 # add a new reviewer to the database
 @app.post('/reviewer')
 @require_api_key
@@ -387,12 +370,13 @@ def review(reviewer_name):
     matched_records = Comment.objects(reviewer_comments__reviewer=reviewer_name).order_by('sequence')
     for record in matched_records:
         record = record.json()
-        # show all comments or only return records that the reviewer has not yet commented on
         if return_all_comments or next((x for x in record['reviewer_comments'] if x['reviewer'] == reviewer_name))['comment'] == '':
-            # filter by annotator if specified
+            # show all comments or only return records that the reviewer has not yet commented on
             if request.args.getlist('annotator') and record['annotator'] not in request.args.getlist('annotator'):
+                # filter by annotator if specified
                 continue
             if request.args.get('sequence') and request.args.get('sequence') not in record['sequence']:
+                # filter by sequence (aka dive/deployment) if specified
                 continue
             comments.append(record)
             if not record.get('all_localizations') or record['all_localizations'] == '':  # VARS annotation
@@ -409,11 +393,24 @@ def review(reviewer_name):
                     for association in server_record['associations']:
                         if association['link_name'] == 'identity-certainty':
                             record['id_certainty'] = association['link_value']
-                        if association['link_name'] == 'identity-reference':
+                        elif association['link_name'] == 'identity-reference':
                             # dive num + id ref to account for duplicate numbers across dives
                             record['id_reference'] = f'{record["sequence"][-2:]}:{association["link_value"]}'
-                        if association['link_name'] == 'sample-reference':
+                        elif association['link_name'] == 'sample-reference':
                             record['sample_reference'] = association['link_value']
+                    # get ctd
+                    for ancillary_data in server_record['ancillary_data']:
+                        if ancillary_data == 'latitude':
+                            record['lat'] = server_record['ancillary_data']['latitude']
+                        elif ancillary_data == 'longitude':
+                            record['long'] = server_record['ancillary_data']['longitude']
+                        elif ancillary_data == 'depth_meters':
+                            record['depth'] = server_record['ancillary_data']['depth_meters']
+                        elif ancillary_data == 'temperature_celsius':
+                            record['temperature'] = server_record['ancillary_data']['temperature_celsius']
+                        elif ancillary_data == 'oxygen_ml_l':
+                            record['oxygen_ml_l'] = server_record['ancillary_data']['oxygen_ml_l']
+
             else:
                 # for Tator annotations, get updated localization from tator, get depth, lat, long from local db
                 res = requests.get(
@@ -759,4 +756,3 @@ def internal_server_error(e):
     app.logger.error(e)
     app.logger.error(traceback.format_exc())
     return render_template('500.html'), 500
-#     return render_template('500.html'), 500
