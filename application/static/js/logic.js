@@ -147,7 +147,7 @@ $(document).ready(() => {
                         ${localizations[j] ? JSON.parse(localizations[j]).map((loco) => {
                             if (loco.type === 48) { // 48 is a box
                                 return `<span
-                                            class="position-absolute tator-box"
+                                            class="position-absolute tator-box pe-none"
                                             style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%; width: ${loco.dimensions[0] * 100}%; height: ${loco.dimensions[1] * 100}%;"
                                         ></span>`;
                             }
@@ -283,14 +283,6 @@ $(document).ready(() => {
                             ? idRefUuids.map((uuid) => `<input type="hidden" name="uuid_${i}" value="${uuid}">`).join('')
                             : `<input type="hidden" name="uuid_${i}" value="${comment.uuid}">`
                         }
-                        <div class="row mt-3">
-                            <div class="col">
-                                ${videoLink
-                                    ? `<a href="${videoLink}" target="_blank" class="mediaButton mt-2">See video</a>`
-                                    : '<span style="opacity: 60%;">Video not available</span>'
-                                }
-                            </div>
-                        </div>
                         ${sampleReference
                             ? `<div class="row mt-4">
                                 <div class="col align-items-center d-flex">
@@ -318,6 +310,20 @@ $(document).ready(() => {
                         ${photoSlideshow}
                         <a id="prev" onclick="plusSlides(${numSlideshows} - 1, -1, '${comment.uuid}')" ${photos.length < 2 ? "hidden" : ""}>&#10094;</a>
                         <a id="next" onclick="plusSlides(${numSlideshows} - 1, 1, '${comment.uuid}')" ${photos.length < 2 ? "hidden" : ""}>&#10095;</a>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            ${videoLink
+                                ? (
+                                    `<a href="${videoLink}" target="_blank" class="mediaButton mt-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi" viewBox="0 0 18 18">
+                                            <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z"/>
+                                        </svg>
+                                        Play Video
+                                    </a>`
+                                ) : '<span style="opacity: 60%;">Video not available</span>'
+                            }
+                        </div>
                     </div>
                 </div>
             </div>
