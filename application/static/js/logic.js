@@ -284,7 +284,7 @@ $(document).ready(() => {
                             : `<input type="hidden" name="uuid_${i}" value="${comment.uuid}">`
                         }
                         ${sampleReference
-                            ? `<div class="row mt-4">
+                            ? `<div class="row ps-1">
                                 <div class="col align-items-center d-flex">
                                     <div class="position-relative" title="A sample of this specimen was collected">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-basket-fill" viewBox="0 0 16 16">
@@ -305,24 +305,26 @@ $(document).ready(() => {
                         }
                     </div>
                 </div>
-                <div class="col-md text-center py-3">
-                    <div class="slideshow-container w-100">
-                        ${photoSlideshow}
-                        <a id="prev" onclick="plusSlides(${numSlideshows} - 1, -1, '${comment.uuid}')" ${photos.length < 2 ? "hidden" : ""}>&#10094;</a>
-                        <a id="next" onclick="plusSlides(${numSlideshows} - 1, 1, '${comment.uuid}')" ${photos.length < 2 ? "hidden" : ""}>&#10095;</a>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col">
-                            ${videoLink
-                                ? (
-                                    `<a href="${videoLink}" target="_blank" class="mediaButton mt-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi" viewBox="0 0 18 18">
-                                            <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z"/>
-                                        </svg>
-                                        Play Video
-                                    </a>`
-                                ) : '<span style="opacity: 60%;">Video not available</span>'
-                            }
+                <div class="col-md text-center py-3 d-flex">
+                    <div class="my-auto">
+                        <div class="slideshow-container w-100">
+                            ${photoSlideshow}
+                            <a id="prev" onclick="plusSlides(${numSlideshows} - 1, -1, '${comment.uuid}')" ${photos.length < 2 ? "hidden" : ""}>&#10094;</a>
+                            <a id="next" onclick="plusSlides(${numSlideshows} - 1, 1, '${comment.uuid}')" ${photos.length < 2 ? "hidden" : ""}>&#10095;</a>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col">
+                                ${videoLink
+                                    ? (
+                                        `<a href="${videoLink}" target="_blank" class="mediaButton mt-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi" viewBox="0 0 18 18">
+                                                <path d="M0 12V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2m6.79-6.907A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z"/>
+                                            </svg>
+                                            Play Video
+                                        </a>`
+                                    ) : '<span style="opacity: 60%;">Video not available</span>'
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
