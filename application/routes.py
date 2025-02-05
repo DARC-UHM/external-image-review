@@ -8,7 +8,7 @@ import traceback
 
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import render_template, request, redirect, jsonify, send_file, Response
+from flask import render_template, request, redirect, jsonify, make_response, send_file, Response
 from flask_mail import Mail, Message
 from flask_cors import cross_origin
 from json import JSONDecodeError
@@ -47,6 +47,17 @@ def send_email(msg):
 @app.route('/favicon.ico')
 def favicon():
     return app.send_static_file('img/favicon.ico')
+
+
+def robots_txt():
+    return 'User-agent: *\nDisallow: /'
+
+
+@app.get('/robots.txt')
+def robots():
+    response = make_response(robots_txt(), 200)
+    response.mimetype = 'text/plain'
+    return response
 
 
 # add a new comment
