@@ -370,9 +370,75 @@ def get_all_reviewers():
     return jsonify(reviewers), 200
 
 
+def fetch_vars_annotation(record_ptr: dict, url_root: str):
+    with requests.get(f'{app.config.get("HURLSTOR_URL")}:8082/v1/annotations/{record_ptr["uuid"]}') as r:
+        try:
+            server_record = r.json()
+            record_ptr['concept'] = server_record['concept']
+        except (JSONDecodeError, KeyError):
+            app.logger.error(f'Failed to decode JSON for {record_ptr["uuid"]} (reviewer: {record_ptr.get("annotator")})')
+            return
+        if server_record.get('associations'):  # check for "identity-certainty: maybe" and "identity-reference"
+            for association in server_record['associations']:
+                if association['link_name'] == 'identity-certainty':
+                    record_ptr['id_certainty'] = association['link_value']
+                elif association['link_name'] == 'identity-reference':
+                    # dive num + id ref to account for duplicate numbers across dives
+                    record_ptr['id_reference'] = f'{record_ptr["sequence"][-2:]}:{association["link_value"]}'
+                elif association['link_name'] == 'sample-reference':
+                    record_ptr['sample_reference'] = association['link_value']
+        if server_record.get('ancillary_data'):  # get ctd
+            for ancillary_data in server_record['ancillary_data']:
+                if ancillary_data == 'latitude':
+                    record_ptr['lat'] = server_record['ancillary_data']['latitude']
+                elif ancillary_data == 'longitude':
+                    record_ptr['long'] = server_record['ancillary_data']['longitude']
+                elif ancillary_data == 'depth_meters':
+                    record_ptr['depth'] = server_record['ancillary_data']['depth_meters']
+                elif ancillary_data == 'temperature_celsius':
+                    record_ptr['temperature'] = server_record['ancillary_data']['temperature_celsius']
+                elif ancillary_data == 'oxygen_ml_l':
+                    record_ptr['oxygen_ml_l'] = server_record['ancillary_data']['oxygen_ml_l']
+
+
+def fetch_tator_annotation(record_ptr: dict, url_root: str):
+    res = requests.get(
+        url=f'{app.config.get("TATOR_URL")}/rest/Localization/45/{record_ptr["uuid"]}',
+        headers={'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}'}
+    )
+    if res.status_code != 200:
+        app.logger.error(f'Failed to decode JSON for {record_ptr["uuid"]} (reviewer: {record_ptr.get("annotator")})')
+        return
+    updated_localization = res.json()
+    record_ptr['id_certainty'] = updated_localization['attributes']['IdentificationRemarks']
+    record_ptr['image_url'] = f'{url_root}/tator-frame/{updated_localization["media"]}/{updated_localization["frame"]}?preview=true'
+    record_ptr['concept'] = f'{updated_localization["attributes"]["Scientific Name"]}'
+    record_ptr['depth'] = updated_localization['attributes'].get('Depth')
+    record_ptr['temperature'] = updated_localization['attributes'].get('DO Temperature (celsius)')
+    record_ptr['oxygen_ml_l'] = updated_localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
+    if updated_localization['attributes']['Tentative ID'] != '':
+        record_ptr['concept'] += f' ({updated_localization["attributes"]["Tentative ID"]}?)'
+    try:
+        expedition = DropcamFieldBook.objects.get(section_id=record_ptr['section_id']).json()
+    except DoesNotExist:
+        print(f'No expedition found for {record_ptr["section_id"]}')
+        return
+    # find deployment with matching sequence
+    deployment = next((x for x in expedition['deployments'] if x['deployment_name'] == record_ptr['sequence']), None)
+    if deployment is None:
+        return
+    record_ptr['expedition_name'] = expedition['expedition_name']
+    record_ptr['lat'] = deployment['lat']
+    record_ptr['long'] = deployment['long']
+    record_ptr['bait_type'] = deployment['bait_type']
+    if not record_ptr['depth']:
+        record_ptr['depth'] = deployment['depth_m']
+
+
 # the link to share with external reviewers
 @app.get('/review/<reviewer_name>')
 def review(reviewer_name):
+    req_time = datetime.now()
     app.logger.info(f'Access {reviewer_name}\'s review page - IP Address: {request.remote_addr}')
     app.logger.info(request.url)
     comments = []
@@ -390,72 +456,20 @@ def review(reviewer_name):
                 # filter by sequence (aka dive/deployment) if specified
                 continue
             comments.append(record)
-            if not record.get('all_localizations') or record['all_localizations'] == '':  # VARS annotation
-                # for VARS annotations, get the record info from VARS server
-                with requests.get(f'{app.config.get("HURLSTOR_URL")}:8082/v1/annotations/{record["uuid"]}') as r:
-                    try:
-                        server_record = r.json()
-                        record['concept'] = server_record['concept']
-                    except (JSONDecodeError, KeyError):
-                        comments = [x for x in comments if x['uuid'] != record['uuid']]  # remove record from list
-                        app.logger.error(f'Failed to decode JSON for {record["uuid"]} (reviewer: {reviewer_name})')
-                        continue
-                    if server_record.get('associations'):
-                        # check for "identity-certainty: maybe" and "identity-reference"
-                        for association in server_record['associations']:
-                            if association['link_name'] == 'identity-certainty':
-                                record['id_certainty'] = association['link_value']
-                            elif association['link_name'] == 'identity-reference':
-                                # dive num + id ref to account for duplicate numbers across dives
-                                record['id_reference'] = f'{record["sequence"][-2:]}:{association["link_value"]}'
-                            elif association['link_name'] == 'sample-reference':
-                                record['sample_reference'] = association['link_value']
-                    if server_record.get('ancillary_data'):
-                        # get ctd
-                        for ancillary_data in server_record['ancillary_data']:
-                            if ancillary_data == 'latitude':
-                                record['lat'] = server_record['ancillary_data']['latitude']
-                            elif ancillary_data == 'longitude':
-                                record['long'] = server_record['ancillary_data']['longitude']
-                            elif ancillary_data == 'depth_meters':
-                                record['depth'] = server_record['ancillary_data']['depth_meters']
-                            elif ancillary_data == 'temperature_celsius':
-                                record['temperature'] = server_record['ancillary_data']['temperature_celsius']
-                            elif ancillary_data == 'oxygen_ml_l':
-                                record['oxygen_ml_l'] = server_record['ancillary_data']['oxygen_ml_l']
-
-            else:
-                # for Tator annotations, get updated localization from tator, get depth, lat, long from local db
-                res = requests.get(
-                    url=f'{app.config.get("TATOR_URL")}/rest/Localization/45/{record["uuid"]}',
-                    headers={'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}'}
-                )
-                updated_localization = res.json()
-                record['id_certainty'] = updated_localization['attributes']['IdentificationRemarks']
-                record['image_url'] = f'{request.url_root}/tator-frame/{updated_localization["media"]}/{updated_localization["frame"]}?preview=true'
-                record['concept'] = f'{updated_localization["attributes"]["Scientific Name"]}'
-                record['depth'] = updated_localization['attributes'].get('Depth')
-                record['temperature'] = updated_localization['attributes'].get('DO Temperature (celsius)')
-                record['oxygen_ml_l'] = updated_localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
-                if updated_localization['attributes']['Tentative ID'] != '':
-                    record['concept'] += f' ({updated_localization["attributes"]["Tentative ID"]}?)'
-                try:
-                    expedition = DropcamFieldBook.objects.get(section_id=record['section_id']).json()
-                except DoesNotExist:
-                    print(f'No expedition found for {record["section_id"]}')
-                    continue
-                # find deployment with matching sequence
-                deployment = next((x for x in expedition['deployments'] if x['deployment_name'] == record['sequence']), None)
-                if deployment is None:
-                    continue
-                record['expedition_name'] = expedition['expedition_name']
-                record['lat'] = deployment['lat']
-                record['long'] = deployment['long']
-                record['bait_type'] = deployment['bait_type']
-                if not record['depth']:
-                    record['depth'] = deployment['depth_m']
-
+    for i in range(0, len(comments), 30):
+        threads = []
+        this_pass_comments = comments[i:i + 30]
+        for record in this_pass_comments:
+            fetch = fetch_vars_annotation \
+                if not record.get('all_localizations') or record['all_localizations'] == '' \
+                else fetch_tator_annotation
+            thread = threading.Thread(target=fetch, args=(record, request.url_root))
+            threads.append(thread)
+            thread.start()
+        for thread in threads:
+            thread.join()
     data = {'comments': comments, 'reviewer': reviewer_name}
+    app.logger.info(f'Load time: {datetime.now() - req_time}')
     return render_template('external_review.html', data=data), 200
 
 
