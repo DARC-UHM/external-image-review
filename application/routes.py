@@ -517,9 +517,20 @@ def summary(sequence_num):
 def save_comments():
     reviewer_name = request.values.get('reviewer')
     comments = json.loads(request.values.get('comments'))
+    sequences = json.loads(request.values.get('sequences'))
+    annotators = json.loads(request.values.get('annotators'))
     annotator_emails = [app.config.get('ADMIN_EMAIL')]
     count_success = 0
     list_failures = []
+
+    def formatted_comma_list(items: list) -> str:
+        sorted_list = sorted(items)
+        if len(sorted_list) == 1:
+            return sorted_list[0]
+        if len(sorted_list) == 2:
+            return f'{sorted_list[0]} and {sorted_list[1]}'
+        return f'{", ".join(list(sorted_list)[:-1])}, and {list(sorted_list)[-1]}'
+
     for annotator in Annotator.objects():
         annotator_emails.append(annotator.email)  # just add all annotators to the email list
     for comment in comments:
@@ -541,8 +552,9 @@ def save_comments():
             recipients=annotator_emails,
         )
         msg.body = 'Aloha,\n\n' + \
-               f'{reviewer_name} just added {count_success} new comments to the external review database. ' + \
-               f'There are now {Comment.objects(unread=True).count()} total unread comments.\n\n' + \
+               f'{reviewer_name} added comments to {count_success} annotation{"s" if count_success > 1 else ""} ' + \
+               f'from {formatted_comma_list(sequences)} (annotator{"s" if len(annotators) > 1 else ""}: {formatted_comma_list(annotators)}).\n\n' + \
+               f'There are now {Comment.objects(unread=True).count()} total unread comments in the external review database.\n\n' + \
                'DARC Review\n'
         email_thread = threading.Thread(target=send_email, args=(msg,))
         email_thread.start()

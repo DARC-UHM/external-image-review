@@ -51,6 +51,9 @@ async function saveComments() {
     const finalFormData = new FormData();
     const commentNums = []
     const finalComments = [];
+    const commentedUuids = new Set();
+    const annotators = new Set();
+    const sequences = new Set();
     for (const comment of formData.entries()) {
         if (comment[0].includes('comment')) {
             commentNums.push(comment[0].split('_')[1]);
@@ -62,10 +65,19 @@ async function saveComments() {
         if (comment) {
             for (const uuid of uuids) {
                 finalComments.push({uuid, comment});
+                commentedUuids.add(uuid);
             }
         }
     }
+    for (const comment of sortedComments) {
+        if (commentedUuids.has(comment.uuid)) {
+            annotators.add(comment.annotator);
+            sequences.add(comment.sequence);
+        }
+    }
     finalFormData.append('reviewer', formData.get('reviewer'));
+    finalFormData.append('annotators', JSON.stringify([...annotators]));
+    finalFormData.append('sequences', JSON.stringify([...sequences]));
     finalFormData.append('comments', JSON.stringify(finalComments));
     const res = await fetch('/save-comments', {
         method: 'POST',
