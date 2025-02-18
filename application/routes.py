@@ -89,6 +89,7 @@ def add_comment():
         comment.save()
     except NotUniqueError:
         return jsonify({409: 'Already a comment record for given uuid'}), 409
+    app.logger.info(f'{comment["annotator"]} added a new comment')
     return jsonify(comment.json()), 201
 
 
@@ -321,6 +322,7 @@ def add_reviewer():
         ).save()
     except NotUniqueError:
         return jsonify({409: 'Already a comment record for given uuid'}), 409
+    app.logger.info(f'Added new reviewer to database: {name}')
     return jsonify(reviewer.json()), 201
 
 
@@ -356,6 +358,7 @@ def delete_reviewer(name):
         db_record.delete()
     except DoesNotExist:
         return jsonify({404: 'No comment records matching given uuid'}), 404
+    app.logger.info(f'Deleted reviewer from database: {name}')
     return jsonify({200: 'Reviewer deleted'}), 200
 
 
@@ -480,7 +483,7 @@ def fetch_tator_localizations(elemental_ids: list, tator_localizations: dict, ur
         localization = tator_localizations[uuid]
         localization['id_certainty'] = updated_localization['attributes']['IdentificationRemarks']
         localization['image_url'] = \
-            f'{url_root}/tator-frame/{updated_localization["media"]}/{updated_localization["frame"]}?preview=true'
+            f'{url_root}tator-frame/{updated_localization["media"]}/{updated_localization["frame"]}?preview=true'
         localization['concept'] = f'{updated_localization["attributes"]["Scientific Name"]}'
         localization['depth'] = updated_localization['attributes'].get('Depth')
         localization['temperature'] = updated_localization['attributes'].get('DO Temperature (celsius)')
@@ -572,6 +575,7 @@ def save_comments():
     annotator_emails = [app.config.get('ADMIN_EMAIL')]
     count_success = 0
     list_failures = []
+    app.logger.info(f'{reviewer_name} saving comments')
 
     def formatted_comma_list(items: list) -> str:
         sorted_list = sorted(items)
@@ -626,6 +630,7 @@ def success():
 
 @app.get('/video')
 def video():
+    app.logger.info(f'Viewed video {request.args.get("link")}')
     data = {'link': request.args.get('link'), 'time': request.args.get('time')}
     return render_template('video.html', data=data), 200
 
@@ -701,6 +706,7 @@ def vars_qaqc_checklist(sequences):
             bounding_boxes=0,
             unique_fields=0,
         ).save()
+        app.logger.info(f'Created new VARS QA/QC checklist: {sequences}')
     return jsonify(checklist.json()), 200
 
 
@@ -713,6 +719,7 @@ def patch_vars_qaqc_checklist(sequences):
     checklist = VarsQaqcChecklist.objects.get(sequence_names=sequences)
     checklist[next(iter(updated_checkbox.keys()))] = next(iter(updated_checkbox.values()))
     checklist.save()
+    app.logger.info(f'Update VARS QA/QC checklist: {sequences}')
     return jsonify(checklist.json()), 200
 
 
@@ -739,6 +746,7 @@ def tator_qaqc_checklist(deployments):
             unique_taxa=0,
             media_attributes=0,
         ).save()
+        app.logger.info(f'New Tator QA/QC checklist: {deployments}')
     return jsonify(checklist.json()), 200
 
 
@@ -751,6 +759,7 @@ def patch_tator_qaqc_checklist(deployments):
     checklist = TatorQaqcChecklist.objects.get(deployment_names=deployments)
     checklist[next(iter(updated_checkbox.keys()))] = next(iter(updated_checkbox.values()))
     checklist.save()
+    app.logger.info(f'Updated Tator QA/QC checklist: {deployments}')
     return jsonify(checklist.json()), 200
 
 
@@ -780,6 +789,7 @@ def get_dropcam_field_book(section_id):
 @app.post('/dropcam-fieldbook')
 @require_api_key
 def add_dropcam_field_book():
+    app.logger.info(f'Updating dropcam fieldbook...')
     try:
         expedition_fieldbook = request.json
         field_book = DropcamFieldBook(
@@ -797,8 +807,10 @@ def add_dropcam_field_book():
             ]
         ).save()
     except JSONDecodeError:
+        app.logger.info(f'Invalid JSON')
         return jsonify({400: 'Invalid JSON'}), 400
     except KeyError:
+        app.logger.info(f'Missing required values')
         return jsonify({400: 'Missing required values'}), 400
     except NotUniqueError:
         # delete current record and replace with new one
@@ -818,7 +830,9 @@ def add_dropcam_field_book():
                 for deployment in expedition_fieldbook['deployments']
             ]
         ).save()
+        app.logger.info(f'Fieldbook updated for section ID: {expedition_fieldbook["section_id"]}')
         return jsonify(field_book.json()), 200
+    app.logger.info(f'Fieldbook created for section ID: {expedition_fieldbook["section_id"]}')
     return jsonify(field_book.json()), 201
 
 
