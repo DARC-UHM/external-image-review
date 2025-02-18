@@ -370,7 +370,60 @@ def get_all_reviewers():
     return jsonify(reviewers), 200
 
 
-def fetch_vars_annotation(record_ptr: dict, url_root: str):
+# the link to share with external reviewers
+@app.get('/review/<reviewer_name>')
+def review(reviewer_name):
+    req_time = datetime.now()
+    app.logger.info(f'Access {reviewer_name}\'s review page - IP Address: {request.remote_addr}')
+    app.logger.info(request.url)
+    comments = []
+    return_all_comments = request.args.get('all') == 'true'
+    reviewer_name = reviewer_name.replace('-', ' ')
+    matched_records = Comment.objects(reviewer_comments__reviewer=reviewer_name).order_by('sequence')
+    # we can only get one annotation per VARS API call (but responses are much faster than Tator)
+    vars_annotations = []  # using a list: each api call will get passed the object in the list and update it in place
+    # we can get many localizations in one Tator API call
+    tator_localizations = {}  # using a dict: we'll iterate through the api response with all the localizations and
+    tator_elemental_ids = []  # update each object in the dict using the elemental id as the key
+    for record in matched_records:
+        record = record.json()
+        if return_all_comments or next((x for x in record['reviewer_comments'] if x['reviewer'] == reviewer_name))['comment'] == '':
+            # show all comments or only return records that the reviewer has not yet commented on
+            if request.args.getlist('annotator') and record['annotator'] not in request.args.getlist('annotator'):
+                # filter by annotator if specified
+                continue
+            if request.args.get('sequence') and request.args.get('sequence') not in record['sequence']:
+                # filter by sequence (aka dive/deployment) if specified
+                continue
+            if record.get('all_localizations') is None or record['all_localizations'] == '':
+                vars_annotations.append(record)
+            else:
+                tator_localizations[record['uuid']] = record
+                tator_elemental_ids.append(record['uuid'])
+    tator_threads = []
+    for i in range(0, len(tator_elemental_ids), 50):  # fetch 50 localizations per API call
+        thread = threading.Thread(
+            target=fetch_tator_localizations,
+            args=(tator_elemental_ids[i:i + 50], tator_localizations, request.url_root)
+        )
+        tator_threads.append(thread)
+        thread.start()
+    for thread in tator_threads:
+        thread.join()
+    for i in range(0, len(vars_annotations), 30):  # allocate 30 threads at a time to make VARS API calls
+        var_threads = []
+        for record in vars_annotations[i:i + 30]:
+            thread = threading.Thread(target=fetch_vars_annotation, args=(record,))
+            var_threads.append(thread)
+            thread.start()
+        for thread in var_threads:
+            thread.join()
+    data = {'comments': [*vars_annotations, *tator_localizations.values()], 'reviewer': reviewer_name}
+    app.logger.info(f'Load time: {datetime.now() - req_time}')
+    return render_template('external_review.html', data=data), 200
+
+
+def fetch_vars_annotation(record_ptr: dict):
     with requests.get(f'{app.config.get("HURLSTOR_URL")}:8082/v1/annotations/{record_ptr["uuid"]}') as r:
         try:
             server_record = r.json()
@@ -401,76 +454,59 @@ def fetch_vars_annotation(record_ptr: dict, url_root: str):
                     record_ptr['oxygen_ml_l'] = server_record['ancillary_data']['oxygen_ml_l']
 
 
-def fetch_tator_annotation(record_ptr: dict, url_root: str):
-    res = requests.get(
-        url=f'{app.config.get("TATOR_URL")}/rest/Localization/45/{record_ptr["uuid"]}',
-        headers={'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}'}
+def fetch_tator_localizations(elemental_ids: list, tator_localizations: dict, url_root: str):
+    res = requests.put(
+        url=f'{app.config.get("TATOR_URL")}/rest/Localizations/26',
+        headers={
+            'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}',
+            'Content-Type': 'application/json',
+            'accept': 'application/json',
+        },
+        json={
+            "object_search": {
+                "attribute": "$elemental_id",
+                "operation": "in",
+                "value": elemental_ids,
+            },
+        },
     )
     if res.status_code != 200:
-        app.logger.error(f'Failed to decode JSON for {record_ptr["uuid"]} (reviewer: {record_ptr.get("annotator")})')
+        app.logger.error(f'Failed to fetch Tator localizations for one of {elemental_ids})')
         return
-    updated_localization = res.json()
-    record_ptr['id_certainty'] = updated_localization['attributes']['IdentificationRemarks']
-    record_ptr['image_url'] = f'{url_root}/tator-frame/{updated_localization["media"]}/{updated_localization["frame"]}?preview=true'
-    record_ptr['concept'] = f'{updated_localization["attributes"]["Scientific Name"]}'
-    record_ptr['depth'] = updated_localization['attributes'].get('Depth')
-    record_ptr['temperature'] = updated_localization['attributes'].get('DO Temperature (celsius)')
-    record_ptr['oxygen_ml_l'] = updated_localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
-    if updated_localization['attributes']['Tentative ID'] != '':
-        record_ptr['concept'] += f' ({updated_localization["attributes"]["Tentative ID"]}?)'
-    try:
-        expedition = DropcamFieldBook.objects.get(section_id=record_ptr['section_id']).json()
-    except DoesNotExist:
-        print(f'No expedition found for {record_ptr["section_id"]}')
-        return
-    # find deployment with matching sequence
-    deployment = next((x for x in expedition['deployments'] if x['deployment_name'] == record_ptr['sequence']), None)
-    if deployment is None:
-        return
-    record_ptr['expedition_name'] = expedition['expedition_name']
-    record_ptr['lat'] = deployment['lat']
-    record_ptr['long'] = deployment['long']
-    record_ptr['bait_type'] = deployment['bait_type']
-    if not record_ptr['depth']:
-        record_ptr['depth'] = deployment['depth_m']
-
-
-# the link to share with external reviewers
-@app.get('/review/<reviewer_name>')
-def review(reviewer_name):
-    req_time = datetime.now()
-    app.logger.info(f'Access {reviewer_name}\'s review page - IP Address: {request.remote_addr}')
-    app.logger.info(request.url)
-    comments = []
-    return_all_comments = request.args.get('all') == 'true'
-    reviewer_name = reviewer_name.replace('-', ' ')
-    matched_records = Comment.objects(reviewer_comments__reviewer=reviewer_name).order_by('sequence')
-    for record in matched_records:
-        record = record.json()
-        if return_all_comments or next((x for x in record['reviewer_comments'] if x['reviewer'] == reviewer_name))['comment'] == '':
-            # show all comments or only return records that the reviewer has not yet commented on
-            if request.args.getlist('annotator') and record['annotator'] not in request.args.getlist('annotator'):
-                # filter by annotator if specified
+    updated_localizations = res.json()
+    expeditions = {}
+    for updated_localization in updated_localizations:
+        uuid = updated_localization['elemental_id']
+        localization = tator_localizations[uuid]
+        localization['id_certainty'] = updated_localization['attributes']['IdentificationRemarks']
+        localization['image_url'] = \
+            f'{url_root}/tator-frame/{updated_localization["media"]}/{updated_localization["frame"]}?preview=true'
+        localization['concept'] = f'{updated_localization["attributes"]["Scientific Name"]}'
+        localization['depth'] = updated_localization['attributes'].get('Depth')
+        localization['temperature'] = updated_localization['attributes'].get('DO Temperature (celsius)')
+        localization['oxygen_ml_l'] = updated_localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
+        if updated_localization['attributes']['Tentative ID'] != '':
+            localization['concept'] += f' ({updated_localization["attributes"]["Tentative ID"]}?)'
+        section_id = localization['section_id']
+        if section_id not in expeditions.keys():
+            try:
+                expeditions[section_id] = DropcamFieldBook.objects.get(section_id=section_id).json()
+            except DoesNotExist:
+                print(f'No expedition found with section ID {section_id}')
                 continue
-            if request.args.get('sequence') and request.args.get('sequence') not in record['sequence']:
-                # filter by sequence (aka dive/deployment) if specified
-                continue
-            comments.append(record)
-    for i in range(0, len(comments), 30):
-        threads = []
-        this_pass_comments = comments[i:i + 30]
-        for record in this_pass_comments:
-            fetch = fetch_vars_annotation \
-                if not record.get('all_localizations') or record['all_localizations'] == '' \
-                else fetch_tator_annotation
-            thread = threading.Thread(target=fetch, args=(record, request.url_root))
-            threads.append(thread)
-            thread.start()
-        for thread in threads:
-            thread.join()
-    data = {'comments': comments, 'reviewer': reviewer_name}
-    app.logger.info(f'Load time: {datetime.now() - req_time}')
-    return render_template('external_review.html', data=data), 200
+        # find deployment with matching sequence
+        deployment = next(
+            (x for x in expeditions[section_id]['deployments'] if x['deployment_name'] == localization['sequence']),
+            None,
+        )
+        if deployment is None:
+            continue
+        localization['expedition_name'] = expeditions[section_id]['expedition_name']
+        localization['lat'] = deployment['lat']
+        localization['long'] = deployment['long']
+        localization['bait_type'] = deployment['bait_type']
+        if not localization['depth']:
+            localization['depth'] = deployment['depth_m']
 
 
 # returns number of unread comments, number of total comments, and a list of reviewers with comments in the database
