@@ -62,13 +62,16 @@ def robots():
 def add_comment():
     comment = {}
     reviewers = json.loads(request.values.get('reviewers'))
-    fields = ['uuid', 'all_localizations', 'sequence', 'timestamp', 'image_url', 'video_url', 'id_reference',
+    keys = ['uuid', 'all_localizations', 'sequence', 'timestamp', 'image_url', 'video_url', 'id_reference',
               'annotator', 'section_id']
-    for field in fields:
-        value = request.values.get(field)
+    for key in keys:
+        value = request.values.get(key)
         if value is not None and value != '':
-            comment[field] = value
-    if not comment['uuid'] or not comment['sequence'] or not reviewers or not comment['annotator']:
+            comment[key] = value
+    if comment.get('uuid') is None \
+            or comment.get('sequence') is None \
+            or comment.get('annotator') is None \
+            or reviewers is None:
         return jsonify({400: 'Missing required values'}), 400
     if comment.get('all_localizations'):  # tator localization
         comment['sequence'] = comment['sequence'].replace('-', '_')
@@ -476,7 +479,7 @@ def fetch_tator_localizations(elemental_ids: list, tator_localizations: dict, ur
     for updated_localization in updated_localizations:
         uuid = updated_localization['elemental_id']
         localization = tator_localizations[uuid]
-        localization['id_certainty'] = updated_localization['attributes']['IdentificationRemarks']
+        localization['id_certainty'] = updated_localization['attributes'].get('IdentificationRemarks')
         localization['image_url'] = \
             f'{url_root}tator-frame/{updated_localization["media"]}/{updated_localization["frame"]}?preview=true'
         localization['concept'] = f'{updated_localization["attributes"]["Scientific Name"]}'
@@ -503,8 +506,8 @@ def fetch_tator_localizations(elemental_ids: list, tator_localizations: dict, ur
         localization['lat'] = deployment['lat']
         localization['long'] = deployment['long']
         localization['bait_type'] = deployment['bait_type']
-        if not localization['depth']:
-            localization['depth'] = deployment['depth_m']
+        if localization.get('depth') is None:
+            localization['depth'] = deployment.get('depth_m')
 
 
 # returns number of unread comments, number of total comments, and a list of reviewers with comments in the database
@@ -795,7 +798,7 @@ def add_dropcam_field_book():
                     'deployment_name': deployment['deployment_name'],
                     'lat': deployment['lat'],
                     'long': deployment['long'],
-                    'depth_m': deployment['depth_m'],
+                    'depth_m': deployment.get('depth_m'),
                     'bait_type': deployment['bait_type'],
                 }
                 for deployment in expedition_fieldbook['deployments']
@@ -819,7 +822,7 @@ def add_dropcam_field_book():
                     'deployment_name': deployment['deployment_name'],
                     'lat': deployment['lat'],
                     'long': deployment['long'],
-                    'depth_m': deployment['depth_m'],
+                    'depth_m': deployment.get('depth_m'),
                     'bait_type': deployment['bait_type'],
                 }
                 for deployment in expedition_fieldbook['deployments']
