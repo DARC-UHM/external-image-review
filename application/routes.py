@@ -49,13 +49,9 @@ def favicon():
     return app.send_static_file('img/favicon.ico')
 
 
-def robots_txt():
-    return 'User-agent: *\nDisallow: /'
-
-
 @app.get('/robots.txt')
 def robots():
-    response = make_response(robots_txt(), 200)
+    response = make_response('User-agent: *\nDisallow: /', 200)
     response.mimetype = 'text/plain'
     return response
 
@@ -89,7 +85,7 @@ def add_comment():
         comment.save()
     except NotUniqueError:
         return jsonify({409: 'Already a comment record for given uuid'}), 409
-    app.logger.info(f'{comment["annotator"]} added a new comment')
+    app.logger.info(f'New comment added for {", ".join(reviewers)} ({comment["sequence"]}, annotator {comment["annotator"]})')
     return jsonify(comment.json()), 201
 
 
@@ -379,7 +375,6 @@ def review(reviewer_name):
     req_time = datetime.now()
     app.logger.info(f'Access {reviewer_name}\'s review page - IP Address: {request.remote_addr}')
     app.logger.info(request.url)
-    comments = []
     return_all_comments = request.args.get('all') == 'true'
     reviewer_name = reviewer_name.replace('-', ' ')
     matched_records = Comment.objects(reviewer_comments__reviewer=reviewer_name).order_by('sequence')
@@ -719,7 +714,7 @@ def patch_vars_qaqc_checklist(sequences):
     checklist = VarsQaqcChecklist.objects.get(sequence_names=sequences)
     checklist[next(iter(updated_checkbox.keys()))] = next(iter(updated_checkbox.values()))
     checklist.save()
-    app.logger.info(f'Update VARS QA/QC checklist: {sequences}')
+    app.logger.info(f'Updated VARS QA/QC checklist: {sequences}')
     return jsonify(checklist.json()), 200
 
 
@@ -746,7 +741,7 @@ def tator_qaqc_checklist(deployments):
             unique_taxa=0,
             media_attributes=0,
         ).save()
-        app.logger.info(f'New Tator QA/QC checklist: {deployments}')
+        app.logger.info(f'Created new Tator QA/QC checklist: {deployments}')
     return jsonify(checklist.json()), 200
 
 
