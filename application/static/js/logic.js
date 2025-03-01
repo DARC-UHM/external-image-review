@@ -72,7 +72,13 @@ async function saveComments() {
     for (const comment of sortedComments) {
         if (commentedUuids.has(comment.uuid)) {
             annotators.add(comment.annotator);
-            sequences.add(comment.sequence);
+            if (comment.sequence?.includes('Hercules')) {
+                sequences.add(`Hercules ${comment.sequence.split('Hercules ')[1].substring(0, 3)}`);
+            } else if (comment.sequence?.includes('Deep Discoverer')) {
+                sequences.add(`Deep Discoverer ${comment.sequence.split('Deep Discoverer ')[1].substring(0, 4)}`);
+            } else {
+                sequences.add(comment.expedition_name ?? comment.sequence);
+            }
         }
     }
     finalFormData.append('reviewer', formData.get('reviewer'));

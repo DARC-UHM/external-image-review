@@ -8,7 +8,7 @@ import traceback
 
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import render_template, request, redirect, jsonify, make_response, send_file, Response
+from flask import render_template, request, redirect, jsonify, make_response, Response
 from flask_mail import Mail, Message
 from flask_cors import cross_origin
 from json import JSONDecodeError
