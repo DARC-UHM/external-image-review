@@ -628,7 +628,7 @@ def success():
 
 @app.get('/video')
 def video():
-    app.logger.info(f'Viewed video {request.args.get("link")}')
+    app.logger.info(f'Viewed video {request.args.get("link")}, user agent: {request.user_agent}')
     data = {'link': request.args.get('link'), 'time': request.args.get('time')}
     return render_template('video.html', data=data), 200
 
