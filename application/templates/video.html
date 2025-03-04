@@ -13,12 +13,21 @@
         <a class="mediaButton" href="{{ data.link }}">download the video by clicking here</a> and watch it on your device.
     </div>
     <video class="w-100" controls style="height: 95vh;">
-      <!-- MP4 format with H.264 video codec and AAC audio codec -->
-      <source src="{{ data.link }}#t={{ data.time }}" type="video/mp4">
+        <!-- AV1 in MP4 container -->
+        <source src="{{ data.link }}#t={{ data.time }}" type="video/mp4; codecs='av01.0.08M.08'">
 
-      <!-- MOV format with different codecs -->
-      <source src="{{ data.link }}#t={{ data.time }}" type="video/quicktime">
-      Your browser does not support the video tag or the file format of this video.
+        <!-- AV1 in WebM container -->
+        <source src="{{ data.link }}#t={{ data.time }}" type="video/webm; codecs='av01'">
+
+        <!-- MP4 format with H.264 video codec and AAC audio codec -->
+        <source src="{{ data.link }}#t={{ data.time }}" type="video/mp4">
+
+        <!-- HEVC / H.265 for Safari -->
+        <source src="{{ data.link }}#t={{ data.time }}" type='video/mp4; codecs="hvc1"'>
+
+        <!-- MOV format with different codecs -->
+        <source src="{{ data.link }}#t={{ data.time }}" type="video/quicktime">
+        Your browser does not support the video tag or the file format of this video.
     </video>
 </body>
 </html>

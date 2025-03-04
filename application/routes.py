@@ -120,7 +120,12 @@ def tator_video(media_id):
         media = req.json()
     except JSONDecodeError:
         return jsonify({404: 'No media found'}), 404
-    return redirect(media['media_files']['archival'][0]['path'])
+    user_agent = request.user_agent.string.lower()
+    if 'chrome' in user_agent or 'edge' in user_agent or 'safari' in user_agent:
+        app.logger.info('Playing HEVC')
+        return redirect(media['media_files']['archival'][0]['path'])
+    app.logger.info('Playing AV1')
+    return redirect(media['media_files']['streaming'][-1]['path'])
 
 
 # update a comment's text given a reviewer and an observation uuid
