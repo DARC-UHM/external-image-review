@@ -3,7 +3,7 @@ from mongoengine import Document, StringField
 
 class Reviewer(Document):
     """ Schema for reviewer collection """
-    name = StringField(required=True, max_length=100)
+    name = StringField(required=True, unique=True, max_length=100)
     email = StringField(max_length=100)
     organization = StringField(max_length=150)
     phylum = StringField(required=True, max_length=150)

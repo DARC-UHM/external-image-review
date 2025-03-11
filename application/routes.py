@@ -325,7 +325,7 @@ def add_reviewer():
             focus=focus
         ).save()
     except NotUniqueError:
-        return jsonify({409: 'Already a comment record for given uuid'}), 409
+        return jsonify({409: 'There is already a reviewer with this name'}), 409
     app.logger.info(f'Added new reviewer to database: {name}')
     return jsonify(reviewer.json()), 201
 
