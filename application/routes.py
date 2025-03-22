@@ -839,6 +839,13 @@ def add_dropcam_field_book():
     return jsonify(field_book.json()), 201
 
 
+@app.post('/log-error')
+def log_error():
+    app.logger.error('Error from internal annotation review app:')
+    app.logger.error(request.json.get('error'))
+    return jsonify({200: 'Error logged'}), 200
+
+
 @app.errorhandler(404)
 def page_not_found(e):
     app.logger.info(f'Tried to access page {request.url} - IP Address: {request.remote_addr}')
