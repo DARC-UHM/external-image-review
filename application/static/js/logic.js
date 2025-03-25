@@ -179,7 +179,7 @@ $(document).ready(() => {
 
         $('#comments').append(`
             <div class="row flex-column-reverse flex-md-row my-3 small-md" style="background-color: #1d222a; border-radius: 20px;">
-                <div class="col-md ps-3 ps-md-5 text-start d-flex align-items-center py-3">
+                <div class="col-md-5 ps-3 ps-md-5 text-start d-flex align-items-center py-3">
                     <div class="w-100">
                         <div class="row">
                             <div class="col-5 col-sm-4">
@@ -289,6 +289,58 @@ $(document).ready(() => {
                                 </div>
                             ` : ''
                         }
+                        <hr>
+                        <div class="mt-3">
+                            Agree with tentative ID?
+                        </div>
+                        <div class="row mt-2">
+                            <div>
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    id="yes_${i}"
+                                    name="comment_${i}"
+                                    value="yes"
+                                    ${comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)?.comment.includes(`${comment.reviewer} agrees`) ? 'checked' : ''}
+                                >
+                                <label for="yes_${i}">Yes</label>
+                            </div>
+                            <div>
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    id="no_${i}"
+                                    name="comment_${i}"
+                                    value="no"
+                                    ${comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)?.comment.includes(`${comment.reviewer} disagrees`) ? 'checked' : ''}
+                                >
+                                <label for="no_${i}">No - specify below</label>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        id="uncertain_${i}"
+                                        name="comment_${i}"
+                                        value="uncertain"
+                                        ${comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)?.comment.includes(`${comment.reviewer} is uncertain`) ? 'checked' : ''}
+                                    >
+                                    <label for="uncertain_${i}">Uncertain</label>
+                                </div>
+                                <div class="col">
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        id="save_${i}"
+                                        name="comment_${i}"
+                                        value="save"
+                                        ${comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)?.comment.includes(`${comment.reviewer} saved`) ? 'checked' : ''}
+                                    >
+                                    <label for="save_${i}">Save for later</label>
+                                </div>
+                            </div>
+                        </div>
                         <div class="mt-3">
                             Comments:
                         </div>
@@ -323,7 +375,7 @@ $(document).ready(() => {
                         }
                     </div>
                 </div>
-                <div class="col-md text-center py-3 d-flex">
+                <div class="col-md-7 text-center py-3 d-flex">
                     <div class="my-auto">
                         <div class="slideshow-container w-100">
                             ${photoSlideshow}
