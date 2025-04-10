@@ -509,6 +509,8 @@ def update_localization_in_list(localization: dict, updated_localization: dict, 
     localization['oxygen_ml_l'] = updated_localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
     if updated_localization['attributes']['Tentative ID'] != '':
         localization['concept'] += f' ({updated_localization["attributes"]["Tentative ID"]}?)'
+    elif updated_localization['attributes'].get('Morphospecies') and updated_localization['attributes']['Morphospecies'] != '':
+        localization['concept'] += f' ({updated_localization["attributes"]["Morphospecies"]})'
     section_id = localization['section_id']
     if section_id not in expeditions.keys():
         try:
