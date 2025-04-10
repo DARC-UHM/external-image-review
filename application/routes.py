@@ -390,7 +390,7 @@ def review(reviewer_name):
     vars_annotations = []  # using a list: each api call will get passed the object in the list and update it in place
     # we can get many localizations in one Tator API call
     tator_localizations = {}  # using a dict: we'll iterate through the api response with all the localizations and
-    tator_elemental_ids = []  # update each object in the dict using the elemental id as the key
+    tator_elemental_ids = []  #               update each object in the dict using the elemental id as the key
     for record in matched_records:
         record = record.json()
         if return_all_comments or next((x for x in record['reviewer_comments'] if x['reviewer'] == reviewer_name))['comment'] == '':
@@ -461,6 +461,7 @@ def fetch_vars_annotation(record_ptr: dict):
 
 
 def fetch_tator_localizations(elemental_ids: list, tator_localizations: dict, url_root: str):
+    no_returns = elemental_ids  # tator doesn't always return all of the localizations that we ask for 😵‍💫
     res = requests.put(
         url=f'{app.config.get("TATOR_URL")}/rest/Localizations/26',
         headers={
@@ -483,36 +484,51 @@ def fetch_tator_localizations(elemental_ids: list, tator_localizations: dict, ur
     expeditions = {}
     for updated_localization in updated_localizations:
         uuid = updated_localization['elemental_id']
-        localization = tator_localizations[uuid]
-        localization['id_certainty'] = updated_localization['attributes'].get('IdentificationRemarks')
-        localization['image_url'] = \
-            f'{url_root}tator-frame/{updated_localization["media"]}/{updated_localization["frame"]}?preview=true'
-        localization['concept'] = f'{updated_localization["attributes"]["Scientific Name"]}'
-        localization['depth'] = updated_localization['attributes'].get('Depth')
-        localization['temperature'] = updated_localization['attributes'].get('DO Temperature (celsius)')
-        localization['oxygen_ml_l'] = updated_localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
-        if updated_localization['attributes']['Tentative ID'] != '':
-            localization['concept'] += f' ({updated_localization["attributes"]["Tentative ID"]}?)'
-        section_id = localization['section_id']
-        if section_id not in expeditions.keys():
-            try:
-                expeditions[section_id] = DropcamFieldBook.objects.get(section_id=section_id).json()
-            except DoesNotExist:
-                print(f'No expedition found with section ID {section_id}')
-                continue
-        # find deployment with matching sequence
-        deployment = next(
-            (x for x in expeditions[section_id]['deployments'] if x['deployment_name'] == localization['sequence']),
-            None,
+        no_returns.remove(uuid)
+        update_localization_in_list(tator_localizations[uuid], updated_localization, expeditions, url_root)
+    # fetch no_returns one by one
+    for uuid in no_returns:
+        res = requests.get(
+            url=f'{app.config.get("TATOR_URL")}/rest/Localization/45/{uuid}',
+            headers={
+                'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}',
+                'Content-Type': 'application/json',
+                'accept': 'application/json',
+            },
         )
-        if deployment is None:
-            continue
-        localization['expedition_name'] = expeditions[section_id]['expedition_name']
-        localization['lat'] = deployment['lat']
-        localization['long'] = deployment['long']
-        localization['bait_type'] = deployment['bait_type']
-        if localization.get('depth') is None:
-            localization['depth'] = deployment.get('depth_m')
+        update_localization_in_list(tator_localizations[uuid], res.json(), expeditions, url_root)
+
+
+def update_localization_in_list(localization: dict, updated_localization: dict, expeditions: dict, url_root: str):
+    localization['id_certainty'] = updated_localization['attributes'].get('IdentificationRemarks')
+    localization['image_url'] = \
+        f'{url_root}tator-frame/{updated_localization["media"]}/{updated_localization["frame"]}?preview=true'
+    localization['concept'] = f'{updated_localization["attributes"]["Scientific Name"]}'
+    localization['depth'] = updated_localization['attributes'].get('Depth')
+    localization['temperature'] = updated_localization['attributes'].get('DO Temperature (celsius)')
+    localization['oxygen_ml_l'] = updated_localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
+    if updated_localization['attributes']['Tentative ID'] != '':
+        localization['concept'] += f' ({updated_localization["attributes"]["Tentative ID"]}?)'
+    section_id = localization['section_id']
+    if section_id not in expeditions.keys():
+        try:
+            expeditions[section_id] = DropcamFieldBook.objects.get(section_id=section_id).json()
+        except DoesNotExist:
+            print(f'No expedition found with section ID {section_id}')
+            return
+    # find deployment with matching sequence
+    deployment = next(
+        (x for x in expeditions[section_id]['deployments'] if x['deployment_name'] == localization['sequence']),
+        None,
+    )
+    if deployment is None:
+        return
+    localization['expedition_name'] = expeditions[section_id]['expedition_name']
+    localization['lat'] = deployment['lat']
+    localization['long'] = deployment['long']
+    localization['bait_type'] = deployment['bait_type']
+    if localization.get('depth') is None:
+        localization['depth'] = deployment.get('depth_m')
 
 
 # returns number of unread comments, number of total comments, and a list of reviewers with comments in the database
