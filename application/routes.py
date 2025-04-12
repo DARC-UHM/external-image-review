@@ -513,17 +513,18 @@ def fetch_tator_localizations(elemental_ids: list, tator_localizations: dict, ur
 
 
 def update_localization_in_list(localization: dict, updated_localization: dict, expeditions: dict, url_root: str):
-    localization['id_certainty'] = updated_localization['attributes'].get('IdentificationRemarks')
-    localization['image_url'] = \
-        f'{url_root}tator-frame/{updated_localization["media"]}/{updated_localization["frame"]}?preview=true'
     localization['concept'] = f'{updated_localization["attributes"]["Scientific Name"]}'
-    localization['depth'] = updated_localization['attributes'].get('Depth')
-    localization['temperature'] = updated_localization['attributes'].get('DO Temperature (celsius)')
-    localization['oxygen_ml_l'] = updated_localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
     if updated_localization['attributes']['Tentative ID'] != '':
         localization['concept'] += f' ({updated_localization["attributes"]["Tentative ID"]}?)'
     elif updated_localization['attributes'].get('Morphospecies') and updated_localization['attributes']['Morphospecies'] != '':
         localization['concept'] += f' ({updated_localization["attributes"]["Morphospecies"]})'
+    localization['id_certainty'] = updated_localization['attributes'].get('IdentificationRemarks')
+    localization['image_url'] = \
+        f'{url_root}tator-frame/{updated_localization["media"]}/{updated_localization["frame"]}?preview=true'
+    localization['depth'] = updated_localization['attributes'].get('Depth')
+    localization['temperature'] = updated_localization['attributes'].get('DO Temperature (celsius)')
+    localization['oxygen_ml_l'] = updated_localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
+    localization['id_reference'] = f'{updated_localization["media"]}:{localization["concept"]}'
     section_id = localization['section_id']
     if section_id not in expeditions.keys():
         try:
