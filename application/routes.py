@@ -62,8 +62,16 @@ def robots():
 def add_comment():
     comment = {}
     reviewers = json.loads(request.values.get('reviewers'))
-    keys = ['uuid', 'all_localizations', 'sequence', 'timestamp', 'image_url', 'video_url', 'id_reference',
-              'annotator', 'section_id']
+    keys = [
+        'uuid',
+        'all_localizations',
+        'sequence',
+        'timestamp',
+        'image_url',
+        'video_url',
+        'annotator',
+        'section_id',
+    ]
     for key in keys:
         value = request.values.get(key)
         if value is not None and value != '':

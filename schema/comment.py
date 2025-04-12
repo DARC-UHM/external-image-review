@@ -13,7 +13,6 @@ class Comment(Document):
     """ Schema for comment collection """
     uuid = StringField(unique=True, required=True, max_length=50)
     all_localizations = StringField(max_length=2500)  # for tator comments (JSON string, length allows for about 30 points)
-    id_reference = StringField(max_length=100)  # for tator comments
     section_id = IntField()  # for tator comments
     sequence = StringField(required=True, max_length=50)
     timestamp = StringField(max_length=30)
@@ -31,8 +30,17 @@ class Comment(Document):
                 'comment': reviewer_comment.comment,
                 'date_modified': reviewer_comment.date_modified.strftime('%d %b %H:%M HST')
             })
-        attributes = ['uuid', 'all_localizations', 'id_reference', 'section_id', 'sequence', 'timestamp',
-                      'image_url', 'annotator', 'unread', 'video_url']
+        attributes = [
+            'uuid',
+            'all_localizations',
+            'section_id',
+            'sequence',
+            'timestamp',
+            'image_url',
+            'annotator',
+            'unread',
+            'video_url',
+        ]
         # create a json object with only the fields that are not None
         comment = {attr: getattr(self, attr) for attr in attributes if getattr(self, attr) is not None}
         comment['reviewer_comments'] = reviewer_comments
