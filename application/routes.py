@@ -461,9 +461,9 @@ def fetch_vars_annotation(record_ptr: dict):
 
 
 def fetch_tator_localizations(elemental_ids: list, tator_localizations: dict, url_root: str):
-    no_returns = elemental_ids  # tator doesn't always return all of the localizations that we ask for 😵‍💫
+    deleted_localizations = []
     res = requests.put(
-        url=f'{app.config.get("TATOR_URL")}/rest/Localizations/26',
+        url=f'{app.config.get("TATOR_URL")}/rest/Localizations/26?show_deleted=1',
         headers={
             'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}',
             'Content-Type': 'application/json',
@@ -484,19 +484,24 @@ def fetch_tator_localizations(elemental_ids: list, tator_localizations: dict, ur
     expeditions = {}
     for updated_localization in updated_localizations:
         uuid = updated_localization['elemental_id']
-        no_returns.remove(uuid)
-        update_localization_in_list(tator_localizations[uuid], updated_localization, expeditions, url_root)
-    # fetch no_returns one by one
-    for uuid in no_returns:
-        res = requests.get(
-            url=f'{app.config.get("TATOR_URL")}/rest/Localization/45/{uuid}',
-            headers={
-                'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}',
-                'Content-Type': 'application/json',
-                'accept': 'application/json',
-            },
-        )
-        update_localization_in_list(tator_localizations[uuid], res.json(), expeditions, url_root)
+        if updated_localization.get('variant_deleted'):
+            deleted_localizations.append(uuid)
+        else:
+            update_localization_in_list(
+                tator_localizations[uuid],
+                updated_localization,
+                expeditions,
+                url_root,
+            )
+    for uuid in deleted_localizations:
+        app.logger.info(f'Tator reports that localization {uuid} has been deleted, removing from the database')
+        del tator_localizations[uuid]  # remove from dict
+        try:  # remove from database
+            db_record = Comment.objects.get(uuid=uuid)
+            db_record.delete()
+        except DoesNotExist:
+            app.logger.error(f'Failed to delete comment with uuid {uuid} from the database')
+            continue
 
 
 def update_localization_in_list(localization: dict, updated_localization: dict, expeditions: dict, url_root: str):
