@@ -14,7 +14,7 @@ def get_all_reviewers():
 
 
 # add a new reviewer
-@reviewer_bp.post('/')
+@reviewer_bp.post('')
 @require_api_key
 def add_reviewer():
     name = request.values.get('name')

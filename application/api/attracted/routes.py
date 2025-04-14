@@ -7,7 +7,7 @@ from ...require_api_key import require_api_key
 
 
 # get all attracted items
-@attracted_bp.get('/attracted')
+@attracted_bp.get('')
 def get_attracted():
     return jsonify({
         attracted.scientific_name: attracted.attracted for attracted in Attracted.objects()
@@ -15,7 +15,7 @@ def get_attracted():
 
 
 # create a new attracted item
-@attracted_bp.post('/attracted')
+@attracted_bp.post('')
 @require_api_key
 def add_attracted():
     scientific_name = request.values.get('scientific_name')
@@ -29,7 +29,7 @@ def add_attracted():
 
 
 # update an existing attracted item
-@attracted_bp.patch('/attracted/<scientific_name>')
+@attracted_bp.patch('/<scientific_name>')
 @require_api_key
 def update_attracted(scientific_name):
     attracted = request.values.get('attracted')
@@ -44,7 +44,7 @@ def update_attracted(scientific_name):
 
 
 # delete an attracted item
-@attracted_bp.delete('/attracted/<scientific_name>')
+@attracted_bp.delete('/<scientific_name>')
 @require_api_key
 def delete_attracted(scientific_name):
     try:

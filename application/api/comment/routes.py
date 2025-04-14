@@ -103,7 +103,7 @@ def get_reviewer_comments(reviewer_name):
 
 
 # create a new comment item
-@comment_bp.post('/')
+@comment_bp.post('')
 @require_api_key
 def add_comment():
     comment = {}

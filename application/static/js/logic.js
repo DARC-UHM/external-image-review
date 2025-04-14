@@ -154,6 +154,7 @@ $(document).ready(() => {
         }
 
         let photoSlideshow = '';
+        console.log(photos);
         for (let j = 0; j < photos.length; j += 1) {
             photoSlideshow += `
                 <div id="${comment.uuid}-${j}" class="${j > 0 ? 'slide' : ''}" style="position-relative">
