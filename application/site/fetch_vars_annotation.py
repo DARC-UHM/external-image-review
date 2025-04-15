@@ -1,16 +1,16 @@
+import logging
 from json import JSONDecodeError
 
 import requests
-from flask import current_app
 
 
-def fetch_vars_annotation(record_ptr: dict):
-    with requests.get(f'{current_app.config.get("HURLSTOR_URL")}:8082/v1/annotations/{record_ptr["uuid"]}') as r:
+def fetch_vars_annotation(record_ptr: dict, hurlstor_url: str, logger: logging.Logger):
+    with requests.get(f'{hurlstor_url}:8082/v1/annotations/{record_ptr["uuid"]}') as r:
         try:
             server_record = r.json()
             record_ptr['concept'] = server_record['concept']
         except (JSONDecodeError, KeyError):
-            current_app.logger.error(f'Failed to decode JSON for {record_ptr["uuid"]} (reviewer: {record_ptr.get("annotator")})')
+            logger.error(f'Failed to decode JSON for {record_ptr["uuid"]} (reviewer: {record_ptr.get("annotator")})')
             return
         if server_record.get('associations'):  # check for "identity-certainty: maybe" and "identity-reference"
             for association in server_record['associations']:

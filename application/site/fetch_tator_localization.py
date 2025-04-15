@@ -1,17 +1,23 @@
+import logging
 import os
 
 import requests
-from flask import current_app
 from mongoengine import DoesNotExist
 
 from schema.comment import Comment
 from schema.dropcam_field_book import DropcamFieldBook
 
 
-def fetch_tator_localizations(elemental_ids: list, tator_localizations: dict, url_root: str):
+def fetch_tator_localizations(
+        elemental_ids: list,
+        tator_localizations: dict,
+        url_root: str,
+        tator_url: str,
+        logger: logging.Logger,
+):
     deleted_localizations = []
     res = requests.put(
-        url=f'{current_app.config.get("TATOR_URL")}/rest/Localizations/26?show_deleted=1',
+        url=f'{tator_url}/rest/Localizations/26?show_deleted=1',
         headers={
             'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}',
             'Content-Type': 'application/json',
@@ -26,7 +32,7 @@ def fetch_tator_localizations(elemental_ids: list, tator_localizations: dict, ur
         },
     )
     if res.status_code != 200:
-        current_app.logger.error(f'Failed to fetch Tator localizations for one of {elemental_ids})')
+        logger.error(f'Failed to fetch Tator localizations for one of {elemental_ids})')
         return
     updated_localizations = res.json()
     expeditions = {}
@@ -42,13 +48,13 @@ def fetch_tator_localizations(elemental_ids: list, tator_localizations: dict, ur
                 url_root,
             )
     for uuid in deleted_localizations:
-        current_app.logger.info(f'Tator reports that localization {uuid} has been deleted, removing from the database')
+        logger.info(f'Tator reports that localization {uuid} has been deleted, removing from the database')
         del tator_localizations[uuid]  # remove from dict
         try:  # remove from database
             db_record = Comment.objects.get(uuid=uuid)
             db_record.delete()
         except DoesNotExist:
-            current_app.logger.error(f'Failed to delete comment with uuid {uuid} from the database')
+            logger.error(f'Failed to delete comment with uuid {uuid} from the database')
             continue
 
 

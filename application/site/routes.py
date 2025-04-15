@@ -49,7 +49,13 @@ def review(reviewer_name):
     for i in range(0, len(tator_elemental_ids), 50):  # fetch 50 localizations per API call
         thread = threading.Thread(
             target=fetch_tator_localizations,
-            args=(tator_elemental_ids[i:i + 50], tator_localizations, request.url_root)
+            kwargs={
+                'elemental_ids': tator_elemental_ids[i:i + 50],
+                'tator_localizations': tator_localizations,
+                'url_root': request.url_root,
+                'tator_url': current_app.config.get('TATOR_URL'),
+                'logger': current_app.logger,
+            }
         )
         tator_threads.append(thread)
         thread.start()
@@ -58,7 +64,14 @@ def review(reviewer_name):
     for i in range(0, len(vars_annotations), 30):  # allocate 30 threads at a time to make VARS API calls
         var_threads = []
         for record in vars_annotations[i:i + 30]:
-            thread = threading.Thread(target=fetch_vars_annotation, args=(record,))
+            thread = threading.Thread(
+                target=fetch_vars_annotation,
+                kwargs={
+                    'record_ptr': record,
+                    'hurlstor_url': current_app.config.get('HURLSTOR_URL'),
+                    'logger': current_app.logger,
+                }
+            )
             var_threads.append(thread)
             thread.start()
         for thread in var_threads:
