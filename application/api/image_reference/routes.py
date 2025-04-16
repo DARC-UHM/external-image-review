@@ -22,9 +22,9 @@ def get_image_references():
     if species := request.args.get('species'):
         query_filter['species'] = species
     image_references = ImageReference.objects(**query_filter)
-    return jsonify({
+    return jsonify([
         image_ref.json() for image_ref in image_references
-    }), 200
+    ]), 200
 
 
 # create a new image reference item
