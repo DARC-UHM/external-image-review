@@ -175,6 +175,19 @@ def tator_frame(media_id, frame_number):
     return '', 500
 
 
+# view tator localization image (cropped)
+@site_bp.get('/tator-localization-image/<localization_id>')
+def tator_image(localization_id):
+    res = requests.get(
+        url=f'{current_app.config.get("TATOR_URL")}/rest/LocalizationGraphic/{localization_id}',
+        headers={'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}'}
+    )
+    if res.status_code == 200:
+        base64_image = base64.b64encode(res.content).decode('utf-8')
+        return Response(base64.b64decode(base64_image), content_type='image/png'), 200
+    return '', 500
+
+
 @site_bp.get('/tator-video/<media_id>')
 def tator_video(media_id):
     req = requests.get(
