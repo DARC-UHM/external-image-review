@@ -32,6 +32,7 @@ from application import routes
 from application.api.attracted import attracted_bp
 from application.api.comment import comment_bp
 from application.api.dropcam_fieldbook import dropcam_fieldbook_bp
+from application.api.image_reference import image_reference_bp
 from application.api.qaqc_checklist import qaqc_checklist_bp
 from application.api.reviewer import reviewer_bp
 from application.api.stats import stats_bp
@@ -43,6 +44,7 @@ app.config.from_object('application.config.Config')
 app.register_blueprint(attracted_bp)
 app.register_blueprint(comment_bp)
 app.register_blueprint(dropcam_fieldbook_bp)
+app.register_blueprint(image_reference_bp)
 app.register_blueprint(qaqc_checklist_bp)
 app.register_blueprint(reviewer_bp)
 app.register_blueprint(site_bp)
