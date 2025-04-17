@@ -1,9 +1,11 @@
-from flask import jsonify, request
+from flask import current_app, jsonify, request
 from mongoengine import DoesNotExist
 
 from schema.image_reference import ImageReference
 from . import image_reference_bp
+from .worms_phylogeny_fetcher import WormsPhylogenyFetcher
 from ...require_api_key import require_api_key
+
 
 # get all image reference items
 @image_reference_bp.get('')
@@ -31,6 +33,7 @@ def get_image_references():
 @image_reference_bp.post('')
 @require_api_key
 def add_image_reference():
+    current_app.logger.info(f'Adding new image reference, request values: {request.values}')
     scientific_name = request.values.get('scientific_name')
     expedition_added = request.values.get('expedition_added')
     photo_url = request.values.get('photo_url')
@@ -44,7 +47,8 @@ def add_image_reference():
     for field in ['tentative_id', 'morphospecies']:
         if field in request.values and request.values.get(field):
             attr[field] = request.values.get(field)
-    # todo - get phylogeny from worms
+    worms_fetcher = WormsPhylogenyFetcher(scientific_name)
+    worms_fetcher.fetch(current_app.logger)
     for field in [
         'phylum',
         'class_name',
@@ -53,8 +57,8 @@ def add_image_reference():
         'genus',
         'species',
     ]:
-        if field:  # todo if field is present in worms response
-            pass
+        if worms_fetcher.phylogeny.get(field):
+            attr[field] = worms_fetcher.phylogeny[field]
     if ImageReference.objects(scientific_name=scientific_name):
         return jsonify({409: 'Record already exists'}), 409
     image_ref = ImageReference(**attr).save()
