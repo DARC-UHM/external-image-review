@@ -59,7 +59,11 @@ def add_image_reference():
     ]:
         if worms_fetcher.phylogeny.get(field):
             attr[field] = worms_fetcher.phylogeny[field]
-    if ImageReference.objects(scientific_name=scientific_name):
+    if ImageReference.objects(
+        scientific_name=scientific_name,
+        tentative_id=attr.get('tentative_id'),
+        morphospecies=attr.get('morphospecies'),
+    ):
         return jsonify({409: 'Record already exists'}), 409
     image_ref = ImageReference(**attr).save()
     return jsonify(image_ref.json()), 201
@@ -69,22 +73,40 @@ def add_image_reference():
 @image_reference_bp.patch('/<scientific_name>')
 @require_api_key
 def update_image_reference(scientific_name):
-    morphospecies = request.values.get('morphospecies')
-    tentative_id = request.values.get('tentative_id')
-    photos = request.values.getlist('photos')
-    if not morphospecies and not tentative_id and not photos:
-        return jsonify({400: 'Missing required values'}), 400
+    # query params are the current record values, body params are the new values
     try:
-        db_record = ImageReference.objects.get(scientific_name=scientific_name)
-        if morphospecies:
-            db_record.update(set__morphospecies=morphospecies)
-        if tentative_id:
-            db_record.update(set__tentative_id=tentative_id)
-        if photos:
-            db_record.update(set__photos=photos)
+        # this is how unique records are identified
+        db_record = ImageReference.objects.get(
+            scientific_name=scientific_name,
+            morphospecies=request.args.get('morphospecies'),
+            tentative_id=request.args.get('tentative_id'),
+        )
+        for field in [
+            'morphospecies',
+            'tentative_id',
+            'expedition_added',
+            'photos',
+            'phylum',
+            'class_name',
+            'order',
+            'family',
+            'genus',
+            'species',
+        ]:
+            if field == 'photos':
+                updated_value = request.values.getlist(field)
+            else:
+                updated_value = request.values.get(field)
+            if updated_value:
+                db_record.update(**{f'set__{field}': updated_value})
     except DoesNotExist:
         return jsonify({404: 'No record with given scientific name'}), 404
-    return jsonify(ImageReference.objects.get(scientific_name=scientific_name).json()), 200
+
+    return jsonify(ImageReference.objects.get(
+        scientific_name=scientific_name,
+        morphospecies=request.values.get('morphospecies') or request.args.get('morphospecies'),
+        tentative_id=request.values.get('tentative_id') or request.args.get('tentative_id'),
+    ).json()), 200
 
 
 # delete an image reference item
@@ -92,7 +114,11 @@ def update_image_reference(scientific_name):
 @require_api_key
 def delete_image_reference(scientific_name):
     try:
-        db_record = ImageReference.objects.get(scientific_name=scientific_name)
+        db_record = ImageReference.objects.get(
+            scientific_name=scientific_name,
+            morphospecies=request.args.get('morphospecies'),
+            tentative_id=request.args.get('tentative_id'),
+        )
         db_record.delete()
     except DoesNotExist:
         return jsonify({404: 'No record with given scientific name'}), 404

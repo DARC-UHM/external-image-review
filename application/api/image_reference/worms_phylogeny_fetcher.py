@@ -51,7 +51,10 @@ class WormsPhylogenyFetcher:
         :param Dict tree: The nested taxon tree from WoRMS.
         :param Dict flat: The newly created flat taxon tree.
         """
-        flat[tree['rank'].lower()] = tree['scientificname']
+        rank = tree['rank'].lower()
+        if rank == 'class':
+            rank = 'class_name'
+        flat[rank] = tree['scientificname']
         if tree['child'] is not None:
             self.flatten_taxa_tree(tree['child'], flat)
         return flat
