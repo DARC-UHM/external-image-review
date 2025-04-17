@@ -39,6 +39,12 @@ def add_image_reference():
     photo_url = request.values.get('photo_url')
     if not scientific_name or not expedition_added or not photo_url:
         return jsonify({400: 'Missing required values'}), 400
+    if ImageReference.objects(
+            scientific_name=scientific_name,
+            tentative_id=request.values.get('tentative_id'),
+            morphospecies=request.values.get('morphospecies'),
+    ):
+        return jsonify({409: 'Record already exists'}), 409
     attr = {
         'scientific_name': scientific_name,
         'expedition_added': expedition_added,
@@ -59,12 +65,6 @@ def add_image_reference():
     ]:
         if worms_fetcher.phylogeny.get(field):
             attr[field] = worms_fetcher.phylogeny[field]
-    if ImageReference.objects(
-        scientific_name=scientific_name,
-        tentative_id=attr.get('tentative_id'),
-        morphospecies=attr.get('morphospecies'),
-    ):
-        return jsonify({409: 'Record already exists'}), 409
     image_ref = ImageReference(**attr).save()
     return jsonify(image_ref.json()), 201
 
