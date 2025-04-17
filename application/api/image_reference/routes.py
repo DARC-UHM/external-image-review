@@ -100,7 +100,12 @@ def update_image_reference(scientific_name):
             if updated_value:
                 db_record.update(**{f'set__{field}': updated_value})
     except DoesNotExist:
-        return jsonify({404: 'No record with given scientific name'}), 404
+        return jsonify({
+            404: f'No record found matching request: '
+                 f'scientific_name={scientific_name}, '
+                 f'morphospecies={request.args.get("morphospecies")}, '
+                 f'tentative_id={request.args.get("tentative_id")}'
+        }), 404
 
     return jsonify(ImageReference.objects.get(
         scientific_name=scientific_name,
@@ -121,5 +126,10 @@ def delete_image_reference(scientific_name):
         )
         db_record.delete()
     except DoesNotExist:
-        return jsonify({404: 'No record with given scientific name'}), 404
+        return jsonify({
+            404: f'No record found matching request: '
+                 f'scientific_name={scientific_name}, '
+                 f'morphospecies={request.args.get("morphospecies")}, '
+                 f'tentative_id={request.args.get("tentative_id")}'
+        }), 404
     return jsonify({200: 'Record deleted'}), 200

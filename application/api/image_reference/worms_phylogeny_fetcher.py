@@ -28,9 +28,9 @@ class WormsPhylogenyFetcher:
             worms_name_res = requests.get(url=f'{self.WORMS_REST_URL}/AphiaRecordsByName/{self.scientific_name}?like=false&marine_only=true&offset=1')
             logger.info(f'Multiple records found: {worms_name_res.json()}')
             if worms_name_res.status_code == 200 and len(worms_name_res.json()) > 0:
-                for record in worms_name_res.json():
+                for i, record in enumerate(worms_name_res.json()):
                     if record['status'] == 'accepted':  # just take the first accepted record
-                        logger.info(f'Using this record: {record}')
+                        logger.info(f'Using record at index {i}')
                         self.set_phylogeny(record['AphiaID'], logger)
                         break
             else:
