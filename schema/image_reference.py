@@ -25,8 +25,7 @@ class ImageReference(Document):
     """ Schema for image reference collection """
     scientific_name = StringField(required=True, max_length=100)
     expedition_added = StringField(required=True, max_length=100)
-    photo_records = ListField(EmbeddedDocumentField(ImageRecord), max_length=5)  # todo required
-    photos = ListField(StringField(max_length=100), max_length=5)  # todo remove
+    photo_records = ListField(EmbeddedDocumentField(ImageRecord), required=True, max_length=5)
     tentative_id = StringField(max_length=100)
     morphospecies = StringField(max_length=100)
     phylum = StringField(max_length=100)
@@ -40,7 +39,6 @@ class ImageReference(Document):
         item = {
             'scientific_name': self.scientific_name,
             'expedition_added': self.expedition_added,
-            'photos': self.photos,
             'photo_records': [record.json() for record in self.photo_records],
         }
         for field in [
