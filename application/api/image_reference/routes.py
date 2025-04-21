@@ -116,8 +116,50 @@ def update_image_reference(scientific_name):
     ).json()), 200
 
 
+# add a photo record
+@image_reference_bp.post('/<scientific_name>')
+@require_api_key
+def create_photo_record(scientific_name):
+    current_app.logger.info(f'Adding new photo record, request values: {request.values}')
+    tator_id = request.values.get('tator_id')
+    if not tator_id:
+        return jsonify({400: 'Missing required values'}), 400
+    try:
+        db_record = ImageReference.objects.get(
+            scientific_name=scientific_name,
+            morphospecies=request.args.get('morphospecies'),
+            tentative_id=request.args.get('tentative_id'),
+        )
+        for record in db_record.photo_records:
+            if record.tator_id == int(tator_id):
+                return jsonify({409: 'Photo record already exists'}), 409
+        if len(db_record.photo_records) >= 5:
+            return jsonify({400: 'Can\'t add more than five photo records'}), 400
+        db_record.update(push__photo_records={
+            'tator_id': tator_id,
+            'lat': request.values.get('lat'),
+            'long': request.values.get('long'),
+            'depth_m': request.values.get('depth_m'),
+            'temp_c': request.values.get('temp_c'),
+            'salinity_m_l': request.values.get('salinity_m_l'),
+        })
+    except DoesNotExist:
+        return jsonify({
+            404: f'No record found matching request: '
+                 f'scientific_name={scientific_name}, '
+                 f'morphospecies={request.args.get("morphospecies")}, '
+                 f'tentative_id={request.args.get("tentative_id")}'
+        }), 404
+    return jsonify(ImageReference.objects.get(
+        scientific_name=scientific_name,
+        morphospecies=request.args.get('morphospecies'),
+        tentative_id=request.args.get('tentative_id'),
+    ).json()), 201
+
+
 # update a photo record
 @image_reference_bp.patch('/<scientific_name>/<tator_id>')
+@require_api_key
 def update_photo_record(scientific_name, tator_id):
     try:
         db_record = ImageReference.objects.get(
