@@ -36,8 +36,8 @@ def add_image_reference():
     current_app.logger.info(f'Adding new image reference, request values: {request.values}')
     scientific_name = request.values.get('scientific_name')
     expedition_added = request.values.get('expedition_added')
-    photo_url = request.values.get('photo_url')
-    if not scientific_name or not expedition_added or not photo_url:
+    tator_id = request.values.get('tator_id')
+    if not scientific_name or not expedition_added or not tator_id:
         return jsonify({400: 'Missing required values'}), 400
     if ImageReference.objects(
             scientific_name=scientific_name,
@@ -48,7 +48,14 @@ def add_image_reference():
     attr = {
         'scientific_name': scientific_name,
         'expedition_added': expedition_added,
-        'photos': [photo_url],
+        'photo_records': [{
+            'tator_id': tator_id,
+            'lat': request.values.get('lat'),
+            'long': request.values.get('long'),
+            'depth_m': request.values.get('depth_m'),
+            'temp_c': request.values.get('temp_c'),
+            'salinity_m_l': request.values.get('salinity_m_l'),
+        }],
     }
     for field in ['tentative_id', 'morphospecies']:
         if field in request.values and request.values.get(field):
@@ -85,7 +92,6 @@ def update_image_reference(scientific_name):
             'morphospecies',
             'tentative_id',
             'expedition_added',
-            'photos',
             'phylum',
             'class_name',
             'order',
@@ -93,12 +99,45 @@ def update_image_reference(scientific_name):
             'genus',
             'species',
         ]:
-            if field == 'photos':
-                updated_value = request.values.getlist(field)
-            else:
-                updated_value = request.values.get(field)
-            if updated_value:
+            if updated_value := request.values.get(field):
                 db_record.update(**{f'set__{field}': updated_value})
+    except DoesNotExist:
+        return jsonify({
+            404: f'No record found matching request: '
+                 f'scientific_name={scientific_name}, '
+                 f'morphospecies={request.args.get("morphospecies")}, '
+                 f'tentative_id={request.args.get("tentative_id")}'
+        }), 404
+
+    return jsonify(ImageReference.objects.get(
+        scientific_name=scientific_name,
+        morphospecies=request.values.get('morphospecies') or request.args.get('morphospecies'),
+        tentative_id=request.values.get('tentative_id') or request.args.get('tentative_id'),
+    ).json()), 200
+
+
+# update a photo record
+@image_reference_bp.patch('/<scientific_name>/<tator_id>')
+def update_photo_record(scientific_name, tator_id):
+    try:
+        db_record = ImageReference.objects.get(
+            scientific_name=scientific_name,
+            morphospecies=request.args.get('morphospecies'),
+            tentative_id=request.args.get('tentative_id'),
+        )
+        # find the photo record to update
+        photo_record = next(
+            (record for record in db_record.photo_records if record.tator_id == int(tator_id)), None
+        )
+        for field in [
+            'lat',
+            'long',
+            'depth_m',
+            'temp_c',
+            'salinity_m_l',
+        ]:
+            if updated_value := request.values.get(field):
+                photo_record.update(**{f'set__{field}': updated_value})
     except DoesNotExist:
         return jsonify({
             404: f'No record found matching request: '
