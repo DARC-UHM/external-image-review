@@ -16,6 +16,8 @@ def get_dropcam_field_book(section_id):
         return jsonify(DropcamFieldBook.objects.get(section_id=section_id).json()), 200
     except DoesNotExist:
         return jsonify({404: 'No record matching given section id'}), 404
+    except ValueError:
+        return jsonify({400: 'Invalid section id'}), 400
 
 
 # create new dropcam fieldbook
