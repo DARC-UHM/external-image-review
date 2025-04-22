@@ -37,7 +37,7 @@ def get_image_references():
 
 @image_reference_bp.get('/image/<image_name>')
 def get_image(image_name):
-    file_path = os.path.join(current_app.config.get("IMAGE_REF_FOLDER"), image_name)
+    file_path = os.path.join(os.getcwd(), current_app.config.get('IMAGE_REF_FOLDER'), image_name)
     if os.path.exists(file_path):
         return send_file(file_path)
     else:
