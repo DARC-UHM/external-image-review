@@ -4,7 +4,7 @@ from datetime import datetime
 import requests
 from io import BytesIO
 from PIL import Image
-from flask import current_app, jsonify, request
+from flask import current_app, jsonify, request, send_file
 from mongoengine import DoesNotExist
 
 from schema.image_reference import ImageReference
@@ -33,6 +33,15 @@ def get_image_references():
     return jsonify([
         image_ref.json() for image_ref in image_references
     ]), 200
+
+
+@image_reference_bp.get('/image/<image_name>')
+def get_image(image_name):
+    file_path = os.path.join(current_app.config.get("IMAGE_REF_FOLDER"), image_name)
+    if os.path.exists(file_path):
+        return send_file(file_path)
+    else:
+        return jsonify({404: 'Image not found'}), 404
 
 
 # TODO clean this up and extract to a separate function
@@ -88,8 +97,10 @@ def add_image_reference():
         current_app.logger.error(f'Error retrieving frame from Tator: {frame_res.text}')
         return jsonify({400: 'Error retrieving frame info from Tator'}), 400
     img = Image.open(BytesIO(frame_res.content))
-    image_path = os.path.join(current_app.config.get('IMAGE_REF_FOLDER'), f'{tator_id}.jpg')
-    thumbnail_path = os.path.join(current_app.config.get('IMAGE_REF_FOLDER'), f'{tator_id}_thumbnail.jpg')
+    image_name = f'{tator_id}.jpg'
+    thumbnail_name = f'{tator_id}_thumbnail.jpg'
+    image_path = os.path.join(current_app.config.get('IMAGE_REF_FOLDER'), image_name)
+    thumbnail_path = os.path.join(current_app.config.get('IMAGE_REF_FOLDER'), thumbnail_name)
     if localization['type'] == 48:  # 48 is BOX, crop the image
         normalized_top_left_x = localization['x']
         normalized_top_left_y = localization['y']
@@ -137,8 +148,8 @@ def add_image_reference():
         'scientific_name': scientific_name,
         'photo_records': [{
             'tator_id': tator_id,
-            'image_path': image_path,
-            'thumbnail_path': thumbnail_path,
+            'image_name': image_name,
+            'thumbnail_name': thumbnail_name,
             'lat': request.values.get('lat'),
             'long': request.values.get('long'),
             'depth_m': depth_m,
