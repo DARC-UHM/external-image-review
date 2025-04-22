@@ -2,6 +2,7 @@ flask
 flask-cors
 flask_sslify
 flask-mail
+pillow
 python-dotenv
 requests
 jinja2

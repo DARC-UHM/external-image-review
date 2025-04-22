@@ -7,6 +7,7 @@ class Config:
     API_KEY = os.environ.get('API_KEY')
     TATOR_URL = 'https://cloud.tator.io'
     HURLSTOR_URL = 'http://hurlstor.soest.hawaii.edu'
+    IMAGE_REF_FOLDER = 'application/image-reference'
     MAIL_SERVER = os.environ.get('MAIL_SERVER')
     MAIL_PORT = os.environ.get('MAIL_PORT')
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
