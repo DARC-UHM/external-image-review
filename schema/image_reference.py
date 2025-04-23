@@ -9,6 +9,7 @@ class ImageRecord(EmbeddedDocument):
     tator_id = IntField(required=True)
     image_name = StringField(max_length=100)
     thumbnail_name = StringField(max_length=100)
+    deployment_name = StringField(max_length=100)
     lat = DecimalField()
     long = DecimalField()
     depth_m = IntField()
@@ -20,6 +21,7 @@ class ImageRecord(EmbeddedDocument):
             'tator_id': self.tator_id,
             'image_name': self.image_name,
             'thumbnail_name': self.thumbnail_name,
+            'deployment_name': self.deployment_name,
             'lat': self.lat,
             'long': self.long,
             'depth_m': self.depth_m,
