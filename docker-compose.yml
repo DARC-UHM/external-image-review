@@ -9,7 +9,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./image-reference:/application/image-reference
+      - ./image-reference:/external-image-review/application/image-reference
     links:
       - mongodb
   mongodb:
