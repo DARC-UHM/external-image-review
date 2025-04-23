@@ -39,7 +39,7 @@ class TatorDataFetcher:
 
     def fetch_frame(self):
         frame_res = requests.get(
-            url=f'{self.tator_url}/rest/GetFrame/{self.localization_data["media_id"]}?frames={self.localization_data["frame"]}',
+            url=f'{self.tator_url}/rest/GetFrame/{self.localization_data["media"]}?frames={self.localization_data["frame"]}',
             headers={
                 'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}',
                 'accept': 'image/*',

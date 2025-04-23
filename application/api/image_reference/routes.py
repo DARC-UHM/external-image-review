@@ -281,6 +281,7 @@ def delete_image_reference(scientific_name):
             morphospecies=request.args.get('morphospecies'),
             tentative_id=request.args.get('tentative_id'),
         )
+        # TODO delete all image files
         db_record.delete()
     except DoesNotExist:
         return jsonify({
@@ -302,6 +303,7 @@ def delete_photo_record(scientific_name, tator_id):
             morphospecies=request.args.get('morphospecies'),
             tentative_id=request.args.get('tentative_id'),
         )
+        # TODO delete the image files
         db_record.update(pull__photo_records__tator_id=int(tator_id))
     except DoesNotExist:
         return jsonify({
