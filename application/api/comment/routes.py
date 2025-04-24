@@ -219,6 +219,21 @@ def mark_comment_unread(uuid):
     return jsonify(Comment.objects.get(uuid=uuid).json()), 200
 
 
+# update a comment's video url
+@comment_bp.put('/video-url/<uuid>')
+@require_api_key
+def update_video_url(uuid):
+    video_url = request.values.get('video_url')
+    if not video_url:
+        return jsonify({400: 'No video url provided'}), 400
+    try:
+        db_record = Comment.objects.get(uuid=uuid)
+        db_record.update(set__video_url=video_url)
+    except DoesNotExist:
+        return jsonify({404: 'No record with given uuid'}), 404
+    return jsonify(Comment.objects.get(uuid=uuid).json()), 200
+
+
 # delete a comment given an observation uuid
 @comment_bp.delete('/<uuid>')
 @require_api_key
