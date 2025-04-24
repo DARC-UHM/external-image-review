@@ -86,8 +86,8 @@ def review(reviewer_name):
 # route to save reviewer's comments, redirects to success page
 @site_bp.post('/save-comments')
 def save_comments():
-    def send_email(msg):
-        with current_app.app_context():
+    def send_email(msg, app):
+        with app.app_context():
             mail = Mail(current_app)
             mail.send(msg)
 
@@ -133,7 +133,7 @@ def save_comments():
                    f'from {formatted_comma_list(sequences)} (annotator{"s" if len(annotators) > 1 else ""}: {formatted_comma_list(annotators)}).\n\n' + \
                    f'There are now {Comment.objects(unread=True).count()} total unread comments in the external review database.\n\n' + \
                    'DARC Review\n'
-        email_thread = threading.Thread(target=send_email, args=(msg,))
+        email_thread = threading.Thread(target=send_email, args=(msg, current_app._get_current_object()))
         email_thread.start()
         return redirect(f'success?name={reviewer_name}&count={count_success}')
     if list_failures:
