@@ -8,7 +8,7 @@ from mongoengine import DoesNotExist
 from schema.dropcam_field_book import DropcamFieldBook
 from schema.image_reference import ImageReference
 from . import image_reference_bp
-from .tator_data_fetcher import TatorDataFetcher
+from .tator_frame_fetcher import TatorFrameFetcher
 from .worms_phylogeny_fetcher import WormsPhylogenyFetcher
 from ...require_api_key import require_api_key
 
@@ -50,20 +50,43 @@ def add_image_reference():
     """
     Create a new image reference item with one photo record.
     curl -X POST http://localhost:5000/image-reference \
-      -d scientific_name="Some Name" \
-      -d morphospecies="optional" \
-      -d tentative_id="optional" \
-      -d deployment_name="required" \
-      -d section_id="required" \
-      -d tator_id=12345
+      -d '{
+            "scientific_name="Some Name",
+            "morphospecies": "morphospecies (optional)",
+            "tentative_id": "tentative id (optional)",
+            "deployment_name": "PNG_123",
+            "section_id": 12345,
+            "tator_localization_id": 12345,
+            "localization_media_id": 123,
+            "localization_frame": 123,
+            "localization_type": 48,
+            "normalized_top_left_x_y": [0.1, 0.2],
+            "normalized_dimensions": [0.3, 0.4]
+          }'
     """
-    scientific_name = request.values.get('scientific_name')
-    tator_id = request.values.get('tator_id')
-    tentative_id = request.values.get('tentative_id')
-    morphospecies = request.values.get('morphospecies')
-    deployment_name = request.values.get('deployment_name')
-    section_id = request.values.get('section_id')
-    if not scientific_name or not section_id or not deployment_name or not tator_id:
+    try:
+        data = request.get_json()
+        scientific_name = data.get('scientific_name')
+        morphospecies = data.get('morphospecies')
+        tentative_id = data.get('tentative_id')
+        deployment_name = data.get('deployment_name')
+        section_id = data.get('section_id')
+        tator_localization_id = data.get('tator_localization_id')
+        localization_media_id = data.get('localization_media_id')
+        localization_frame = data.get('localization_frame')
+        localization_type = data.get('localization_type')
+        normalized_top_left_x_y = data.get('normalized_top_left_x_y')
+        normalized_dimensions = data.get('normalized_dimensions')
+    except Exception as e:
+        current_app.logger.error(f'Error parsing JSON payload: {str(e)}')
+        return jsonify({400: 'Invalid JSON payload'}), 400
+    if not scientific_name \
+            or not section_id \
+            or not deployment_name \
+            or not tator_localization_id \
+            or not localization_media_id \
+            or not localization_frame \
+            or not localization_type:
         return jsonify({400: 'Missing required values'}), 400
     if ImageReference.objects(
         scientific_name=scientific_name,
@@ -74,18 +97,29 @@ def add_image_reference():
     current_app.logger.info(f'Adding new image reference: scientific_name={scientific_name}, '
                             f'morphospecies={morphospecies}, tentative_id={tentative_id}')
     try:
-        fetched_data = fetch_data_and_save_image(tator_id, section_id, deployment_name)
+        fetched_data = fetch_data_and_save_image(
+            tator_localization_id=tator_localization_id,
+            localization_media_id=localization_media_id,
+            localization_frame=localization_frame,
+            localization_type=localization_type,
+            normalized_top_left_x_y=normalized_top_left_x_y,
+            normalized_dimensions=normalized_dimensions,
+            section_id=section_id,
+            deployment_name=deployment_name,
+        )
     except HTTPException:
         return jsonify({400: 'Error fetching data from Tator'}), 400
     worms_fetcher = WormsPhylogenyFetcher(scientific_name)
     worms_fetcher.fetch(current_app.logger)
+    video_url = f'https://hurlstor.soest.hawaii.edu:5000/video?link=/tator-video/{localization_media_id}&time=${round(localization_frame / 30)}'
     attr = {
         'scientific_name': scientific_name,
         'photo_records': [{
-            'tator_id': tator_id,
+            'tator_localization_id': tator_localization_id,
             'image_name': fetched_data['image_name'],
             'thumbnail_name': fetched_data['thumbnail_name'],
-            'deployment_name': deployment_name,
+            'video_url': video_url,
+            'location_name': deployment_name.split('_')[0],
             'lat': fetched_data['lat'],
             'long': fetched_data['long'],
             'depth_m': fetched_data.get('depth_m'),
@@ -154,14 +188,44 @@ def update_image_reference(scientific_name):
 @image_reference_bp.post('/<scientific_name>')
 @require_api_key
 def create_photo_record(scientific_name):
-    tator_id = request.values.get('tator_id')
-    deployment_name = request.values.get('deployment_name')
-    section_id = request.values.get('section_id')
-    morphospecies = request.args.get('morphospecies')
-    tentative_id = request.args.get('tentative_id')
-    if not tator_id or not deployment_name or not section_id:
+    """
+    Create a new photo record for an existing image reference item.
+    curl -X POST http://localhost:5000/image-reference/Some%20Name?morphospecies=morpho \
+      -H "Content-Type: application/json" \
+      -d '{
+            "deployment_name": "PNG_123",
+            "section_id": 12345,
+            "tator_localization_id": 12345,
+            "localization_media_id": 123,
+            "localization_frame": 123,
+            "localization_type": 48,
+            "normalized_top_left_x_y": [0.1, 0.2],
+            "normalized_dimensions": [0.3, 0.4]
+          }'
+    """
+    try:
+        data = request.get_json()
+        deployment_name = data.get('deployment_name')
+        section_id = data.get('section_id')
+        tator_localization_id = data.get('tator_localization_id')
+        localization_media_id = data.get('localization_media_id')
+        localization_frame = data.get('localization_frame')
+        localization_type = data.get('localization_type')
+        normalized_top_left_x_y = data.get('normalized_top_left_x_y')
+        normalized_dimensions = data.get('normalized_dimensions')
+        morphospecies = request.args.get('morphospecies')
+        tentative_id = request.args.get('tentative_id')
+    except Exception as e:
+        current_app.logger.error(f'Error parsing JSON payload: {str(e)}')
+        return jsonify({400: 'Invalid JSON payload'}), 400
+    if not deployment_name \
+            or not section_id \
+            or not tator_localization_id \
+            or not localization_media_id \
+            or not localization_frame \
+            or not localization_type:
         return jsonify({400: 'Missing required values'}), 400
-    current_app.logger.info(f'Adding new image reference: scientific_name={scientific_name}, '
+    current_app.logger.info(f'Adding new photo record for image reference: scientific_name={scientific_name}, '
                             f'morphospecies={morphospecies}, tentative_id={tentative_id}')
     try:
         db_record = ImageReference.objects.get(
@@ -170,16 +234,27 @@ def create_photo_record(scientific_name):
             tentative_id=tentative_id,
         )
         for record in db_record.photo_records:
-            if record.tator_id == int(tator_id):
+            if record.tator_id == int(tator_localization_id):
                 return jsonify({409: 'Photo record already exists'}), 409
         if len(db_record.photo_records) >= 5:
-            return jsonify({400: 'Can\'t add more than five photo records'}), 400
-        fetched_data = fetch_data_and_save_image(tator_id, section_id, deployment_name)
+            return jsonify({400: 'Five photo records already exist'}), 400
+        fetched_data = fetch_data_and_save_image(
+            tator_localization_id=tator_localization_id,
+            localization_media_id=localization_media_id,
+            localization_frame=localization_frame,
+            localization_type=localization_type,
+            normalized_top_left_x_y=normalized_top_left_x_y,
+            normalized_dimensions=normalized_dimensions,
+            section_id=section_id,
+            deployment_name=deployment_name,
+        )
+        video_url = f'https://hurlstor.soest.hawaii.edu:5000/video?link=/tator-video/{localization_media_id}&time=${round(localization_frame / 30)}'
         db_record.update(push__photo_records={
-            'tator_id': tator_id,
+            'tator_localization_id': tator_localization_id,
             'image_name': fetched_data['image_name'],
             'thumbnail_name': fetched_data['thumbnail_name'],
-            'deployment_name': deployment_name,
+            'location_name': deployment_name.split('_')[0],
+            'video_url': video_url,
             'lat': fetched_data['lat'],
             'long': fetched_data['long'],
             'depth_m': fetched_data.get('depth_m'),
@@ -202,7 +277,16 @@ def create_photo_record(scientific_name):
     ).json()), 201
 
 
-def fetch_data_and_save_image(tator_id: str, section_id: str, deployment_name: str) -> dict:
+def fetch_data_and_save_image(
+    tator_localization_id: str,
+    localization_media_id: int,
+    localization_frame: int,
+    localization_type: int,
+    normalized_top_left_x_y: tuple,
+    normalized_dimensions: tuple,
+    section_id: int,
+    deployment_name: str,
+) -> dict:
     # get the lat/long from the field book
     dropcam_fieldbook = DropcamFieldBook.objects.get(section_id=section_id)
     if not dropcam_fieldbook:
@@ -217,16 +301,19 @@ def fetch_data_and_save_image(tator_id: str, section_id: str, deployment_name: s
     if not lat or not long:
         current_app.logger.warning(f'No lat/long found for deployment {deployment_name}')
     # get the image/ctd data from Tator
-    tator_fetcher = TatorDataFetcher(
-        localization_id=tator_id,
+    tator_fetcher = TatorFrameFetcher(
+        localization_id=tator_localization_id,
+        localization_media_id=localization_media_id,
+        localization_frame=localization_frame,
+        localization_type=localization_type,
+        normalized_top_left_x_y=normalized_top_left_x_y,
+        normalized_dimensions=normalized_dimensions,
         tator_url=current_app.config.get('TATOR_URL'),
         logger=current_app.logger,
     )
-    tator_fetcher.fetch_localization()
     tator_fetcher.fetch_frame()
     tator_fetcher.save_images(current_app.config.get('IMAGE_REF_FOLDER'))
     return {
-        **tator_fetcher.ctd_data,
         'image_name': tator_fetcher.image_name,
         'thumbnail_name': tator_fetcher.thumbnail_name,
         'lat': lat,

@@ -6,10 +6,11 @@ from mongoengine import DateTimeField, DecimalField, Document, EmbeddedDocument,
 
 class ImageRecord(EmbeddedDocument):
     """ Schema for individual image record (embedded in image reference) """
-    tator_id = IntField(required=True)
+    tator_localization_id = IntField(required=True)
     image_name = StringField(max_length=100)
     thumbnail_name = StringField(max_length=100)
-    deployment_name = StringField(max_length=100)
+    location_name = StringField(max_length=100)
+    video_url = StringField(max_length=100)
     lat = DecimalField()
     long = DecimalField()
     depth_m = IntField()
@@ -18,10 +19,11 @@ class ImageRecord(EmbeddedDocument):
 
     def json(self):
         return {
-            'tator_id': self.tator_id,
+            'tator_localization_id': self.tator_localization_id,
             'image_name': self.image_name,
             'thumbnail_name': self.thumbnail_name,
-            'deployment_name': self.deployment_name,
+            'location_name': self.location_name,
+            'video_url': self.video_url,
             'lat': self.lat,
             'long': self.long,
             'depth_m': self.depth_m,

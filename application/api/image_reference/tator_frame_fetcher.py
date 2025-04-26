@@ -7,39 +7,39 @@ import requests
 from PIL import Image
 
 
-class TatorDataFetcher:
+class TatorFrameFetcher:
     """
-    Fetches data from Tator
+    Fetches a frame from Tator, crops the frame, and saves it to the file system.
     """
 
-    def __init__(self, localization_id: str, tator_url: str, logger: logging.Logger):
-        self.localization_id = localization_id
+    def __init__(
+        self,
+        localization_id: str,
+        localization_media_id: int,
+        localization_frame: int,
+        localization_type: int,
+        normalized_top_left_x_y: tuple,
+        normalized_dimensions: tuple,
+        tator_url: str,
+        logger: logging.Logger,
+    ):
+        self.localization_data = {
+            'id': localization_id,
+            'media_id': localization_media_id,
+            'frame': localization_frame,
+            'type': localization_type,
+            'normalized_top_left_x_y': normalized_top_left_x_y,
+            'normalized_dimensions': normalized_dimensions,
+        }
         self.tator_url = tator_url
         self.logger = logger
-        self.headers = {'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}'}
-        self.localization_data = None
-        self.ctd_data = {}
         self.pil_image = None
-        self.image_name = f'{self.localization_id}.jpg'
-        self.thumbnail_name = f'{self.localization_id}_thumbnail.jpg'
-
-    def fetch_localization(self):
-        localization_res = requests.get(
-            url=f'{self.tator_url}/rest/Localization/{self.localization_id}',
-            headers=self.headers,
-        )
-        if localization_res.status_code != 200:
-            self.logger.error(f'Error retrieving localization info from Tator: {localization_res.text}')
-            raise HTTPException('Error retrieving localization info from Tator', 400)
-        localization = localization_res.json()
-        self.ctd_data['depth_m'] = localization['attributes'].get('Depth')
-        self.ctd_data['temp_c'] = localization['attributes'].get('DO Temperature (celsius)')
-        self.ctd_data['salinity_m_l'] = localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
-        self.localization_data = localization
+        self.image_name = f'{localization_id}.jpg'
+        self.thumbnail_name = f'{localization_id}_thumbnail.jpg'
 
     def fetch_frame(self):
         frame_res = requests.get(
-            url=f'{self.tator_url}/rest/GetFrame/{self.localization_data["media"]}?frames={self.localization_data["frame"]}',
+            url=f'{self.tator_url}/rest/GetFrame/{self.localization_data["media_id"]}?frames={self.localization_data["frame"]}',
             headers={
                 'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}',
                 'accept': 'image/*',
@@ -54,10 +54,10 @@ class TatorDataFetcher:
         image_path = os.path.join(save_path, self.image_name)
         thumbnail_path = os.path.join(save_path, self.thumbnail_name)
         if self.localization_data['type'] == 48:  # 48 is BOX, crop the image
-            normalized_top_left_x = self.localization_data['x']
-            normalized_top_left_y = self.localization_data['y']
-            normalized_width = self.localization_data['width']
-            normalized_height = self.localization_data['height']
+            normalized_top_left_x = self.localization_data['normalized_top_left_x_y'][0]
+            normalized_top_left_y = self.localization_data['normalized_top_left_x_y'][1]
+            normalized_width = self.localization_data['normalized_dimensions'][0]
+            normalized_height = self.localization_data['normalized_dimensions'][1]
             # convert to pixel coordinates
             width = self.pil_image.width
             height = self.pil_image.height
