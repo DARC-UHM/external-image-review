@@ -9,7 +9,7 @@ class ImageRecord(EmbeddedDocument):
     tator_localization_id = IntField(required=True)
     image_name = StringField(max_length=100)
     thumbnail_name = StringField(max_length=100)
-    location_name = StringField(max_length=100)
+    location_short_name = StringField(max_length=100)
     video_url = StringField(max_length=100)
     lat = DecimalField()
     long = DecimalField()
@@ -17,12 +17,23 @@ class ImageRecord(EmbeddedDocument):
     temp_c = DecimalField()
     salinity_m_l = DecimalField()
 
+    KNOWN_LOCATIONS = {
+        'FSM': 'Federated States of Micronesia',
+        'HAW': 'Hawaii',
+        'NIU': 'Niue',
+        'PNG': 'Papua New Guinea',
+        'PLW': 'Palau',
+        'RMI': 'Marshall Islands',
+        'SOL': 'Solomon Islands',
+    }
+
     def json(self):
         return {
             'tator_localization_id': self.tator_localization_id,
             'image_name': self.image_name,
             'thumbnail_name': self.thumbnail_name,
-            'location_name': self.location_name,
+            'location_short_name': self.location_short_name,
+            'location_long_name': self.KNOWN_LOCATIONS.get(self.location_short_name, self.location_short_name),
             'video_url': self.video_url,
             'lat': self.lat,
             'long': self.long,
