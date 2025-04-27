@@ -77,7 +77,7 @@ class ImageReferenceSaver:
         if media_res.status_code != 200:
             abort(media_res.status_code, 'Error fetching media from Tator')
         media = media_res.json()
-        self.deployment_name = media['name'].split('.')[0].split('_')[0]
+        self.deployment_name = '_'.join(media['name'].split('.')[0].split('_')[:-1])
         self.section_id = media['primary_section']
 
     def load_from_json(self, json_payload):
