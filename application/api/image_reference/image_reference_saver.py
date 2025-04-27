@@ -132,7 +132,7 @@ class ImageReferenceSaver:
                 'video_url': video_url,
                 'lat': fetched_data['lat'],
                 'long': fetched_data['long'],
-                'depth_m': self.depth_m,
+                'depth_m': self.depth_m or fetched_data['depth_m'],
                 'temp_c': self.temp_c,
                 'salinity_m_l': self.salinity_m_l,
             })
@@ -164,12 +164,11 @@ class ImageReferenceSaver:
                 'location_short_name': self.deployment_name.split('_')[0],
                 'lat': fetched_data['lat'],
                 'long': fetched_data['long'],
-                'depth_m': self.depth_m,
+                'depth_m': self.depth_m or fetched_data['depth_m'],
                 'temp_c': self.temp_c,
                 'salinity_m_l': self.salinity_m_l,
             }],
         }
-        print(attr)
         if self.tentative_id:
             attr['tentative_id'] = self.tentative_id
         if self.morphospecies:
@@ -190,6 +189,7 @@ class ImageReferenceSaver:
                 if deployment['deployment_name'] == self.deployment_name:
                     lat = deployment['lat']
                     long = deployment['long']
+                    depth_m = deployment['depth_m']
                     break
         except DoesNotExist:
             self.logger.warning(f'No field book found for section {self.section_id}')
@@ -213,4 +213,5 @@ class ImageReferenceSaver:
             'thumbnail_name': tator_fetcher.thumbnail_name,
             'lat': lat,
             'long': long,
+            'depth_m': depth_m,
         }
