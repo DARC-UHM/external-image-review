@@ -24,7 +24,7 @@ class ImageRecord(EmbeddedDocument):
         'PNG': 'Papua New Guinea',
         'PLW': 'Palau',
         'RMI': 'Marshall Islands',
-        'SOL': 'Solomon Islands',
+        'SLB': 'Solomon Islands',
     }
 
     def json(self):
