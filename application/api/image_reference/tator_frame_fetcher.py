@@ -1,10 +1,10 @@
 import logging
 import os
-from http.client import HTTPException
 from io import BytesIO
 
 import requests
 from PIL import Image
+from flask import abort
 
 
 class TatorFrameFetcher:
@@ -47,7 +47,7 @@ class TatorFrameFetcher:
         )
         if frame_res.status_code != 200:
             self.logger.error(f'Error retrieving frame from Tator: {frame_res.text}')
-            raise HTTPException('Error retrieving frame info from Tator', 400)
+            abort(frame_res.status_code, 'Error retrieving frame from Tator')
         self.pil_image = Image.open(BytesIO(frame_res.content))
 
     def save_images(self, save_path: str):
