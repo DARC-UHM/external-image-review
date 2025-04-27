@@ -28,6 +28,9 @@ class ImageReferenceSaver:
         self.localization_type = None
         self.normalized_top_left_x_y = None
         self.normalized_dimensions = None
+        self.depth_m = None
+        self.temp_c = None
+        self.salinity_m_l = None
 
     def load_from_tator_localization_id(self, localization_id):
         # if lone tator localization id is passed, fetch the rest of the data from tator
@@ -50,10 +53,19 @@ class ImageReferenceSaver:
         self.localization_type = localization['type']
         self.normalized_top_left_x_y = (localization['x'], localization['y'])
         self.normalized_dimensions = (localization['width'], localization['height'])
+        self.depth_m = localization['attributes'].get('Depth')
+        self.temp_c = localization['attributes'].get('DO Temperature (celsius)')
+        self.salinity_m_l = localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
         if self.tentative_id == '':
             self.tentative_id = None
         if self.morphospecies == '':
             self.morphospecies = None
+        if self.depth_m:
+            self.depth_m = round(self.depth_m)
+        if self.temp_c:
+            self.temp_c = round(self.temp_c, 2)
+        if self.salinity_m_l:
+            self.salinity_m_l = round(self.salinity_m_l, 2)
         # still need deployment name and section id, get this from media query
         media_res = requests.get(
             url=f'{self.tator_url}/rest/Media/{self.localization_media_id}',
@@ -80,6 +92,9 @@ class ImageReferenceSaver:
         self.localization_type = json_payload.get('localization_type')
         self.normalized_top_left_x_y = json_payload.get('normalized_top_left_x_y')
         self.normalized_dimensions = json_payload.get('normalized_dimensions')
+        self.depth_m = json_payload.get('depth_m')
+        self.temp_c = json_payload.get('temp_c')
+        self.salinity_m_l = json_payload.get('salinity_m_l')
         if not self.scientific_name \
                 or not self.section_id \
                 or not self.deployment_name \
@@ -117,9 +132,9 @@ class ImageReferenceSaver:
                 'video_url': video_url,
                 'lat': fetched_data['lat'],
                 'long': fetched_data['long'],
-                'depth_m': fetched_data.get('depth_m'),
-                'temp_c': fetched_data.get('temp_c'),
-                'salinity_m_l': fetched_data.get('salinity_m_l'),
+                'depth_m': self.depth_m,
+                'temp_c': self.temp_c,
+                'salinity_m_l': self.salinity_m_l,
             })
         except HTTPException as e:
             abort(e.code, e.description)
@@ -149,9 +164,9 @@ class ImageReferenceSaver:
                 'location_name': self.deployment_name.split('_')[0],
                 'lat': fetched_data['lat'],
                 'long': fetched_data['long'],
-                'depth_m': fetched_data.get('depth_m'),
-                'temp_c': fetched_data.get('temp_c'),
-                'salinity_m_l': fetched_data.get('salinity_m_l'),
+                'depth_m': self.depth_m,
+                'temp_c': self.temp_c,
+                'salinity_m_l': self.salinity_m_l,
             }],
         }
         print(attr)
