@@ -27,7 +27,16 @@ def get_image_references():
         query_filter['genus'] = genus
     if species := request.args.get('species'):
         query_filter['species'] = species
-    image_references = ImageReference.objects(**query_filter)
+    image_references = ImageReference.objects(**query_filter).order_by(
+        'phylum',
+        'class_name',
+        'order',
+        'family',
+        'genus',
+        'species',
+        'scientific_name',
+        'tentative_id',
+    )
     return jsonify([
         image_ref.json() for image_ref in image_references
     ]), 200
