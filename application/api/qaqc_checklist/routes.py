@@ -35,6 +35,7 @@ def vars_qaqc_checklist(sequences):
             expected_association=0,
             time_diff_host_upon=0,
             bounding_boxes=0,
+            localizations_missing_bounding_box=0,
             unique_fields=0,
         ).save()
         current_app.logger.info(f'Created new VARS QA/QC checklist: {sequences}')

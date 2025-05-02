@@ -19,6 +19,7 @@ class VarsQaqcChecklist(Document):
     expected_association = IntField(required=True, min_value=0, max_value=2)
     time_diff_host_upon = IntField(required=True, min_value=0, max_value=2)
     bounding_boxes = IntField(required=True, min_value=0, max_value=2)
+    localizations_missing_bounding_box = IntField(required=True, min_value=0, max_value=2)
     unique_fields = IntField(required=True, min_value=0, max_value=2)
 
     def json(self):
@@ -38,5 +39,6 @@ class VarsQaqcChecklist(Document):
             'expected_association': self.expected_association,
             'time_diff_host_upon': self.time_diff_host_upon,
             'bounding_boxes': self.bounding_boxes,
+            'localizations_missing_bounding_box': self.localizations_missing_bounding_box,
             'unique_fields': self.unique_fields,
         }
