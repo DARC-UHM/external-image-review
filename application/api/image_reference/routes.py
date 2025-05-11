@@ -14,6 +14,7 @@ from ...require_api_key import require_api_key
 # get all image reference items
 @image_reference_bp.get('')
 def get_image_references():
+    current_app.logger.info(f'Got full image references - IP Address: {request.remote_addr}')
     query_filter = {}
     if phylum := request.args.get('phylum'):
         query_filter['phylum'] = phylum
