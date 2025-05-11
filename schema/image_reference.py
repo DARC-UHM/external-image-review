@@ -78,3 +78,11 @@ class ImageReference(Document):
             if getattr(self, field):
                 item[field] = getattr(self, field)
         return item
+
+    def json_quick(self):
+        quick_name = self.scientific_name
+        if self.morphospecies:
+            quick_name += f'~{self.morphospecies}'
+        if self.tentative_id:
+            quick_name += f'~{self.tentative_id}'
+        return {quick_name: len(self.photo_records)}

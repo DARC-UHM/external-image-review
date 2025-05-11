@@ -183,6 +183,7 @@ class ImageReferenceSaver:
         # get the lat/long from the field book
         lat = None
         long = None
+        depth_m = None
         try:
             dropcam_fieldbook = DropcamFieldBook.objects.get(section_id=self.section_id)
             for deployment in dropcam_fieldbook['deployments']:

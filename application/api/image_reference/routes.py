@@ -42,6 +42,15 @@ def get_image_references():
     ]), 200
 
 
+# get all references quick version
+@image_reference_bp.get('/quick')
+def get_image_references_quick():
+    ret_dict = {}
+    for image_ref in ImageReference.objects():
+        ret_dict |= image_ref.json_quick()
+    return ret_dict
+
+
 @image_reference_bp.get('/image/<image_name>')
 def get_image(image_name):
     file_path = os.path.join(os.getcwd(), current_app.config.get('IMAGE_REF_DIR_PATH'), image_name)
