@@ -66,6 +66,8 @@ class ImageReferenceSaver:
             self.temp_c = round(self.temp_c, 2)
         if self.salinity_m_l:
             self.salinity_m_l = round(self.salinity_m_l, 2)
+        if self.morphospecies and self.tentative_id:
+            raise ValueError('Record should not contain both morphospecies and tentative ID')
         # still need deployment name and section id, get this from media query
         media_res = requests.get(
             url=f'{self.tator_url}/rest/Media/{self.localization_media_id}',
@@ -103,6 +105,8 @@ class ImageReferenceSaver:
                 or not self.localization_frame \
                 or not self.localization_type:
             raise ValueError('Missing required fields')
+        if self.morphospecies and self.tentative_id:
+            raise ValueError('Record should not contain both morphospecies and tentative ID')
 
     def save(self) -> dict:
         if db_record := ImageReference.objects(

@@ -81,8 +81,8 @@ class ImageReference(Document):
 
     def json_quick(self):
         quick_name = self.scientific_name
-        if self.morphospecies:
-            quick_name += f'~{self.morphospecies}'
         if self.tentative_id:
-            quick_name += f'~{self.tentative_id}'
+            quick_name += f'~tid={self.tentative_id}'
+        if self.morphospecies:
+            quick_name += f'~m={self.morphospecies}'
         return {quick_name: len(self.photo_records)}
