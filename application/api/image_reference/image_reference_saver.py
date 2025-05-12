@@ -22,7 +22,7 @@ class ImageReferenceSaver:
         self.tentative_id = None
         self.deployment_name = None
         self.section_id = None
-        self.tator_localization_id = None
+        self.tator_elemental_id = None
         self.localization_media_id = None
         self.localization_frame = None
         self.localization_type = None
@@ -32,10 +32,10 @@ class ImageReferenceSaver:
         self.temp_c = None
         self.salinity_m_l = None
 
-    def load_from_tator_localization_id(self, localization_id):
+    def load_from_tator_elemental_id(self, elemental_id):
         # if lone tator localization id is passed, fetch the rest of the data from tator
         localization_res = requests.get(
-            url=f'{self.tator_url}/rest/Localization/{localization_id}',
+            url=f'{self.tator_url}/rest/Localization/45/{elemental_id}',
             headers={
                 'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}',
                 'Content-Type': 'application/json',
@@ -44,7 +44,7 @@ class ImageReferenceSaver:
         if localization_res.status_code != 200:
             abort(localization_res.status_code, 'Error fetching localization from Tator')
         localization = localization_res.json()
-        self.tator_localization_id = localization_id
+        self.tator_elemental_id = elemental_id
         self.scientific_name = localization['attributes'].get('Scientific Name')
         self.tentative_id = localization['attributes'].get('Tentative ID')
         self.morphospecies = localization['attributes'].get('Morphospecies')
@@ -88,7 +88,7 @@ class ImageReferenceSaver:
         self.tentative_id = json_payload.get('tentative_id')
         self.deployment_name = json_payload.get('deployment_name')
         self.section_id = json_payload.get('section_id')
-        self.tator_localization_id = json_payload.get('tator_localization_id')
+        self.tator_elemental_id = json_payload.get('tator_elemental_id')
         self.localization_media_id = json_payload.get('localization_media_id')
         self.localization_frame = json_payload.get('localization_frame')
         self.localization_type = json_payload.get('localization_type')
@@ -100,7 +100,7 @@ class ImageReferenceSaver:
         if not self.scientific_name \
                 or not self.section_id \
                 or not self.deployment_name \
-                or not self.tator_localization_id \
+                or not self.tator_elemental_id \
                 or not self.localization_media_id \
                 or not self.localization_frame \
                 or not self.localization_type:
@@ -119,7 +119,7 @@ class ImageReferenceSaver:
 
     def add_photo_record(self, db_record) -> dict:
         for record in db_record.photo_records:
-            if record.tator_localization_id == int(self.tator_localization_id):
+            if record.tator_elemental_id == self.tator_elemental_id:
                 abort(409, 'Photo record already exists')
         if len(db_record.photo_records) >= 5:
             abort(400, 'Five photo records already exist')
@@ -129,7 +129,7 @@ class ImageReferenceSaver:
             fetched_data = self.fetch_data_and_save_image()
             video_url = f'https://hurlstor.soest.hawaii.edu:5000/video?link=/tator-video/{self.localization_media_id}&time={round(self.localization_frame / 30)}'
             db_record.update(push__photo_records={
-                'tator_localization_id': self.tator_localization_id,
+                'tator_elemental_id': self.tator_elemental_id,
                 'image_name': fetched_data['image_name'],
                 'thumbnail_name': fetched_data['thumbnail_name'],
                 'location_short_name': self.deployment_name.split('_')[0],
@@ -161,7 +161,7 @@ class ImageReferenceSaver:
         attr = {
             'scientific_name': self.scientific_name,
             'photo_records': [{
-                'tator_localization_id': self.tator_localization_id,
+                'tator_elemental_id': self.tator_elemental_id,
                 'image_name': fetched_data['image_name'],
                 'thumbnail_name': fetched_data['thumbnail_name'],
                 'video_url': video_url,
@@ -202,7 +202,7 @@ class ImageReferenceSaver:
             self.logger.warning(f'No lat/long found for deployment {self.deployment_name}')
         # get the image/ctd data from Tator
         tator_fetcher = TatorFrameFetcher(
-            localization_id=self.tator_localization_id,
+            localization_id=self.tator_elemental_id,
             localization_media_id=self.localization_media_id,
             localization_frame=self.localization_frame,
             localization_type=self.localization_type,

@@ -73,7 +73,7 @@ def add_image_reference():
             "tentative_id": "tentative id (optional)",
             "deployment_name": "PNG_123",
             "section_id": 12345,
-            "tator_localization_id": 12345,
+            "tator_elemental_id": 12345,
             "localization_media_id": 123,
             "localization_frame": 123,
             "localization_type": 48,
@@ -87,8 +87,8 @@ def add_image_reference():
         logger=current_app.logger,
     )
     try:
-        if tator_localization_id := request.values.get('tator_localization_id'):
-            image_reference_saver.load_from_tator_localization_id(tator_localization_id)
+        if tator_elemental_id := request.values.get('tator_elemental_id'):
+            image_reference_saver.load_from_tator_elemental_id(tator_elemental_id)
         else:
             image_reference_saver.load_from_json(request.get_json())
         saved_ref = image_reference_saver.save()
@@ -143,7 +143,7 @@ def update_image_reference(scientific_name):
 @image_reference_bp.patch('/<scientific_name>')
 @require_api_key
 def update_photo_record(scientific_name):
-    tator_localization_id = request.args.get('tator_localization_id')
+    tator_elemental_id = request.args.get('tator_elemental_id')
     try:
         db_record = ImageReference.objects.get(
             scientific_name=scientific_name,
@@ -152,7 +152,7 @@ def update_photo_record(scientific_name):
         )
         # find the photo record to update
         photo_record = next((record for record in db_record.photo_records
-                             if record.tator_id == int(tator_localization_id)), None)
+                             if record.tator_id == tator_elemental_id), None)
         for field in [
             'lat',
             'long',
@@ -204,9 +204,9 @@ def delete_image_reference(scientific_name):
 
 
 # delete a photo record
-@image_reference_bp.delete('/<scientific_name>/<tator_localization_id>')
+@image_reference_bp.delete('/<scientific_name>/<tator_elemental_id>')
 @require_api_key
-def delete_photo_record(scientific_name, tator_localization_id):
+def delete_photo_record(scientific_name, tator_elemental_id):
     try:
         db_record = ImageReference.objects.get(
             scientific_name=scientific_name,
@@ -215,7 +215,7 @@ def delete_photo_record(scientific_name, tator_localization_id):
         )
         # delete photos
         record_to_delete = next((record for record in db_record.photo_records
-                                 if record.tator_localization_id == int(tator_localization_id)), None)
+                                 if record.tator_elemental_id == tator_elemental_id), None)
         if not record_to_delete:
             return jsonify({404: 'No photo record found matching request'}), 404
         if record_to_delete.image_name:
