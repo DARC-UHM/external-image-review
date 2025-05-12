@@ -85,4 +85,4 @@ class ImageReference(Document):
             quick_name += f'~tid={self.tentative_id}'
         if self.morphospecies:
             quick_name += f'~m={self.morphospecies}'
-        return {quick_name: [photo_record.tator_localization_id for photo_record in self.photo_records]}
+        return {quick_name: [photo_record.tator_elemental_id for photo_record in self.photo_records]}
