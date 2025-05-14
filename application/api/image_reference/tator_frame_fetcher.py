@@ -54,10 +54,10 @@ class TatorFrameFetcher:
         image_path = os.path.join(save_path, self.image_name)
         thumbnail_path = os.path.join(save_path, self.thumbnail_name)
         if self.localization_data['type'] == 48:  # 48 is BOX, crop the image
-            normalized_top_left_x = self.localization_data['normalized_top_left_x_y'][0]
-            normalized_top_left_y = self.localization_data['normalized_top_left_x_y'][1]
-            normalized_width = self.localization_data['normalized_dimensions'][0]
-            normalized_height = self.localization_data['normalized_dimensions'][1]
+            normalized_top_left_x = float(self.localization_data['normalized_top_left_x_y'][0])
+            normalized_top_left_y = float(self.localization_data['normalized_top_left_x_y'][1])
+            normalized_width = float(self.localization_data['normalized_dimensions'][0])
+            normalized_height = float(self.localization_data['normalized_dimensions'][1])
             # convert to pixel coordinates
             width = self.pil_image.width
             height = self.pil_image.height

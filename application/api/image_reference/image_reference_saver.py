@@ -87,11 +87,11 @@ class ImageReferenceSaver:
         self.morphospecies = json_payload.get('morphospecies')
         self.tentative_id = json_payload.get('tentative_id')
         self.deployment_name = json_payload.get('deployment_name')
-        self.section_id = json_payload.get('section_id')
+        self.section_id = int(json_payload.get('section_id'))
         self.tator_elemental_id = json_payload.get('tator_elemental_id')
-        self.localization_media_id = json_payload.get('localization_media_id')
-        self.localization_frame = json_payload.get('localization_frame')
-        self.localization_type = json_payload.get('localization_type')
+        self.localization_media_id = int(json_payload.get('localization_media_id'))
+        self.localization_frame = int(json_payload.get('localization_frame'))
+        self.localization_type = int(json_payload.get('localization_type'))
         self.normalized_top_left_x_y = json_payload.get('normalized_top_left_x_y')
         self.normalized_dimensions = json_payload.get('normalized_dimensions')
         self.depth_m = json_payload.get('depth_m')
@@ -107,6 +107,12 @@ class ImageReferenceSaver:
             raise ValueError('Missing required fields')
         if self.morphospecies and self.tentative_id:
             raise ValueError('Record should not contain both morphospecies and tentative ID')
+        if self.depth_m:
+            self.depth_m = round(float(self.depth_m))
+        if self.temp_c:
+            self.temp_c = round(float(self.temp_c), 2)
+        if self.salinity_m_l:
+            self.salinity_m_l = round(float(self.salinity_m_l), 2)
 
     def save(self) -> dict:
         if db_record := ImageReference.objects(
