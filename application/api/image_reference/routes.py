@@ -81,6 +81,7 @@ def add_image_reference():
             "normalized_dimensions": [0.3, 0.4]
           }'
     """
+    current_app.logger.info("Starting save image reference...")
     image_reference_saver = ImageReferenceSaver(
         tator_url=current_app.config.get("TATOR_URL"),
         image_ref_dir_path=current_app.config.get('IMAGE_REF_DIR_PATH'),
@@ -95,7 +96,7 @@ def add_image_reference():
     except HTTPException as e:
         return jsonify({e.code: f'Error loading image reference: {e.description}'}), e.code
     except ValueError as e:
-        return jsonify({400: 'Missing required values'}), 400
+        return jsonify({400: str(e)}), 400
     return jsonify(saved_ref), 201
 
 
