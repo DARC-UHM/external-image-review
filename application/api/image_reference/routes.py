@@ -87,8 +87,8 @@ def add_image_reference():
         logger=current_app.logger,
     )
     try:
-        if tator_elemental_id := request.values.get('tator_elemental_id'):
-            image_reference_saver.load_from_tator_elemental_id(tator_elemental_id)
+        if tator_localization_id := request.values.get('tator_localization_id'):
+            image_reference_saver.load_from_tator_localization_id(tator_localization_id)
         else:
             image_reference_saver.load_from_json(request.get_json())
         saved_ref = image_reference_saver.save()

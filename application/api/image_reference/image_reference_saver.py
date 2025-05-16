@@ -32,10 +32,10 @@ class ImageReferenceSaver:
         self.temp_c = None
         self.salinity_m_l = None
 
-    def load_from_tator_elemental_id(self, elemental_id):
+    def load_from_tator_localization_id(self, localization_id):
         # if lone tator localization id is passed, fetch the rest of the data from tator
         localization_res = requests.get(
-            url=f'{self.tator_url}/rest/Localization/45/{elemental_id}',
+            url=f'{self.tator_url}/rest/Localization/{localization_id}',
             headers={
                 'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}',
                 'Content-Type': 'application/json',
@@ -44,7 +44,7 @@ class ImageReferenceSaver:
         if localization_res.status_code != 200:
             abort(localization_res.status_code, 'Error fetching localization from Tator')
         localization = localization_res.json()
-        self.tator_elemental_id = elemental_id
+        self.tator_elemental_id = localization.get('elemental_id')
         self.scientific_name = localization['attributes'].get('Scientific Name')
         self.tentative_id = localization['attributes'].get('Tentative ID')
         self.morphospecies = localization['attributes'].get('Morphospecies')
