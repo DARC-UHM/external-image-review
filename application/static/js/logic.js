@@ -98,8 +98,27 @@ async function saveComments() {
     $('#load-overlay').addClass('loader-bg-hidden');
 }
 
+function updateCard(certainty, index) {
+    const commentTextArea = $(`#comment_${index}`);
+    const saveForLater = $(`#saveForLater_${index}`);
+    if (certainty === 'agree') {
+        commentTextArea.css('display', 'none');
+        saveForLater.css('display', 'none');
+    } else if (certainty === 'disagree') {
+        commentTextArea.css('display', 'block');
+        saveForLater.css('display', 'none');
+    } else { // uncertain
+        commentTextArea.css('display', 'none');
+        saveForLater.css('display', 'block');
+    }
+}
+
 $(document).ready(() => {
     $('textarea').on('input', () => turnOnWarning()); // when any textarea is modified, turn on warning
+    $('body').tooltip({ selector: '[data-toggle=tooltip]', trigger : 'hover' });
+    window.addEventListener('popstate', function () {
+        $('[data-toggle="tooltip"]').tooltip('dispose');
+    });
 
     // list of records that have id references, i.e. there is more than one photo of the same animal
     const multiples = [];
@@ -179,7 +198,7 @@ $(document).ready(() => {
 
         $('#comments').append(`
             <div class="row flex-column-reverse flex-md-row my-3 small-md small" style="background-color: #1d222a; border-radius: 20px;">
-                <div class="col-md-5 ps-3 ps-md-5 text-start d-flex align-items-center py-3">
+                <div class="col ps-3 ps-md-5 text-start py-3">
                     <div class="w-100 py-3">
                         <div class="row">
                             <div class="col-5 col-sm-4">
@@ -289,33 +308,14 @@ $(document).ready(() => {
                                 </div>
                             ` : ''
                         }
-                        <hr style="background: #575f6b;">
-                        <div class="mt-3">
-                            Agree with tentative ID?
-                        </div>
-                        <div class="btn-group mt-2" role="group" aria-label="Answer button group">
-                            <input type="radio" class="btn-check" name="btnradio" id="yes_${i}" autocomplete="off">
-                            <label class="btn btn-outline-success answer-button" for="yes_${i}">Yes</label>
-                            
-                            <input type="radio" class="btn-check" name="btnradio" id="no_${i}" autocomplete="off">
-                            <label class="btn btn-outline-danger answer-button" for="no_${i}">No</label>
-                            
-                            <input type="radio" class="btn-check" name="btnradio" id="uncertain_${i}" autocomplete="off">
-                            <label class="btn btn-outline-secondary answer-button" for="uncertain_${i}">Uncertain</label>
-                        </div>
-                        <textarea class="reviewer-textarea mt-3" id="comment_${i}" name="comment_${i}" rows="3" placeholder="Add comments">${
-                            comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)
-                            ? comment.reviewer_comments.find((comment) => comment.reviewer === reviewer).comment
-                            : ''
-                        }</textarea>
                         ${idRefUuids.length
                             ? idRefUuids.map((uuid) => `<input type="hidden" name="uuid_${i}" value="${uuid}">`).join('')
                             : `<input type="hidden" name="uuid_${i}" value="${comment.uuid}">`
                         }
                         ${sampleReference
-                            ? `<div class="row ps-1">
+                            ? `<div class="row ps-1 mt-2">
                                 <div class="col align-items-center d-flex">
-                                    <div class="position-relative" title="A sample of this specimen was collected">
+                                    <div class="position-relative" data-toggle="tooltip" data-bs-placement="top" title="A sample of this specimen was collected">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-basket-fill" viewBox="0 0 16 16">
                                           <path d="M5.071 1.243a.5.5 0 0 1 .858.514L3.383 6h9.234L10.07 1.757a.5.5 0 1 1 .858-.514L13.783 6H15.5a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v5a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V9H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 6h1.717zM3.5 10.5a.5.5 0 1 0-1 0v3a.5.5 0 0 0 1 0zm2.5 0a.5.5 0 1 0-1 0v3a.5.5 0 0 0 1 0zm2.5 0a.5.5 0 1 0-1 0v3a.5.5 0 0 0 1 0zm2.5 0a.5.5 0 1 0-1 0v3a.5.5 0 0 0 1 0zm2.5 0a.5.5 0 1 0-1 0v3a.5.5 0 0 0 1 0z"/>
                                         </svg>
@@ -325,16 +325,86 @@ $(document).ready(() => {
                                             </svg>
                                         </div>
                                     </div>
-                                    <div class="ms-3 mt-2" title="Wet-lab sample ID">
+                                    <div class="ms-3 mt-2" data-toggle="tooltip" data-bs-placement="top" title="Wet-lab sample ID">
                                         ${sampleReference}
                                     </div>
                                 </div>
                             </div>`
                             : ''
                         }
+                        <hr style="background: #575f6b;">
+                        <div class="mt-3">
+                            Agree with tentative ID?
+                        </div>
+                        <div
+                            class="btn-group mt-2 mb-3"
+                            role="group"
+                            aria-label="Answer button group"
+                        >
+                            <input
+                                id="yes_${i}"
+                                name="certainty_${i}"
+                                value="agree"
+                                class="btn-check"
+                                type="radio"
+                                autocomplete="off"
+                                onclick="updateCard('agree', ${i});"
+                            >
+                            <label class="btn btn-outline-success answer-button" for="yes_${i}">Yes</label>
+                            
+                            <input
+                                id="no_${i}"
+                                name="certainty_${i}"
+                                value="disagree"
+                                class="btn-check"
+                                type="radio"
+                                autocomplete="off"
+                                onclick="updateCard('disagree', ${i});"
+                            >
+                            <label class="btn btn-outline-danger answer-button" for="no_${i}">No</label>
+                            
+                            <input
+                                id="uncertain_${i}"
+                                name="certainty_${i}"
+                                value="uncertain"
+                                class="btn-check"
+                                type="radio"
+                                autocomplete="off"
+                                onclick="updateCard('uncertain', ${i});"
+                            >
+                            <label class="btn btn-outline-secondary answer-button" for="uncertain_${i}">Uncertain</label>
+                        </div>
+                        <textarea 
+                            class="reviewer-textarea"
+                            id="comment_${i}"
+                            name="comment_${i}"
+                            rows="3"
+                            placeholder="Add comments"
+                        >${
+                            comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)
+                                ? comment.reviewer_comments.find((comment) => comment.reviewer === reviewer).comment
+                                : ''
+                        }</textarea>
+                        <div id="saveForLater_${i}" style="display: none;">
+                            <input
+                                id="save_${i}"
+                                name="save_${i}"
+                                class="form-check-input"
+                                type="checkbox"
+                                value=""
+                                style="cursor: pointer;"
+                            >
+                            <label
+                                class="form-check-label"
+                                for="save_${i}"
+                                style="cursor: pointer;"
+                            >
+                                &nbsp;Save for later
+                            </label>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-7 text-center py-3 d-flex">
+                <div class="col text-center py-3 d-flex">
                     <div class="my-auto">
                         <div class="slideshow-container w-100">
                             ${photoSlideshow}
