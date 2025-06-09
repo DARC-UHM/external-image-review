@@ -101,7 +101,7 @@ async function saveComments() {
 $(document).ready(() => {
     $('textarea').on('input', () => turnOnWarning()); // when any textarea is modified, turn on warning
 
-    // list of records that have id references, ie there is more than one photo of the same animal
+    // list of records that have id references, i.e. there is more than one photo of the same animal
     const multiples = [];
 
     // find records with the same id reference #
@@ -178,9 +178,9 @@ $(document).ready(() => {
         }
 
         $('#comments').append(`
-            <div class="row flex-column-reverse flex-md-row my-3 small-md" style="background-color: #1d222a; border-radius: 20px;">
-                <div class="col-md ps-3 ps-md-5 text-start d-flex align-items-center py-3">
-                    <div class="w-100">
+            <div class="row flex-column-reverse flex-md-row my-3 small-md small" style="background-color: #1d222a; border-radius: 20px;">
+                <div class="col-md-5 ps-3 ps-md-5 text-start d-flex align-items-center py-3">
+                    <div class="w-100 py-3">
                         <div class="row">
                             <div class="col-5 col-sm-4">
                                 Tentative ID:
@@ -289,10 +289,21 @@ $(document).ready(() => {
                                 </div>
                             ` : ''
                         }
+                        <hr style="background: #575f6b;">
                         <div class="mt-3">
-                            Comments:
+                            Agree with tentative ID?
                         </div>
-                        <textarea class="reviewer mt-2" name="comment_${i}" rows="3" placeholder="Enter comments">${
+                        <div class="btn-group mt-2" role="group" aria-label="Answer button group">
+                            <input type="radio" class="btn-check" name="btnradio" id="yes_${i}" autocomplete="off">
+                            <label class="btn btn-outline-success answer-button" for="yes_${i}">Yes</label>
+                            
+                            <input type="radio" class="btn-check" name="btnradio" id="no_${i}" autocomplete="off">
+                            <label class="btn btn-outline-danger answer-button" for="no_${i}">No</label>
+                            
+                            <input type="radio" class="btn-check" name="btnradio" id="uncertain_${i}" autocomplete="off">
+                            <label class="btn btn-outline-secondary answer-button" for="uncertain_${i}">Uncertain</label>
+                        </div>
+                        <textarea class="reviewer-textarea mt-3" id="comment_${i}" name="comment_${i}" rows="3" placeholder="Add comments">${
                             comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)
                             ? comment.reviewer_comments.find((comment) => comment.reviewer === reviewer).comment
                             : ''
@@ -323,7 +334,7 @@ $(document).ready(() => {
                         }
                     </div>
                 </div>
-                <div class="col-md text-center py-3 d-flex">
+                <div class="col-md-7 text-center py-3 d-flex">
                     <div class="my-auto">
                         <div class="slideshow-container w-100">
                             ${photoSlideshow}

@@ -1,17 +1,25 @@
+:root {
+    --darc-bg: #222831;
+    --darc-text: #eeeeee;
+    --darc-border: #393e46;
+    --darc-btn-text-hover: #00c3cc;
+    --darc-link-text: #00adb5;
+}
+
 body {
-    background-color: #222831;
-    color: #EEEEEE;
+    background-color: var(--darc-bg);
+    color: var(--darc-text);
 }
 
 table {
-    color: #EEEEEE !important;
-    --bs-table-striped-color: #EEEEEE !important;
+    color: var(--darc-text) !important;
+    --bs-table-striped-color: var(--darc-text) !important;
     vertical-align: middle !important;
 }
 
 tbody tfoot, td, th {
     border-bottom-width: 2px !important;
-    border-bottom-color: #393E46 !important;
+    border-bottom-color: var(--darc-border) !important;
 }
 
 textarea {
@@ -41,7 +49,7 @@ textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: #393E46;
+    background-color: var(--darc-border);
     border-radius: 5px;
 }
 
@@ -54,15 +62,19 @@ textarea {
     font-weight: 600;
 }
 
-.reviewer {
+.reviewer-textarea {
     width: 100%;
     padding-left: 10px;
     padding-right: 10px;
 }
 
+.reviewer-textarea:focus {
+    outline: var(--darc-border) solid 2px;
+}
+
 .mediaButton {
     font-weight: 500;
-    color: #00ADB5;
+    color: var(--darc-link-text);
     text-decoration: none;
     background: transparent;
     border: none;
@@ -70,7 +82,7 @@ textarea {
 }
 
 .mediaButton:hover {
-    color: #00c3cc;
+    color: var(--darc-btn-text-hover);
 }
 
 .footer {
@@ -198,4 +210,17 @@ textarea {
     background-color: rgba(203, 203, 14, 0.25);
     border: 2px solid yellow;
     border-radius: 2px;
+}
+
+.answer-button {
+    color: var(--darc-text);
+    border-color: var(--darc-border);
+    font-size: 0.875rem;
+    width: 7rem;
+}
+
+.btn-check:focus + .btn,
+.btn-check:checked + .btn:focus {
+    box-shadow: none;
+    outline: none;
 }
