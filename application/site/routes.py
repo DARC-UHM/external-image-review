@@ -114,7 +114,7 @@ def save_comments():
         res = requests.patch(
             f'{request.url_root}/comment/{reviewer_name}/{comment["uuid"]}',
             headers={'API-Key': current_app.config.get('API_KEY')},
-            data={'comment': comment["comment"]},
+            data=comment,
         )
         if res.status_code == 200:
             count_success += 1

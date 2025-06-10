@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 class ReviewerCommentList(EmbeddedDocument):
     """ Schema for list of reviewers and their respective comments """
     reviewer = StringField(required=True, max_length=50)
+    id_consensus = StringField(choices=['agree', 'disagree', 'uncertain_no_save', 'uncertain_save'])
+    id_at_time_of_response = StringField(max_length=100)
     comment = StringField(max_length=1500)
     date_modified = DateTimeField(default=(datetime.now() - timedelta(hours=10)))
 
@@ -25,11 +27,14 @@ class Comment(Document):
     def json(self):
         reviewer_comments = []
         for reviewer_comment in self.reviewer_comments:
-            reviewer_comments.append({
+            comment = {
                 'reviewer': reviewer_comment.reviewer,
-                'comment': reviewer_comment.comment,
                 'date_modified': reviewer_comment.date_modified.strftime('%d %b %H:%M HST')
-            })
+            }
+            for field in ['id_consensus', 'id_at_time_of_response', 'comment']:
+                if getattr(reviewer_comment, field) is not None:
+                    comment[field] = getattr(reviewer_comment, field)
+            reviewer_comments.append(comment)
         attributes = [
             'uuid',
             'all_localizations',

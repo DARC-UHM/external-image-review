@@ -49,22 +49,31 @@ async function saveComments() {
     $('#load-overlay').addClass('loader-bg');
     const formData = new FormData($('#commentForm')[0]);
     const finalFormData = new FormData();
-    const commentNums = []
+    const commentNums = [];
     const finalComments = [];
     const commentedUuids = new Set();
     const annotators = new Set();
     const sequences = new Set();
-    for (const comment of formData.entries()) {
-        if (comment[0].includes('comment')) {
-            commentNums.push(comment[0].split('_')[1]);
+    for (const entry of formData.entries()) {
+        if (entry[0].includes('comment')) {
+            commentNums.push(entry[0].split('_')[1]);
         }
     }
     for (const num of commentNums) {
+        const tentativeId = formData.get(`tentativeId_${num}`);
         const comment = formData.get(`comment_${num}`);
         const uuids = formData.getAll(`uuid_${num}`);
-        if (comment) {
+        let idConsensus = formData.get(`idConsensus_${num}`);
+        if (idConsensus) {
+            const commentData = {idConsensus, tentativeId};
+            console.log(`save_${num}`, formData.get(`save_${num}`));
+            if (idConsensus === 'uncertain') {
+                commentData.idConsensus += formData.get(`save_${num}`) === 'on' ? '_save' : '_no_save';
+            } else if (idConsensus === 'disagree') {
+                commentData.comment = comment;
+            }
             for (const uuid of uuids) {
-                finalComments.push({uuid, comment});
+                finalComments.push({uuid, ...commentData});
                 commentedUuids.add(uuid);
             }
         }
@@ -98,13 +107,13 @@ async function saveComments() {
     $('#load-overlay').addClass('loader-bg-hidden');
 }
 
-function updateCard(certainty, index) {
+function updateCard(idConsensus, index) {
     const commentTextArea = $(`#comment_${index}`);
     const saveForLater = $(`#saveForLater_${index}`);
-    if (certainty === 'agree') {
+    if (idConsensus === 'agree') {
         commentTextArea.css('display', 'none');
         saveForLater.css('display', 'none');
-    } else if (certainty === 'disagree') {
+    } else if (idConsensus === 'disagree') {
         commentTextArea.css('display', 'block');
         saveForLater.css('display', 'none');
     } else { // uncertain
@@ -128,6 +137,7 @@ $(document).ready(() => {
         const idRefUuids = [];
         const comment = sortedComments[i];
         const photos = [comment.image_url];
+        const tentativeId = `${comment.concept}${comment.id_certainty?.includes('maybe') ? '?' : ''}`;
         const localizations = comment.all_localizations ? [comment.all_localizations] : [];
         const lat = comment.lat ? Number.parseFloat(comment.lat).toFixed(3) : null;
         const long = comment.long ? Number.parseFloat(comment.long).toFixed(3) : null;
@@ -197,14 +207,14 @@ $(document).ready(() => {
         }
 
         $('#comments').append(`
-            <div class="row flex-column-reverse flex-md-row my-3 small-md small" style="background-color: #1d222a; border-radius: 20px;">
+            <div class="row flex-column-reverse flex-md-row my-3 small-md" style="background-color: #1d222a; border-radius: 20px;">
                 <div class="col ps-3 ps-md-5 text-start py-3">
                     <div class="w-100 py-3">
                         <div class="row">
                             <div class="col-5 col-sm-4">
                                 Tentative ID:
                             </div>
-                            <div class="col values">${comment.concept}${comment.id_certainty?.includes('maybe') ? '?' : ''}</div>
+                            <div class="col values">${tentativeId}</div>
                         </div>
                         ${comment.id_certainty && comment.id_certainty !== 'maybe'
                             ? `<div class="row">
@@ -343,7 +353,7 @@ $(document).ready(() => {
                         >
                             <input
                                 id="yes_${i}"
-                                name="certainty_${i}"
+                                name="idConsensus_${i}"
                                 value="agree"
                                 class="btn-check"
                                 type="radio"
@@ -354,7 +364,7 @@ $(document).ready(() => {
                             
                             <input
                                 id="no_${i}"
-                                name="certainty_${i}"
+                                name="idConsensus_${i}"
                                 value="disagree"
                                 class="btn-check"
                                 type="radio"
@@ -365,7 +375,7 @@ $(document).ready(() => {
                             
                             <input
                                 id="uncertain_${i}"
-                                name="certainty_${i}"
+                                name="idConsensus_${i}"
                                 value="uncertain"
                                 class="btn-check"
                                 type="radio"
@@ -391,7 +401,6 @@ $(document).ready(() => {
                                 name="save_${i}"
                                 class="form-check-input"
                                 type="checkbox"
-                                value=""
                                 style="cursor: pointer;"
                             >
                             <label
@@ -402,6 +411,7 @@ $(document).ready(() => {
                                 &nbsp;Save for later
                             </label>
                         </div>
+                        <input hidden name="tentativeId_${i}" value="${tentativeId}">
                     </div>
                 </div>
                 <div class="col text-center py-3 d-flex">

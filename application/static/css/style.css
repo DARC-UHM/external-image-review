@@ -216,7 +216,6 @@ textarea {
 .answer-button {
     color: var(--darc-text);
     border-color: var(--darc-border);
-    font-size: 0.875rem;
     width: 7rem;
 }
 

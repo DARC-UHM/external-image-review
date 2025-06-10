@@ -156,8 +156,11 @@ def update_comment(reviewer, uuid):
         return jsonify({404: 'No comment records matching given uuid'}), 404
     for reviewer_comment in db_record.reviewer_comments:
         if reviewer_comment['reviewer'] == reviewer:
-            if reviewer_comment['comment'] != request.values.get('comment'):
+            if reviewer_comment['comment'] != request.values.get('comment') \
+                    or reviewer_comment['id_consensus'] != request.values.get('idConsensus'):
                 reviewer_comment['comment'] = request.values.get('comment')
+                reviewer_comment['id_consensus'] = request.values.get('idConsensus')
+                reviewer_comment['id_at_time_of_response'] = request.values.get('tentativeId')
                 reviewer_comment['date_modified'] = (datetime.now() - timedelta(hours=10))
                 db_record.unread = True
                 db_record.save()
