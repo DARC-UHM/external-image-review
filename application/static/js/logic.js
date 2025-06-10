@@ -440,6 +440,23 @@ $(document).ready(() => {
             </div>
         `);
 
+        let idConsensus = comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)?.id_consensus;
+
+        if (idConsensus === 'agree') {
+            $(`#yes_${i}`).prop('checked', true);
+        } else if (idConsensus === 'disagree') {
+            $(`#no_${i}`).prop('checked', true);
+        } else if (idConsensus.includes('uncertain')) {
+            $(`#uncertain_${i}`).prop('checked', true);
+            if (idConsensus.includes('_no_save')) {
+                $(`#save_${i}`).prop('checked', false);
+            } else {
+                $(`#save_${i}`).prop('checked', true);
+            }
+        }
+
+        updateCard(idConsensus, i);
+
         if (Object.keys(comment).includes('all_localizations') && comment.all_localizations) { // this is a tator localization
             for (let j = 0; j < photos.length; j += 1) {
                 $(`#${comment.uuid}-${j}_overlay`).css('opacity', '0.5');

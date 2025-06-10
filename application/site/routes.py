@@ -32,8 +32,11 @@ def review(reviewer_name):
     tator_elemental_ids = []  #               update each object in the dict using the elemental id as the key
     for record in matched_records:
         record = record.json()
-        if return_all_comments or next((x for x in record['reviewer_comments'] if x['reviewer'] == reviewer_name))['comment'] == '':
-            # show all comments or only return records that the reviewer has not yet commented on
+        reviewer_comment = next((x for x in record['reviewer_comments'] if x['reviewer'] == reviewer_name))
+        if not reviewer_comment.get('id_consensus') \
+                or reviewer_comment.get('id_consensus') == 'uncertain_save' \
+                or return_all_comments:
+            # only return records that the reviewer has not yet commented on OR if the 'all comments' flag is on
             if request.args.getlist('annotator') and record['annotator'] not in request.args.getlist('annotator'):
                 # filter by annotator if specified
                 continue
