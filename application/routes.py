@@ -3,6 +3,7 @@ import traceback
 from flask import render_template, request, jsonify, make_response
 
 from application import app
+from application.get_request_ip import get_request_ip
 from application.require_api_key import require_api_key
 from schema.comment import Comment
 
@@ -44,13 +45,13 @@ def log_error():
 
 @app.errorhandler(404)
 def page_not_found(e):
-    app.logger.info(f'Tried to access page {request.url} - IP Address: {request.remote_addr}')
+    app.logger.info(f'Tried to access page {request.url} - IP Address: {get_request_ip()}')
     return render_template('404.html'), 404
 
 
 @app.errorhandler(Exception)
 def internal_server_error(e):
-    app.logger.error(f'Internal server error - IP Address: {request.remote_addr}')
+    app.logger.error(f'Internal server error - IP Address: {get_request_ip()}')
     app.logger.error(type(e).__name__)
     app.logger.error(e)
     app.logger.error(traceback.format_exc())

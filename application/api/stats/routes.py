@@ -1,15 +1,16 @@
 import re
 
-from flask import current_app, jsonify, request
+from flask import current_app, jsonify
 
 from schema.comment import Comment
 from . import stats_bp
 from ...vars_summary import VarsSummary
+from ...get_request_ip import get_request_ip
 
 
 @stats_bp.get('/stats/vars/<sequence_num>')
 def sequence_stats(sequence_num):
-    current_app.logger.info(f'Got stats for VARS: {sequence_num} - IP Address: {request.remote_addr}')
+    current_app.logger.info(f'Got stats for VARS: {sequence_num} - IP Address: {get_request_ip()}')
     if not sequence_num:
         return jsonify({400: 'No sequence number provided'}), 400
     summary = VarsSummary(sequence_num)

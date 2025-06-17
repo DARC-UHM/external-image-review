@@ -14,13 +14,14 @@ from schema.comment import Comment
 from . import site_bp
 from .fetch_tator_localization import fetch_tator_localizations
 from .fetch_vars_annotation import fetch_vars_annotation
+from ..get_request_ip import get_request_ip
 
 
 # the link to share with external reviewers
 @site_bp.get('/review/<reviewer_name>')
 def review(reviewer_name):
     req_time = datetime.now()
-    current_app.logger.info(f'Access {reviewer_name}\'s review page - IP Address: {request.remote_addr}')
+    current_app.logger.info(f'Access {reviewer_name}\'s review page - IP Address: {get_request_ip()}')
     current_app.logger.info(request.url)
     return_all_comments = request.args.get('all') == 'true'
     reviewer_name = reviewer_name.replace('-', ' ')

@@ -8,13 +8,14 @@ from werkzeug.exceptions import HTTPException
 from schema.image_reference import ImageReference
 from . import image_reference_bp
 from .image_reference_saver import ImageReferenceSaver
+from ...get_request_ip import get_request_ip
 from ...require_api_key import require_api_key
 
 
 # get all image reference items
 @image_reference_bp.get('')
 def get_image_references():
-    current_app.logger.info(f'Got full image references - IP Address: {request.remote_addr}')
+    current_app.logger.info(f'Got full image references - IP Address: {get_request_ip()}')
     query_filter = {}
     if phylum := request.args.get('phylum'):
         query_filter['phylum'] = phylum
