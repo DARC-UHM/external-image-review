@@ -5,9 +5,10 @@ from datetime import datetime, timedelta
 class ReviewerCommentList(EmbeddedDocument):
     """ Schema for list of reviewers and their respective comments """
     reviewer = StringField(required=True, max_length=50)
-    id_consensus = StringField(choices=['agree', 'disagree', 'uncertain_no_save', 'uncertain_save'])
+    id_consensus = StringField(choices=['agree', 'disagree', 'uncertain'])
     id_at_time_of_response = StringField(max_length=100)
     comment = StringField(max_length=1500)
+    save_for_later = BooleanField(default=False)
     date_modified = DateTimeField(default=(datetime.now() - timedelta(hours=10)))
 
 
@@ -29,7 +30,8 @@ class Comment(Document):
         for reviewer_comment in self.reviewer_comments:
             comment = {
                 'reviewer': reviewer_comment.reviewer,
-                'date_modified': reviewer_comment.date_modified.strftime('%d %b %H:%M HST')
+                'date_modified': reviewer_comment.date_modified.strftime('%d %b %H:%M HST'),
+                'save_for_later': reviewer_comment.save_for_later,
             }
             for field in ['id_consensus', 'id_at_time_of_response', 'comment']:
                 if getattr(reviewer_comment, field) is not None:

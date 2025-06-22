@@ -60,18 +60,17 @@ async function saveComments() {
         }
     }
     for (const num of commentNums) {
-        const tentativeId = formData.get(`tentativeId_${num}`);
-        const comment = formData.get(`comment_${num}`);
         const uuids = formData.getAll(`uuid_${num}`);
-        let idConsensus = formData.get(`idConsensus_${num}`);
-        if (idConsensus) {
-            const commentData = {idConsensus, tentativeId};
-            console.log(`save_${num}`, formData.get(`save_${num}`));
-            if (idConsensus === 'uncertain') {
-                commentData.idConsensus += formData.get(`save_${num}`) === 'on' ? '_save' : '_no_save';
-            } else if (idConsensus === 'disagree') {
-                commentData.comment = comment;
-            }
+        const idConsensus = formData.get(`idConsensus_${num}`);
+        const commentText = formData.get(`comment_${num}`);
+        const saveForLater = formData.get(`save_${num}`) === 'on';
+        if (idConsensus || commentText || saveForLater) {
+            const commentData = {
+                idConsensus,
+                tentativeId: formData.get(`tentativeId_${num}`),
+                comment: commentText,
+                saveForLater,
+            };
             for (const uuid of uuids) {
                 finalComments.push({uuid, ...commentData});
                 commentedUuids.add(uuid);
@@ -109,16 +108,10 @@ async function saveComments() {
 
 function updateCard(idConsensus, index) {
     const commentTextArea = $(`#comment_${index}`);
-    const saveForLater = $(`#saveForLater_${index}`);
-    if (idConsensus === 'agree') {
-        commentTextArea.css('display', 'none');
-        saveForLater.css('display', 'none');
-    } else if (idConsensus === 'disagree') {
-        commentTextArea.css('display', 'block');
-        saveForLater.css('display', 'none');
-    } else { // uncertain
-        commentTextArea.css('display', 'none');
-        saveForLater.css('display', 'block');
+    if (idConsensus === 'disagree') {
+        commentTextArea.attr('placeholder', 'Add comments');
+    } else { // agree or uncertain
+        commentTextArea.attr('placeholder', 'Add comments (optional)');
     }
 }
 
@@ -208,7 +201,7 @@ $(document).ready(() => {
 
         $('#comments').append(`
             <div class="row flex-column-reverse flex-md-row my-3 small-md" style="background-color: #1d222a; border-radius: 20px;">
-                <div class="col ps-3 ps-md-5 text-start py-3">
+                <div class="col ps-3 ps-md-5 text-start py-3 small">
                     <div class="w-100 py-3">
                         <div class="row">
                             <div class="col-5 col-sm-4">
@@ -347,7 +340,7 @@ $(document).ready(() => {
                             Agree with tentative ID?
                         </div>
                         <div
-                            class="btn-group mt-2 mb-3"
+                            class="btn-group mt-2 mb-3 small"
                             role="group"
                             aria-label="Answer button group"
                         >
@@ -360,7 +353,9 @@ $(document).ready(() => {
                                 autocomplete="off"
                                 onclick="updateCard('agree', ${i});"
                             >
-                            <label class="btn btn-outline-success answer-button" for="yes_${i}">Yes</label>
+                            <label class="btn btn-outline-success btn-sm answer-button" for="yes_${i}">
+                                Yes
+                            </label>
                             
                             <input
                                 id="no_${i}"
@@ -371,7 +366,9 @@ $(document).ready(() => {
                                 autocomplete="off"
                                 onclick="updateCard('disagree', ${i});"
                             >
-                            <label class="btn btn-outline-danger answer-button" for="no_${i}">No</label>
+                            <label class="btn btn-sm btn-outline-danger answer-button" for="no_${i}">
+                                No
+                            </label>
                             
                             <input
                                 id="uncertain_${i}"
@@ -382,7 +379,9 @@ $(document).ready(() => {
                                 autocomplete="off"
                                 onclick="updateCard('uncertain', ${i});"
                             >
-                            <label class="btn btn-outline-secondary answer-button" for="uncertain_${i}">Uncertain</label>
+                            <label class="btn btn-sm btn-outline-secondary answer-button" for="uncertain_${i}">
+                                Uncertain
+                            </label>
                         </div>
                         <textarea 
                             class="reviewer-textarea"
@@ -392,10 +391,10 @@ $(document).ready(() => {
                             placeholder="Add comments"
                         >${
                             comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)
-                                ? comment.reviewer_comments.find((comment) => comment.reviewer === reviewer).comment
+                                ? comment.reviewer_comments.find((comment) => comment.reviewer === reviewer).comment || ''
                                 : ''
                         }</textarea>
-                        <div id="saveForLater_${i}" style="display: none;">
+                        <div id="saveForLater_${i}" class="mt-2">
                             <input
                                 id="save_${i}"
                                 name="save_${i}"
@@ -440,18 +439,20 @@ $(document).ready(() => {
             </div>
         `);
 
-        let idConsensus = comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)?.id_consensus;
+        const idConsensus = comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)?.id_consensus;
 
-        if (idConsensus === 'agree') {
-            $(`#yes_${i}`).prop('checked', true);
-        } else if (idConsensus === 'disagree') {
-            $(`#no_${i}`).prop('checked', true);
-        } else if (idConsensus.includes('uncertain')) {
-            $(`#uncertain_${i}`).prop('checked', true);
-            if (idConsensus.includes('_no_save')) {
-                $(`#save_${i}`).prop('checked', false);
-            } else {
-                $(`#save_${i}`).prop('checked', true);
+        if (idConsensus) {
+            if (idConsensus === 'agree') {
+                $(`#yes_${i}`).prop('checked', true);
+            } else if (idConsensus === 'disagree') {
+                $(`#no_${i}`).prop('checked', true);
+            } else if (idConsensus.includes('uncertain')) {
+                $(`#uncertain_${i}`).prop('checked', true);
+                if (idConsensus.includes('_no_save')) {
+                    $(`#save_${i}`).prop('checked', false);
+                } else {
+                    $(`#save_${i}`).prop('checked', true);
+                }
             }
         }
 

@@ -73,13 +73,13 @@ def get_sequence_comments(sequence_num):
 @comment_bp.get('/reviewer/<reviewer_name>')
 @require_api_key
 def get_reviewer_comments(reviewer_name):
-    unread_comments = Comment.objects(unread=True, reviewer_comments__reviewer=reviewer_name).count()
-    read_comments = Comment.objects(
+    count_unread_comments = Comment.objects(unread=True, reviewer_comments__reviewer=reviewer_name).count()
+    count_read_comments = Comment.objects(
         unread=False,
         reviewer_comments__comment__ne='',
         reviewer_comments__reviewer=reviewer_name,
     ).count()
-    total_comments = Comment.objects(reviewer_comments__reviewer=reviewer_name).count()
+    count_total_comments = Comment.objects(reviewer_comments__reviewer=reviewer_name).count()
     comments = {}
     if request.args.get('unread') == 'true':
         db_records = Comment.objects(unread=True, reviewer_comments__reviewer=reviewer_name)
@@ -95,9 +95,9 @@ def get_reviewer_comments(reviewer_name):
         obj = record.json()
         comments[obj['uuid']] = record.json()
     return jsonify({
-        'unread_comments': unread_comments,
-        'read_comments': read_comments,
-        'total_comments': total_comments,
+        'unread_comments': count_unread_comments,
+        'read_comments': count_read_comments,
+        'total_comments': count_total_comments,
         'comments': comments,
     }), 200
 
@@ -154,13 +154,15 @@ def update_comment(reviewer, uuid):
         db_record = Comment.objects.get(uuid=uuid)
     except DoesNotExist:
         return jsonify({404: 'No comment records matching given uuid'}), 404
+    request_json = json.loads(request.get_json())
     for reviewer_comment in db_record.reviewer_comments:
         if reviewer_comment['reviewer'] == reviewer:
-            if reviewer_comment['comment'] != request.values.get('comment') \
-                    or reviewer_comment['id_consensus'] != request.values.get('idConsensus'):
-                reviewer_comment['comment'] = request.values.get('comment')
-                reviewer_comment['id_consensus'] = request.values.get('idConsensus')
-                reviewer_comment['id_at_time_of_response'] = request.values.get('tentativeId')
+            if reviewer_comment['comment'] != request_json.get('comment') \
+                    or reviewer_comment['id_consensus'] != request_json.get('idConsensus'):
+                reviewer_comment['comment'] = request_json.get('comment')
+                reviewer_comment['id_consensus'] = request_json.get('idConsensus')
+                reviewer_comment['id_at_time_of_response'] = request_json.get('tentativeId')
+                reviewer_comment['save_for_later'] = request_json.get('saveForLater', False)
                 reviewer_comment['date_modified'] = (datetime.now() - timedelta(hours=10))
                 db_record.unread = True
                 db_record.save()
