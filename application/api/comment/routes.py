@@ -172,7 +172,6 @@ def update_comment(reviewer, uuid):
                 # (we use 200 to indicate that the comment was updated and notify reviewers)
                 reviewer_comment['save_for_later'] = request_json.get('saveForLater', False)
                 reviewer_comment['date_modified'] = (datetime.now() - timedelta(hours=10))
-                db_record.unread = True
                 db_record.save()
                 return {}, 204
             return jsonify({304: 'No updates made'}), 304

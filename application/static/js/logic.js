@@ -64,17 +64,15 @@ async function saveComments() {
         const idConsensus = formData.get(`idConsensus_${num}`);
         const commentText = formData.get(`comment_${num}`);
         const saveForLater = formData.get(`save_${num}`) === 'on';
-        if (idConsensus || commentText || saveForLater) {
-            const commentData = {
-                idConsensus,
-                tentativeId: formData.get(`tentativeId_${num}`),
-                comment: commentText,
-                saveForLater,
-            };
-            for (const uuid of uuids) {
-                finalComments.push({uuid, ...commentData});
-                commentedUuids.add(uuid);
-            }
+        const commentData = {
+            idConsensus,
+            tentativeId: formData.get(`tentativeId_${num}`),
+            comment: commentText,
+            saveForLater,
+        };
+        for (const uuid of uuids) {
+            finalComments.push({uuid, ...commentData});
+            commentedUuids.add(uuid);
         }
     }
     for (const comment of sortedComments) {
