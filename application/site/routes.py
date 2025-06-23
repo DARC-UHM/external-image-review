@@ -124,7 +124,7 @@ def save_comments():
         )
         if res.status_code == 200:
             count_success += 1
-        elif res.status_code == 304:
+        elif res.status_code == 304 or res.status_code == 204:
             pass
         else:
             list_failures.append(comment['uuid'])
