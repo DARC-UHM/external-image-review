@@ -129,6 +129,7 @@ $(document).ready(() => {
     for (let i = 0; i < sortedComments.length; i += 1) {
         const idRefUuids = [];
         const comment = sortedComments[i];
+        const reviewerComments = comment.reviewer_comments.find((comment) => comment.reviewer === reviewer);
         const photos = [comment.image_url];
         const tentativeId = `${comment.concept}${comment.id_certainty?.includes('maybe') ? '?' : ''}`;
         const localizations = comment.all_localizations ? [comment.all_localizations] : [];
@@ -390,9 +391,7 @@ $(document).ready(() => {
                             rows="3"
                             placeholder="Add comments"
                         >${
-                            comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)
-                                ? comment.reviewer_comments.find((comment) => comment.reviewer === reviewer).comment || ''
-                                : ''
+                            reviewerComments ? reviewerComments.comment || '' : ''
                         }</textarea>
                         <div id="saveForLater_${i}" class="mt-2">
                             <input
@@ -439,7 +438,8 @@ $(document).ready(() => {
             </div>
         `);
 
-        const idConsensus = comment.reviewer_comments.find((comment) => comment.reviewer === reviewer)?.id_consensus;
+        const idConsensus = reviewerComments?.id_consensus;
+        const saveForLater = reviewerComments?.save_for_later;
 
         if (idConsensus) {
             if (idConsensus === 'agree') {
@@ -448,12 +448,13 @@ $(document).ready(() => {
                 $(`#no_${i}`).prop('checked', true);
             } else if (idConsensus.includes('uncertain')) {
                 $(`#uncertain_${i}`).prop('checked', true);
-                if (idConsensus.includes('_no_save')) {
-                    $(`#save_${i}`).prop('checked', false);
-                } else {
-                    $(`#save_${i}`).prop('checked', true);
-                }
             }
+        }
+
+        if (saveForLater) {
+            $(`#save_${i}`).prop('checked', true);
+        } else {
+            $(`#save_${i}`).prop('checked', false);
         }
 
         updateCard(idConsensus, i);
