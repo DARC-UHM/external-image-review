@@ -167,6 +167,14 @@ def update_comment(reviewer, uuid):
                 db_record.unread = True
                 db_record.save()
                 return jsonify(Comment.objects.get(uuid=uuid).json()), 200
+            elif reviewer_comment['save_for_later'] != request_json.get('saveForLater', False):
+                # if only the save_for_later value has changed, update the record but don't return 200
+                # (we use 200 to indicate that the comment was updated and notify reviewers)
+                reviewer_comment['save_for_later'] = request_json.get('saveForLater', False)
+                reviewer_comment['date_modified'] = (datetime.now() - timedelta(hours=10))
+                db_record.unread = True
+                db_record.save()
+                return {}, 204
             return jsonify({304: 'No updates made'}), 304
     return jsonify({404: 'No comment records matching given reviewer'}), 404
 
