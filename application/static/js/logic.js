@@ -300,6 +300,16 @@ $(document).ready(() => {
                                 </div>
                             ` : ''
                         }
+                        ${comment.salinity
+                            ? `
+                                <div class="row">
+                                    <div class="col-5 col-sm-4">
+                                        Salinty:
+                                    </div>
+                                    <div class="col values">${comment.salinity.toFixed(2)} PSU</div>
+                                </div>
+                            ` : ''
+                        }
                         ${comment.bait_type
                             ? `
                                 <div class="row">

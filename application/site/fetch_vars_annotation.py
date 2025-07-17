@@ -33,3 +33,5 @@ def fetch_vars_annotation(record_ptr: dict, hurlstor_url: str, logger: logging.L
                     record_ptr['temperature'] = server_record['ancillary_data']['temperature_celsius']
                 elif ancillary_data == 'oxygen_ml_l':
                     record_ptr['oxygen_ml_l'] = server_record['ancillary_data']['oxygen_ml_l']
+                elif ancillary_data == 'salinity':
+                    record_ptr['salinity'] = server_record['ancillary_data']['salinity']
