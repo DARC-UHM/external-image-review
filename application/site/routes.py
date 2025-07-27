@@ -34,11 +34,9 @@ def review(reviewer_name):
     for record in matched_records:
         record = record.json()
         reviewer_comment = next((x for x in record['reviewer_comments'] if x['reviewer'] == reviewer_name))
-        if (not reviewer_comment.get('id_consensus') and not reviewer_comment.get('comment') and reviewer_comment.get('save_for_later') is None) \
-                or reviewer_comment.get('save_for_later') \
+        if (not reviewer_comment.get('id_consensus') and not reviewer_comment.get('comment')) \
                 or return_all_comments:
             # only return records that the reviewer has not yet commented on
-            # OR saved for later
             # OR if the 'all comments' flag is on
             if request.args.getlist('annotator') and record['annotator'] not in request.args.getlist('annotator'):
                 # filter by annotator if specified

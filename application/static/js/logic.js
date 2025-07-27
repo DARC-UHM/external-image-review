@@ -63,12 +63,10 @@ async function saveComments() {
         const uuids = formData.getAll(`uuid_${num}`);
         const idConsensus = formData.get(`idConsensus_${num}`);
         const commentText = formData.get(`comment_${num}`);
-        const saveForLater = formData.get(`save_${num}`) === 'on';
         const commentData = {
             idConsensus,
             tentativeId: formData.get(`tentativeId_${num}`),
             comment: commentText,
-            saveForLater,
         };
         for (const uuid of uuids) {
             finalComments.push({uuid, ...commentData});
@@ -286,7 +284,7 @@ $(document).ready(() => {
                                     <div class="col-5 col-sm-4">
                                         Temperature:
                                     </div>
-                                    <div class="col values">${comment.temperature.toFixed(2)} °C</div>
+                                    <div class="col values">${comment.temperature.toFixed(2)}°C</div>
                                 </div>
                             ` : ''
                         }
@@ -349,48 +347,50 @@ $(document).ready(() => {
                             Agree with tentative ID?
                         </div>
                         <div
-                            class="btn-group mt-2 mb-3 small"
                             role="group"
                             aria-label="Answer button group"
+                            class="d-flex gap-3 pt-2 pb-3"
                         >
-                            <input
-                                id="yes_${i}"
-                                name="idConsensus_${i}"
-                                value="agree"
-                                class="btn-check"
-                                type="radio"
-                                autocomplete="off"
-                                onclick="updateCard('agree', ${i});"
-                            >
-                            <label class="btn btn-outline-success btn-sm answer-button" for="yes_${i}">
-                                Yes
-                            </label>
+                            <div>
+                                <input
+                                    id="yes_${i}"
+                                    name="idConsensus_${i}"
+                                    value="agree"
+                                    type="radio"
+                                    autocomplete="off"
+                                    onclick="updateCard('agree', ${i});"
+                                >
+                                <label for="yes_${i}">
+                                    Yes
+                                </label>
+                            </div>
                             
-                            <input
-                                id="no_${i}"
-                                name="idConsensus_${i}"
-                                value="disagree"
-                                class="btn-check"
-                                type="radio"
-                                autocomplete="off"
-                                onclick="updateCard('disagree', ${i});"
-                            >
-                            <label class="btn btn-sm btn-outline-danger answer-button" for="no_${i}">
-                                No
-                            </label>
-                            
-                            <input
-                                id="uncertain_${i}"
-                                name="idConsensus_${i}"
-                                value="uncertain"
-                                class="btn-check"
-                                type="radio"
-                                autocomplete="off"
-                                onclick="updateCard('uncertain', ${i});"
-                            >
-                            <label class="btn btn-sm btn-outline-secondary answer-button" for="uncertain_${i}">
-                                Uncertain
-                            </label>
+                            <div>
+                                <input
+                                    id="no_${i}"
+                                    name="idConsensus_${i}"
+                                    value="disagree"
+                                    type="radio"
+                                    autocomplete="off"
+                                    onclick="updateCard('disagree', ${i});"
+                                >
+                                <label for="no_${i}">
+                                    No
+                                </label>
+                            </div>
+                            <div>
+                                <input
+                                    id="uncertain_${i}"
+                                    name="idConsensus_${i}"
+                                    value="uncertain"
+                                    type="radio"
+                                    autocomplete="off"
+                                    onclick="updateCard('uncertain', ${i});"
+                                >
+                                <label for="uncertain_${i}">
+                                    Uncertain
+                                </label>
+                            </div>
                         </div>
                         <textarea 
                             class="reviewer-textarea"
@@ -401,28 +401,36 @@ $(document).ready(() => {
                         >${
                             reviewerComments ? reviewerComments.comment || '' : ''
                         }</textarea>
-                        <div id="saveForLater_${i}" class="mt-2">
-                            <input
-                                id="save_${i}"
-                                name="save_${i}"
-                                class="form-check-input"
-                                type="checkbox"
-                                style="cursor: pointer;"
-                            >
-                            <label
-                                class="form-check-label"
-                                for="save_${i}"
-                                style="cursor: pointer;"
-                            >
-                                &nbsp;Save for later
-                            </label>
-                        </div>
                         <input hidden name="tentativeId_${i}" value="${tentativeId}">
+                        <div>
+                            <button>Save Comments</button>
+                            <button>No Comment</button>
+                        </div>
                     </div>
                 </div>
                 <div class="col text-center py-3 d-flex">
                     <div class="my-auto">
-                        <div class="slideshow-container w-100">
+                        <div class="slideshow-container w-100 position-relative">
+                            <div
+                                class="position-absolute px-2 py-1 ${reviewerComments?.favorite ? 'btn-favorite-favorited' : 'btn-favorite'}"
+                                style="right: 0; cursor: pointer;"
+                                data-toggle="tooltip"
+                                data-bs-placement="left"
+                                title="${reviewerComments?.favorite ? 'Remove from favorites' : 'Save to favorites'}"
+                                onclick=""
+                            >
+                                ${reviewerComments?.favorite
+                                    ? `
+                                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-heart-fill" viewBox="-2 -2 24 24" stroke="#ffc7c780" stroke-width="2">
+                                          <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"/>
+                                       </svg>
+                                    ` : `
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-heart" viewBox="-2 -2 24 24" stroke="currentColor" stroke-width="1">
+                                            <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"/>
+                                        </svg>
+                                    `
+                                }
+                            </div>
                             ${photoSlideshow}
                             <a id="prev" onclick="plusSlides(${numSlideshows} - 1, -1, '${comment.uuid}')" ${photos.length < 2 ? "hidden" : ""}>&#10094;</a>
                             <a id="next" onclick="plusSlides(${numSlideshows} - 1, 1, '${comment.uuid}')" ${photos.length < 2 ? "hidden" : ""}>&#10095;</a>
@@ -447,7 +455,6 @@ $(document).ready(() => {
         `);
 
         const idConsensus = reviewerComments?.id_consensus;
-        const saveForLater = reviewerComments?.save_for_later;
 
         if (idConsensus) {
             if (idConsensus === 'agree') {
@@ -457,12 +464,6 @@ $(document).ready(() => {
             } else if (idConsensus.includes('uncertain')) {
                 $(`#uncertain_${i}`).prop('checked', true);
             }
-        }
-
-        if (saveForLater) {
-            $(`#save_${i}`).prop('checked', true);
-        } else {
-            $(`#save_${i}`).prop('checked', false);
         }
 
         updateCard(idConsensus, i);

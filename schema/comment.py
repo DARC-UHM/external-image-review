@@ -8,7 +8,7 @@ class ReviewerCommentList(EmbeddedDocument):
     id_consensus = StringField(choices=['agree', 'disagree', 'uncertain'])
     id_at_time_of_response = StringField(max_length=100)
     comment = StringField(max_length=1500)
-    save_for_later = BooleanField()
+    favorite = BooleanField()
     date_modified = DateTimeField(default=(datetime.now() - timedelta(hours=10)))
 
 
@@ -31,7 +31,7 @@ class Comment(Document):
             comment = {
                 'reviewer': reviewer_comment.reviewer,
                 'date_modified': reviewer_comment.date_modified.strftime('%d %b %H:%M HST'),
-                'save_for_later': reviewer_comment.save_for_later,
+                'favorite': reviewer_comment.favorite,
             }
             for field in ['id_consensus', 'id_at_time_of_response', 'comment']:
                 if getattr(reviewer_comment, field) is not None:
