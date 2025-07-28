@@ -16,7 +16,6 @@
         </div>
     </div>
     <div class="text-center my-3 mx-4 mx-md-5 mb-5">
-        <button class="secret-button" onclick="addViewAllParam()">View all</button>
         <h3 style="font-weight: 600;">Image Review</h3>
         {% if data.comments|length > 0 %}
         <div class="mt-2 small" style="font-weight: 500;">Please click "Submit Review" at the bottom of the page to save your comments.</div>
@@ -69,6 +68,6 @@
         const reviewer = '{{ data.reviewer }}';
         const comments = {{ data.comments | safe }};
     </script>
-    <script src="/static/js/logic.js"></script>
+    <script src="/static/js/reviewer-page.js" type="module"></script>
 </body>
 </html>

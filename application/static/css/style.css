@@ -90,21 +90,6 @@ textarea {
   font-size: 12px;
 }
 
-.secret-button {
-    position: absolute;
-    left: 0;
-    background: transparent;
-    border: none;
-    color: transparent;
-    transition: 0.1s;
-    font-size: small;
-    margin-left: 14px;
-}
-
-.secret-button:hover {
-    color: #3c4554;
-}
-
 #reviewerSubmit {
     padding: 10px 40px;
     font-weight: 500;
@@ -207,8 +192,7 @@ textarea {
 }
 
 .tator-box {
-    background-color: rgba(203, 203, 14, 0.25);
-    border: 2px solid yellow;
+    border: 2px solid rgba(255, 255, 0, 0.5);
     border-radius: 2px;
 }
 
