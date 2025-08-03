@@ -9,6 +9,8 @@ const slideshowIndices = {};
 const tempSortedComments = comments.sort((a, b) => Date.parse(a.timestamp) > Date.parse(b.timestamp)); // sort by timestamp
 const sortedComments = tempSortedComments.sort((a, b) => (a.concept > b.concept) ? 1 : (b.concept > a.concept) ? -1 : 0); // sort by concept
 
+let cardsReviewed = 0;
+
 document.prevSlide = (uuid) => {
     changeSlide(uuid, -1);
 }
@@ -40,11 +42,27 @@ function updateCard(idConsensus, index) {
 
 document.updateCard = updateCard;
 
+function collapseCard(uuid) {
+    $(`#${uuid}-collapsed`).show();
+    $(`#${uuid}-expanded`).hide();
+}
+
+document.collapseCard = collapseCard;
+
+function expandCard(uuid) {
+    $(`#${uuid}-collapsed`).hide();
+    $(`#${uuid}-expanded`).show();
+}
+
+document.expandCard = expandCard;
+
 $(document).ready(() => {
     $('body').tooltip({ selector: '[data-toggle=tooltip]', trigger : 'hover' });
     window.addEventListener('popstate', function () {
         $('[data-toggle="tooltip"]').tooltip('dispose');
     });
+
+    let totalCards = 0;
 
     // go through each record, adding image cards to page. groups images with the same id reference together
     for (let i = 0; i < sortedComments.length; i += 1) {
@@ -86,6 +104,8 @@ $(document).ready(() => {
             sampleReference,
         }));
 
+        totalCards++;
+
         const reviewerComments = comment.reviewer_comments.find((comment) => comment.reviewer === reviewer);
         const idConsensus = reviewerComments?.id_consensus;
 
@@ -115,4 +135,6 @@ $(document).ready(() => {
             }
         }
     }
+
+    $('#totalCards').html(totalCards);
 });

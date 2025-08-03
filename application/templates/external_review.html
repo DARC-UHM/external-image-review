@@ -15,18 +15,27 @@
             <div class="alert-bottom-bar alert-bottom-bar-success"></div>
         </div>
     </div>
-    <div class="text-center my-3 mx-4 mx-md-5 mb-5">
-        <h3 style="font-weight: 600;">Image Review</h3>
-        {% if data.comments|length > 0 %}
-        <div class="mt-2 small" style="font-weight: 500;">Please click "Submit Review" at the bottom of the page to save your comments.</div>
-        <div class="small">
-            Click on an image to see the full-sized version, or click "Play Video" to watch the video where the image was captured.<br>
+    <!-- header -->
+    <div class="py-3 px-4 px-md-5 d-flex justify-content-between sticky-top" style="background: var(--darc-bg); border-bottom: 1px solid var(--darc-bg-dark);">
+        <div>
+            <h3 style="font-weight: 600;">{{ data.reviewer }}</h3>
         </div>
+        <div class="w-25 my-auto position-relative">
+            <div class="progress w-100" style="height: 10px;">
+                <div class="progress-bar rounded-1" role="progressbar" style="width: 25%; background: #0085ad;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="mt-1 text-end position-absolute" style="font-size: 0.75rem; right:0;">
+                <span id="cardsReviewed">0</span> / <span id="totalCards">0</span> images reviewed
+            </div>
+        </div>
+    </div>
+    <!-- body -->
+    <div class="mb-3 mx-4 mx-md-5 mb-5">
+        {% if data.comments|length > 0 %}
         <form id="commentForm" onsubmit="saveComments()" autocomplete="off">
-            <div id="comments" class="col mt-3">
+            <div id="comments" class="col">
             </div>
             <input type="hidden" name="reviewer" value="{{ data.reviewer }}">
-            <input id="reviewerSubmit" type="submit" onclick="turnOffWarning()" value="Submit Review" class="btn btn-success my-3">
         </form>
         {% else %}
         No images found.

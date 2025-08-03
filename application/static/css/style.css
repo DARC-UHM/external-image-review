@@ -1,5 +1,6 @@
 :root {
     --darc-bg: #222831;
+    --darc-bg-dark: #1d222a;
     --darc-text: #eeeeee;
     --darc-border: #393e46;
     --darc-btn-text-hover: #00c3cc;
@@ -45,7 +46,7 @@ textarea {
 }
 
 ::-webkit-scrollbar-track {
-    background-color: #1d222a;
+    background-color: var(--darc-bg-dark);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -86,13 +87,8 @@ textarea {
 }
 
 .footer {
-  background: #1d222a;
+  background: var(--darc-bg-dark);
   font-size: 12px;
-}
-
-#reviewerSubmit {
-    padding: 10px 40px;
-    font-weight: 500;
 }
 
 * {box-sizing:border-box}
