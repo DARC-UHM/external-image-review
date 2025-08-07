@@ -32,11 +32,8 @@
     <!-- body -->
     <div class="mb-3 mx-4 mx-md-5 mb-5">
         {% if data.comments|length > 0 %}
-        <form id="commentForm" onsubmit="saveComments()" autocomplete="off">
-            <div id="comments" class="col">
-            </div>
-            <input type="hidden" name="reviewer" value="{{ data.reviewer }}">
-        </form>
+        <div id="comments" class="col">
+        </div>
         {% else %}
         No images found.
         {% endif %}

@@ -42,20 +42,6 @@ function updateCard(idConsensus, index) {
 
 document.updateCard = updateCard;
 
-function collapseCard(uuid) {
-    $(`#${uuid}-collapsed`).show();
-    $(`#${uuid}-expanded`).hide();
-}
-
-document.collapseCard = collapseCard;
-
-function expandCard(uuid) {
-    $(`#${uuid}-collapsed`).hide();
-    $(`#${uuid}-expanded`).show();
-}
-
-document.expandCard = expandCard;
-
 $(document).ready(() => {
     $('body').tooltip({ selector: '[data-toggle=tooltip]', trigger : 'hover' });
     window.addEventListener('popstate', function () {
