@@ -215,9 +215,13 @@ textarea {
     color: #ff7c7c;
 }
 
+.accordion-body {
+    padding: 0;
+}
+
 .accordion-item .accordion-button {
     background-color: var(--darc-bg-dark);
-    color: var(--darc-text);
+    color: var(--darc-bg-dark);
     border-radius: 20px;
     border: none;
     box-shadow: none;
@@ -225,12 +229,15 @@ textarea {
     text-decoration: none;
 }
 
-/* first item rounded corners */
 .accordion-item :first-of-type .accordion-button {
     background-color: var(--darc-bg-dark);
-    color: var(--darc-text);
+    color: var(--darc-bg-dark);
     border-radius: 20px;
     border: none;
+}
+
+.collapsed {
+    color: var(--darc-text) !important;
 }
 
 .accordion-button:focus {
@@ -241,4 +248,3 @@ textarea {
 .accordion-button:after {
     background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23eee'><path fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/></svg>") !important;
 }
-

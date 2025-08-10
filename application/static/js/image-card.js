@@ -64,8 +64,8 @@ export const imageCard = ({ comment, photos, index, idRefUuids, localizations, s
             </div>
             <div id="container-${comment.uuid}" class="accordion-collapse collapse show">
                 <div class="row accordion-body flex-column-reverse flex-md-row small-md">
-                    <div class="col ps-3 ps-md-5 text-start py-3 small">
-                        <div class="w-100 py-3">
+                    <div class="col ps-3 ps-md-5 text-start pb-3 small">
+                        <div class="w-100 pb-3">
                             <div class="row">
                                 <div class="col-5 col-sm-4">
                                     Tentative ID:
@@ -184,10 +184,6 @@ export const imageCard = ({ comment, photos, index, idRefUuids, localizations, s
                                     </div>
                                 ` : ''
                             }
-                            ${idRefUuids.length
-                                ? idRefUuids.map((uuid) => `<input type="hidden" name="uuid_${index}" value="${uuid}">`).join('')
-                                : `<input type="hidden" name="uuid_${index}" value="${comment.uuid}">`
-                            }
                             ${sampleReference
                                 ? `<div class="row ps-1 mt-2">
                                     <div class="col align-items-center d-flex">
@@ -270,8 +266,18 @@ export const imageCard = ({ comment, photos, index, idRefUuids, localizations, s
                             }</textarea>
                             <input hidden name="tentativeId_${index}" value="${tentativeId}">
                             <div class="mt-3">
-                                <button class="btn btn-sm btn-success px-3 me-1">Save</button>
-                                <button class="btn btn-sm btn-outline-info">No Comment</button>
+                                <button
+                                    class="btn btn-sm btn-success px-3 me-1"
+                                    onclick="saveComments('${idRefUuids}', 'commented')"
+                                >
+                                    Save
+                                </button>
+                                <button
+                                    class="btn btn-sm btn-outline-info"
+                                    onclick="saveComments('${idRefUuids}', 'skipped')"
+                                >
+                                    No Comment
+                                </button>
                             </div>
                         </div>
                     </div>
