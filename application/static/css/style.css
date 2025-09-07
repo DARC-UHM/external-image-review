@@ -5,6 +5,9 @@
     --darc-border: #393e46;
     --darc-btn-text-hover: #00c3cc;
     --darc-link-text: #00adb5;
+    --status-pending: #f0ad4e;
+    --status-commented: #5bc0de;
+    --status-skipped: #6c757d;
 }
 
 body {
@@ -231,13 +234,22 @@ textarea {
 
 .accordion-item :first-of-type .accordion-button {
     background-color: var(--darc-bg-dark);
-    color: var(--darc-bg-dark);
+    color: #eeeeee00;
     border-radius: 20px;
     border: none;
 }
 
 .collapsed {
     color: var(--darc-text) !important;
+}
+
+.comment-status {
+    opacity: 0;
+    transition: ease-in-out 0.2s;
+}
+
+.collapsed .comment-status {
+    opacity: 100;
 }
 
 .accordion-button:focus {

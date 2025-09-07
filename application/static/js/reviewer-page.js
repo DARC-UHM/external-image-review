@@ -1,4 +1,4 @@
-import { imageCard } from './image-card.js';
+import {imageCard, imageCardStatus} from './image-card.js';
 
 // list of records that have id references, i.e. there is more than one photo of the same animal
 const recordsWithIdReference = [];
@@ -6,7 +6,7 @@ const recordsWithIdReference = [];
 // object to store slideshow indices for records that have multiple id references
 const slideshowIndices = {};
 
-// object to store the status of each card (commented, skipped, pending)
+// object to store the status of each card (reviewed, pending)
 const cardStatuses = {};
 
 const tempSortedComments = comments.sort((a, b) => Date.parse(a.timestamp) > Date.parse(b.timestamp)); // sort by timestamp
@@ -43,18 +43,23 @@ function updateCard(idConsensus, index) {
 
 document.updateCard = updateCard;
 
-function saveComments(uuids, cardStatus) {
+function saveComments(uuids, index) {
     const uuidArray = uuids.split(',');
     const cardUuid = uuidArray[0];
-    const cardsReviewed = Object.values(cardStatuses).filter((status) => status !== 'pending').length;
 
     $(`#container-${cardUuid}`).collapse('toggle');
-    cardStatuses[cardUuid] = cardStatus;
+    cardStatuses[cardUuid] = 'reviewed';
 
+    const cardsReviewed = Object.values(cardStatuses).filter((status) => status !== 'pending').length;
     $('#cardsReviewed').html(cardsReviewed);
     $('#progressBarProgress').css('width', `${(cardsReviewed / Object.keys(cardStatuses).length) * 100}%`);
+    $(`#status-${cardUuid}`).html(imageCardStatus('reviewed'));
 
-    // todo add status to collapsed card header
+    const idConsensus = $(`input[name='idConsensus_${index}']:checked`).val();
+    const comment = $(`#comment_${index}`).val();
+
+    // todo submit these
+    console.log(idConsensus, comment);
 }
 
 document.saveComments = saveComments;

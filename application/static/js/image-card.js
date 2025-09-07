@@ -1,3 +1,40 @@
+export const imageCardStatus = (status) => {
+    switch (status) {
+        case 'pending':
+            return `<div class="comment-status" style="color: var(--status-pending);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor"class="me-1" viewBox="0 0 16 16" style="transform: translate(0, -2px);">
+                    <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.15.15 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.2.2 0 0 1-.054.06.1.1 0 0 1-.066.017H1.146a.1.1 0 0 1-.066-.017.2.2 0 0 1-.054-.06.18.18 0 0 1 .002-.183L7.884 2.073a.15.15 0 0 1 .054-.057m1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767z"/>
+                    <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0M7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+                </svg>
+                Pending
+            </div>`;
+        case 'reviewed':
+            return `<div style="color: var(--status-commented);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" class="me-1" viewBox="0 0 16 16" style="transform: translate(0, -2px);">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                    <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05"/>
+                </svg>
+                Review Saved
+            </div>`;
+    }
+};
+
+const consensusRadio = ({index, label, idConsensus}) =>
+    `<div>
+        <input
+          id="${label.toLowerCase()}_${index}"
+          name="idConsensus_${index}"
+          value="${idConsensus}"
+          type="radio"
+          autoComplete="off"
+          onClick="updateCard('${idConsensus}', ${index});"
+          style="cursor: pointer;"
+        >
+            <label for="${label.toLowerCase()}_${index}" style="cursor: pointer;">
+                ${label}
+            </label>
+    </div>`;
+
 export const imageCard = ({ comment, photos, index, idRefUuids, localizations, sampleReference  }) => {
     const reviewerComments = comment.reviewer_comments.find((comment) => comment.reviewer === reviewer);
     const tentativeId = `${comment.concept}${comment.id_certainty?.includes('maybe') ? '?' : ''}`;
@@ -59,11 +96,16 @@ export const imageCard = ({ comment, photos, index, idRefUuids, localizations, s
                     data-bs-toggle="collapse"
                     data-bs-target="#container-${comment.uuid}"
                 >
-                    ${tentativeId}
+                    <div id="status-${comment.uuid}" class="text-end ms-4">
+                        ${imageCardStatus('pending')}
+                    </div>
+                    <div class="ms-3">
+                        (${tentativeId})
+                    </div>
                 </button>
             </div>
             <div id="container-${comment.uuid}" class="accordion-collapse collapse show">
-                <div class="row accordion-body flex-column-reverse flex-md-row small-md">
+                <div class="row accordion-body flex-column-reverse flex-md-row small-md" style="margin: 0;">
                     <div class="col ps-3 ps-md-5 text-start pb-3 small">
                         <div class="w-100 pb-3">
                             <div class="row">
@@ -213,46 +255,9 @@ export const imageCard = ({ comment, photos, index, idRefUuids, localizations, s
                                 aria-label="Answer button group"
                                 class="d-flex gap-3 pt-2 pb-3"
                             >
-                                <div>
-                                    <input
-                                        id="yes_${index}"
-                                        name="idConsensus_${index}"
-                                        value="agree"
-                                        type="radio"
-                                        autocomplete="off"
-                                        onclick="updateCard('agree', ${index});"
-                                    >
-                                    <label for="yes_${index}">
-                                        Yes
-                                    </label>
-                                </div>
-                                
-                                <div>
-                                    <input
-                                        id="no_${index}"
-                                        name="idConsensus_${index}"
-                                        value="disagree"
-                                        type="radio"
-                                        autocomplete="off"
-                                        onclick="updateCard('disagree', ${index});"
-                                    >
-                                    <label for="no_${index}">
-                                        No
-                                    </label>
-                                </div>
-                                <div>
-                                    <input
-                                        id="uncertain_${index}"
-                                        name="idConsensus_${index}"
-                                        value="uncertain"
-                                        type="radio"
-                                        autocomplete="off"
-                                        onclick="updateCard('uncertain', ${index});"
-                                    >
-                                    <label for="uncertain_${index}">
-                                        Uncertain
-                                    </label>
-                                </div>
+                                ${consensusRadio({index, label: 'Yes', idConsensus: 'agree'})}
+                                ${consensusRadio({index, label: 'No', idConsensus: 'disagree'})}
+                                ${consensusRadio({index, label: 'Uncertain', idConsensus: 'uncertain'})}
                             </div>
                             <textarea
                                 class="reviewer-textarea"
@@ -268,13 +273,13 @@ export const imageCard = ({ comment, photos, index, idRefUuids, localizations, s
                             <div class="mt-3">
                                 <button
                                     class="btn btn-sm btn-success px-3 me-1"
-                                    onclick="saveComments('${idRefUuids}', 'commented')"
+                                    onclick="saveComments('${idRefUuids}', '${index}')"
                                 >
                                     Save
                                 </button>
                                 <button
                                     class="btn btn-sm btn-outline-info"
-                                    onclick="saveComments('${idRefUuids}', 'skipped')"
+                                    onclick="saveComments('${idRefUuids}', '${index}')"
                                 >
                                     No Comment
                                 </button>
