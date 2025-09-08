@@ -19,6 +19,16 @@ export const imageCardStatus = (status) => {
     }
 };
 
+const labelWithValue = ({label, value}) =>
+    `<div class="row">
+        <div class="col-5 col-sm-4">
+            ${label}:
+        </div>
+        <div class="col values">
+            ${value}
+        </div>
+    </div>`;
+
 const consensusRadio = ({index, label, idConsensus}) =>
     `<div>
         <input
@@ -108,124 +118,30 @@ export const imageCard = ({ comment, photos, index, idRefUuids, localizations, s
                 <div class="row accordion-body flex-column-reverse flex-md-row small-md" style="margin: 0;">
                     <div class="col ps-3 ps-md-5 text-start pb-3 small">
                         <div class="w-100 pb-3">
-                            <div class="row">
-                                <div class="col-5 col-sm-4">
-                                    Tentative ID:
-                                </div>
-                                <div class="col values">${tentativeId}</div>
-                            </div>
+                            ${labelWithValue({ label: 'Tentative ID', value: tentativeId })}
                             ${comment.id_certainty && comment.id_certainty !== 'maybe'
-                                ? `<div class="row">
-                                        <div class="col-5 col-sm-4">
-                                            ID Remarks:
-                                        </div>
-                                        <div class="col values">${comment.id_certainty.replaceAll('maybe', '').replace( /^; /i, '')}</div>
-                                    </div>`
-                                : ''
+                                ? labelWithValue({ 
+                                    label: 'ID Remarks',
+                                    value: comment.id_certainty.replaceAll('maybe', '').replace( /^; /i, '')
+                                }) : ''
                             }
                             ${comment.expedition_name
                                 ? `
-                                    <div class="row">
-                                        <div class="col-5 col-sm-4">
-                                            Expedition:
-                                        </div>
-                                        <div class="col values">
-                                            ${comment.expedition_name}
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-5 col-sm-4">
-                                            Deployment:
-                                        </div>
-                                        <div class="col values">
-                                            ${comment.sequence}
-                                        </div>
-                                    </div>
-                                ` : `
-                                    <div class="row">
-                                        <div class="col-5 col-sm-4">
-                                            ROV-Cruise-Dive:
-                                        </div>
-                                        <div class="col values">${rovCruiseDive}</div>
-                                    </div>
-                                `
+                                    ${labelWithValue({ label: 'Expedition', value: comment.expedition_name })}
+                                    ${labelWithValue({ label: 'Deployment', value: comment.sequence })}
+                                ` : labelWithValue({ label: 'ROV-Cruise-Dive', value: rovCruiseDive })
                             }
-                            <div class="row">
-                                <div class="col-5 col-sm-4">
-                                    Annotator:
-                                </div>
-                                <div class="col values">${comment.annotator}</div>
-                            </div>
-                            ${comment.timestamp
-                                ? `
-                                    <div class="row">
-                                        <div class="col-5 col-sm-4">
-                                            Timestamp:
-                                        </div>
-                                        <div class="col values">${comment.timestamp}</div>
-                                    </div>
-                                ` : ''
-                            }
-                            ${comment.lat
-                                ? `
-                                    <div class="row">
-                                        <div class="col-5 col-sm-4">
-                                            Location:
-                                        </div>
-                                        <div class="col values"><a href="http://www.google.com/maps/place/${lat},${long}/@${lat},${long},5z/data=!3m1!1e3" target="_blank" class="mediaButton">${lat}, ${long}</a></div>
-                                    </div>
-                                ` : ''
-                            }
-                            ${comment.depth
-                                ? `
-                                    <div class="row">
-                                        <div class="col-5 col-sm-4">
-                                            Depth:
-                                        </div>
-                                        <div class="col values">${Math.round(comment.depth)} m</div>
-                                    </div>
-                                ` : ''
-                            }
-                            ${comment.temperature
-                                ? `
-                                    <div class="row">
-                                        <div class="col-5 col-sm-4">
-                                            Temperature:
-                                        </div>
-                                        <div class="col values">${comment.temperature.toFixed(2)}°C</div>
-                                    </div>
-                                ` : ''
-                            }
-                            ${comment.oxygen_ml_l
-                                ? `
-                                    <div class="row">
-                                        <div class="col-5 col-sm-4">
-                                            Oxygen:
-                                        </div>
-                                        <div class="col values">${comment.oxygen_ml_l.toFixed(2)} mL/L</div>
-                                    </div>
-                                ` : ''
-                            }
-                            ${comment.salinity
-                                ? `
-                                    <div class="row">
-                                        <div class="col-5 col-sm-4">
-                                            Salinty:
-                                        </div>
-                                        <div class="col values">${comment.salinity.toFixed(2)} PSU</div>
-                                    </div>
-                                ` : ''
-                            }
-                            ${comment.bait_type
-                                ? `
-                                    <div class="row">
-                                        <div class="col-5 col-sm-4">
-                                            Bait Type:
-                                        </div>
-                                        <div class="col values">${comment.bait_type[0].toUpperCase()}${comment.bait_type.slice(1)}</div>
-                                    </div>
-                                ` : ''
-                            }
+                            ${labelWithValue({ label: 'Annotator', value: comment.annotator })}
+                            ${comment.timestamp ? labelWithValue({ label: 'Timestamp', value: comment.timestamp }) : ''}
+                            ${comment.lat ? labelWithValue({ 
+                                label: 'Location',
+                                value: `<a href="http://www.google.com/maps/place/${lat},${long}/@${lat},${long},5z/data=!3m1!1e3" target="_blank" class="mediaButton">${lat}, ${long}</a>`
+                            }) : ''}
+                            ${comment.depth ? labelWithValue({ label: 'Depth', value: `${Math.round(comment.depth)} m` }) : ''}
+                            ${comment.temperature ? labelWithValue({ label: 'Temperature', value: `${comment.temperature.toFixed(2)} °C` }) : ''}
+                            ${comment.oxygen_ml_l ? labelWithValue({ label: 'Oxygen', value: `${comment.oxygen_ml_l.toFixed(2)} mL/L` }) : ''}
+                            ${comment.salinity ? labelWithValue({ label: 'Salinity', value: `${comment.salinity.toFixed(2)} PSU` }) : ''}
+                            ${comment.bait_type ? labelWithValue({ label: 'Bait Type', value: `${comment.bait_type[0].toUpperCase()}${comment.bait_type.slice(1)}` }) : ''}
                             ${sampleReference
                                 ? `<div class="row ps-1 mt-2">
                                     <div class="col align-items-center d-flex">
