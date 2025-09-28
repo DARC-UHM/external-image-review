@@ -93,10 +93,12 @@ $(document).ready(() => {
     // go through each record, adding image cards to page. groups images with the same id reference together
     for (let i = 0; i < sortedComments.length; i += 1) {
         const comment = sortedComments[i];
-        const idRefUuids = []; // all the uuids for records with the same id reference as this record
+        const idRefUuids = new Set(); // all the uuids for records with the same id reference as this record
         const photos = [comment.image_url];
         const localizations = comment.all_localizations ? [comment.all_localizations] : [];
         let sampleReference = comment.sample_reference;
+
+        idRefUuids.add(comment.uuid);
 
         // if this comment has an id reference, we need to add it to the list of recordsWithIdReference
         if (comment.id_reference) {
@@ -105,7 +107,7 @@ $(document).ready(() => {
             }
             recordsWithIdReference.push(comment.id_reference); // add id ref to list
             slideshowIndices[comment.uuid] = { currentSlideIndex: 0, totalSlides: 1 };
-            idRefUuids.push(comment.uuid);
+            idRefUuids.add(comment.uuid);
 
             // find other records with same id ref, add them to the photos array
             for (let j = i + 1; j < sortedComments.length; j += 1) {
@@ -115,7 +117,7 @@ $(document).ready(() => {
                         localizations.push(sortedComments[j].all_localizations);
                     }
                     slideshowIndices[comment.uuid].totalSlides++;
-                    idRefUuids.push(sortedComments[j].uuid);
+                    idRefUuids.add(sortedComments[j].uuid);
                     sampleReference = sortedComments[j].sample_reference || sampleReference;
                 }
             }

@@ -189,13 +189,13 @@ export const imageCard = ({ comment, photos, index, idRefUuids, localizations, s
                             <div class="mt-3">
                                 <button
                                     class="btn btn-sm btn-success px-3 me-1"
-                                    onclick="saveComments('${idRefUuids}', '${index}', '${tentativeId}', false)"
+                                    onclick="saveComments('${[...idRefUuids]}', '${index}', '${tentativeId}', false)"
                                 >
                                     Confirm & Save
                                 </button>
                                 <button
                                     class="btn btn-sm btn-outline-info"
-                                    onclick="saveComments('${idRefUuids}', '${index}', '${tentativeId}', true)"
+                                    onclick="saveComments('${[...idRefUuids]}', '${index}', '${tentativeId}', true)"
                                 >
                                     Skip (No Response)
                                 </button>
