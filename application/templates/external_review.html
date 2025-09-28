@@ -9,9 +9,20 @@
 </head>
 <body class="min-vh-100 d-flex flex-column">
     <div id="flash-messages-container">
-        <div id="failedCommentFlash" class="alert alert-danger alert-dismissible px-5" style="position:fixed; left: 50%; transform: translate(-50%, 0); z-index: 50; display: none;">
-            <span class="px-2" style="font-weight: 500;">Failed to save comments - please try again. If the issue persists, please contact a DARC team member.</span>
-            <button type="button" class="btn-close small" aria-label="Close" onclick="$('#failedCommentFlash')[0].style.display = 'none';"></button>
+        <div
+            id="failedCommentFlash"
+            class="alert alert-danger alert-dismissible px-5 mt-2 small text-center"
+            style="position:fixed; left: 50%; transform: translate(-50%, 0); z-index: 1040; display: none;"
+        >
+            <span style="font-weight: 500;">Failed to save comments, please try again.</span>
+            <br>
+            <span>If the issue persists, please contact a DARC team member.</span>
+            <button
+                type="button"
+                class="btn-close small"
+                aria-label="Close"
+                onclick="$('#failedCommentFlash')[0].style.display = 'none';"
+            ></button>
             <div class="alert-bottom-bar alert-bottom-bar-success"></div>
         </div>
     </div>

@@ -2,22 +2,11 @@ import json
 from datetime import datetime, timedelta
 
 from flask import request, jsonify, current_app
-from flask_cors import cross_origin
 from mongoengine import NotUniqueError, DoesNotExist
 
 from application.require_api_key import require_api_key
 from schema.comment import Comment, ReviewerCommentList
 from . import comment_bp
-
-
-# get a single comment item
-@comment_bp.get('/get/<uuid>')
-@cross_origin()
-def get_comment(uuid):
-    db_record = Comment.objects(uuid=uuid)
-    if not db_record:
-        return jsonify({404: 'No comment with given uuid'}), 404
-    return jsonify(db_record[0].json()), 200
 
 
 # get all comments saved in the database
@@ -147,33 +136,30 @@ def add_comment():
 
 
 # update a reviewer's comment given the reviewer and an observation uuid
-@comment_bp.patch('/<reviewer>/<uuid>')
-@require_api_key
-def update_comment(reviewer, uuid):
+@comment_bp.patch('/<uuid>')
+def save_reviewer_comment(uuid):
+    if not request.json:
+        return jsonify({400: 'No data provided'}), 400
+    reviewer = request.json.get('reviewer')
+    if not reviewer:
+        return jsonify({400: 'No reviewer provided'}), 400
     try:
         db_record = Comment.objects.get(uuid=uuid)
     except DoesNotExist:
         return jsonify({404: 'No comment records matching given uuid'}), 404
-    request_json = json.loads(request.get_json())
     for reviewer_comment in db_record.reviewer_comments:
+        # find the matching reviewer
         if reviewer_comment['reviewer'] == reviewer:
-            if reviewer_comment['comment'] != request_json.get('comment') \
-                    or reviewer_comment['id_consensus'] != request_json.get('idConsensus'):
-                reviewer_comment['comment'] = request_json.get('comment')
-                reviewer_comment['id_consensus'] = request_json.get('idConsensus')
-                reviewer_comment['id_at_time_of_response'] = request_json.get('tentativeId')
-                reviewer_comment['save_for_later'] = request_json.get('saveForLater', False)
+            # if the comment or the id consensus changed, update it
+            if reviewer_comment['comment'] != request.json.get('reviewer_comment') \
+                    or reviewer_comment['id_consensus'] != request.json.get('id_consensus'):
+                reviewer_comment['comment'] = request.json.get('comment')
+                reviewer_comment['id_consensus'] = request.json.get('idConsensus')
+                reviewer_comment['id_at_time_of_response'] = request.json.get('tentativeId')
                 reviewer_comment['date_modified'] = (datetime.now() - timedelta(hours=10))
                 db_record.unread = True
                 db_record.save()
                 return jsonify(Comment.objects.get(uuid=uuid).json()), 200
-            elif reviewer_comment['save_for_later'] != request_json.get('saveForLater', False):
-                # if only the save_for_later value has changed, update the record but don't return 200
-                # (we use 200 to indicate that the comment was updated and notify reviewers)
-                reviewer_comment['save_for_later'] = request_json.get('saveForLater', False)
-                reviewer_comment['date_modified'] = (datetime.now() - timedelta(hours=10))
-                db_record.save()
-                return {}, 204
             return jsonify({304: 'No updates made'}), 304
     return jsonify({404: 'No comment records matching given reviewer'}), 404
 

@@ -1,15 +1,11 @@
 import base64
-import json
 import os
 import threading
-from datetime import datetime
 from json import JSONDecodeError
 
 import requests
 from flask import request, current_app, render_template, Response, redirect, jsonify
-from flask_mail import Message, Mail
 
-from schema.annotator import Annotator
 from schema.comment import Comment
 from . import site_bp
 from .fetch_tator_localization import fetch_tator_localizations
@@ -20,10 +16,8 @@ from ..get_request_ip import get_request_ip
 # the link to share with external reviewers
 @site_bp.get('/review/<reviewer_name>')
 def review(reviewer_name):
-    req_time = datetime.now()
     current_app.logger.info(f'Access {reviewer_name}\'s review page - IP Address: {get_request_ip()}')
     current_app.logger.info(request.url)
-    return_all_comments = request.args.get('all') == 'true'
     reviewer_name = reviewer_name.replace('-', ' ')
     matched_records = Comment.objects(reviewer_comments__reviewer=reviewer_name).order_by('sequence')
     # we can only get one annotation per VARS API call (but responses are much faster than Tator)
@@ -34,10 +28,8 @@ def review(reviewer_name):
     for record in matched_records:
         record = record.json()
         reviewer_comment = next((x for x in record['reviewer_comments'] if x['reviewer'] == reviewer_name))
-        if (not reviewer_comment.get('id_consensus') and not reviewer_comment.get('comment')) \
-                or return_all_comments:
+        if not reviewer_comment.get('id_consensus') and not reviewer_comment.get('comment'):
             # only return records that the reviewer has not yet commented on
-            # OR if the 'all comments' flag is on
             if request.args.getlist('annotator') and record['annotator'] not in request.args.getlist('annotator'):
                 # filter by annotator if specified
                 continue
@@ -80,70 +72,12 @@ def review(reviewer_name):
             thread.start()
         for thread in var_threads:
             thread.join()
-    current_app.logger.info(f'Load time: {datetime.now() - req_time}')
     return render_template('external_review.html', data={
         'comments': [*vars_annotations, *tator_localizations.values()],
         'reviewer': reviewer_name,
     }), 200
 
 
-# route to save reviewer's comments, redirects to success page
-@site_bp.post('/save-comments')
-def save_comments():
-    def send_email(msg, app):
-        with app.app_context():
-            mail = Mail(current_app)
-            mail.send(msg)
-
-    def formatted_comma_list(items: list) -> str:
-        sorted_list = sorted(items)
-        if len(sorted_list) == 1:
-            return sorted_list[0]
-        if len(sorted_list) == 2:
-            return f'{sorted_list[0]} and {sorted_list[1]}'
-        return f'{", ".join(list(sorted_list)[:-1])}, and {list(sorted_list)[-1]}'
-
-    reviewer_name = request.values.get('reviewer')
-    comments = json.loads(request.values.get('comments'))
-    sequences = json.loads(request.values.get('sequences'))
-    annotators = json.loads(request.values.get('annotators'))
-    annotator_emails = [current_app.config.get('ADMIN_EMAIL')]
-    count_success = 0
-    list_failures = []
-    current_app.logger.info(f'{reviewer_name} saving comments')
-
-    for annotator in Annotator.objects():
-        annotator_emails.append(annotator.email)  # just add all annotators to the email list
-    for comment in comments:
-        res = requests.patch(
-            f'{request.url_root}/comment/{reviewer_name}/{comment["uuid"]}',
-            headers={'API-Key': current_app.config.get('API_KEY')},
-            json=json.dumps(comment),
-        )
-        if res.status_code == 200:
-            count_success += 1
-        elif res.status_code == 304 or res.status_code == 204:
-            pass
-        else:
-            list_failures.append(comment['uuid'])
-    if count_success > 0:
-        msg = Message(
-            f'DARC Review - New Comments from {reviewer_name}',
-            sender=current_app.config.get('MAIL_USERNAME'),
-            recipients=annotator_emails,
-        )
-        msg.body = 'Aloha,\n\n' + \
-                   f'{reviewer_name} added comments to {count_success} annotation{"s" if count_success > 1 else ""} ' + \
-                   f'from {formatted_comma_list(sequences)} (annotator{"s" if len(annotators) > 1 else ""}: {formatted_comma_list(annotators)}).\n\n' + \
-                   f'There are now {Comment.objects(unread=True).count()} total unread comments in the external review database.\n\n' + \
-                   'DARC Review\n'
-        email_thread = threading.Thread(target=send_email, args=(msg, current_app._get_current_object()))
-        email_thread.start()
-        return redirect(f'success?name={reviewer_name}&count={count_success}')
-    if list_failures:
-        current_app.logger.error(f'Failed to update comments for {list_failures}')
-        return jsonify({500: f'Internal server error - could not update {list_failures}'}), 500
-    return redirect(f'success?name={reviewer_name}&count={count_success}')
 
 
 # save success page

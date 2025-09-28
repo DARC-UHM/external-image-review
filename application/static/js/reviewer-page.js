@@ -43,23 +43,43 @@ function updateCard(idConsensus, index) {
 
 document.updateCard = updateCard;
 
-function saveComments(uuids, index) {
+async function saveComments(uuids, index, tentativeId, skip) {
     const uuidArray = uuids.split(',');
     const cardUuid = uuidArray[0];
-
-    $(`#container-${cardUuid}`).collapse('toggle');
-    cardStatuses[cardUuid] = 'reviewed';
-
-    const cardsReviewed = Object.values(cardStatuses).filter((status) => status !== 'pending').length;
-    $('#cardsReviewed').html(cardsReviewed);
-    $('#progressBarProgress').css('width', `${(cardsReviewed / Object.keys(cardStatuses).length) * 100}%`);
-    $(`#status-${cardUuid}`).html(imageCardStatus('reviewed'));
-
     const idConsensus = $(`input[name='idConsensus_${index}']:checked`).val();
     const comment = $(`#comment_${index}`).val();
 
-    // todo submit these
-    console.log(idConsensus, comment);
+    let success = true;
+
+    for (const uuid of uuidArray) {
+        const res = await fetch(`/comment/${uuid}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                reviewer,
+                idConsensus,
+                comment: skip ? "Skipped" : comment,
+                tentativeId,
+            }),
+        });
+        if (!res.ok) {
+            success = false;
+            break;
+        }
+    }
+
+    if (success) {
+        cardStatuses[cardUuid] = 'reviewed';
+
+        const cardsReviewed = Object.values(cardStatuses).filter((status) => status !== 'pending').length;
+
+        $(`#container-${cardUuid}`).collapse('toggle');
+        $('#cardsReviewed').html(cardsReviewed);
+        $('#progressBarProgress').css('width', `${(cardsReviewed / Object.keys(cardStatuses).length) * 100}%`);
+        $(`#status-${cardUuid}`).html(imageCardStatus('reviewed'));
+    } else {
+        $('#failedCommentFlash')[0].style.display = 'block';
+    }
 }
 
 document.saveComments = saveComments;
@@ -105,7 +125,7 @@ $(document).ready(() => {
             comment,
             photos,
             index: i,
-            idRefUuids: [comment.uuid, ...idRefUuids],
+            idRefUuids,
             localizations,
             sampleReference,
         }));
