@@ -78,8 +78,6 @@ def review(reviewer_name):
     }), 200
 
 
-
-
 # save success page
 @site_bp.get('/success')
 def success():
