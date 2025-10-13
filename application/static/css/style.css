@@ -201,6 +201,23 @@ textarea {
     outline: none;
 }
 
+.btn-favorite {
+    color: #ffc7c7;
+    opacity: 60%;
+}
+
+.btn-favorite:hover {
+    opacity: 100%;
+}
+
+.btn-favorite-favorited {
+    color: #ff0000;
+}
+
+.btn-favorite-favorited:hover {
+    color: #ff7c7c;
+}
+
 .accordion-body {
     padding: 0;
 }

@@ -150,8 +150,14 @@ def save_reviewer_comment(uuid):
     for reviewer_comment in db_record.reviewer_comments:
         # find the matching reviewer
         if reviewer_comment['reviewer'] == reviewer:
+            # check for favorite updates first
+            if request.json.get('favorite') is not None:
+                reviewer_comment['favorite'] = request.json.get('favorite')
+                reviewer_comment['date_modified'] = (datetime.now() - timedelta(hours=10))
+                db_record.save()
+                return jsonify(Comment.objects.get(uuid=uuid).json()), 200
             # if the comment or the id consensus changed, update it
-            if reviewer_comment['comment'] != request.json.get('reviewer_comment') \
+            if reviewer_comment['comment'] != request.json.get('comment') \
                     or reviewer_comment['id_consensus'] != request.json.get('id_consensus'):
                 reviewer_comment['comment'] = request.json.get('comment')
                 reviewer_comment['id_consensus'] = request.json.get('idConsensus')

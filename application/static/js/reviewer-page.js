@@ -12,14 +12,6 @@ const cardStatuses = {};
 const tempSortedComments = comments.sort((a, b) => Date.parse(a.timestamp) > Date.parse(b.timestamp)); // sort by timestamp
 const sortedComments = tempSortedComments.sort((a, b) => (a.concept > b.concept) ? 1 : (b.concept > a.concept) ? -1 : 0); // sort by concept
 
-document.prevSlide = (uuid) => {
-    changeSlide(uuid, -1);
-}
-
-document.nextSlide = (uuid) => {
-    changeSlide(uuid, 1);
-}
-
 function changeSlide(uuid, slideMod) {
     const tempIndex = slideshowIndices[uuid].currentSlideIndex + slideMod;
     const updatedSlideIndex = (tempIndex + slideshowIndices[uuid].totalSlides) % slideshowIndices[uuid].totalSlides;
@@ -30,6 +22,14 @@ function changeSlide(uuid, slideMod) {
     }
     // show one slide
     document.getElementById(`${uuid}-${updatedSlideIndex}`).style.display = 'block';
+}
+
+document.prevSlide = (uuid) => {
+    changeSlide(uuid, -1);
+}
+
+document.nextSlide = (uuid) => {
+    changeSlide(uuid, 1);
 }
 
 function updateCard(idConsensus, index) {
@@ -83,6 +83,32 @@ async function saveComments(uuids, index, tentativeId, skip) {
 }
 
 document.saveComments = saveComments;
+
+async function toggleFavorite(uuids, isFavorite) {
+    console.log(isFavorite);
+    const uuidArray = uuids.split(',');
+
+    let success = true;
+
+    for (const uuid of uuidArray) {
+        const res = await fetch(`/comment/${uuid}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                reviewer,
+                favorite: !isFavorite,
+            }),
+        });
+        if (!res.ok) {
+            success = false;
+            break;
+        }
+    }
+
+    // todo flash success/failure
+}
+
+document.toggleFavorite = toggleFavorite;
 
 $(document).ready(() => {
     $('body').tooltip({ selector: '[data-toggle=tooltip]', trigger : 'hover' });
