@@ -2,11 +2,22 @@ import json
 from datetime import datetime, timedelta
 
 from flask import request, jsonify, current_app
+from flask_cors import cross_origin
 from mongoengine import NotUniqueError, DoesNotExist
 
 from application.require_api_key import require_api_key
 from schema.comment import Comment, ReviewerCommentList
 from . import comment_bp
+
+
+# get a single comment item
+@comment_bp.get('/<uuid>')
+@cross_origin()
+def get_comment(uuid):
+    db_record = Comment.objects(uuid=uuid)
+    if not db_record:
+        return jsonify({404: 'No comment with given uuid'}), 404
+    return jsonify(db_record[0].json()), 200
 
 
 # get all comments saved in the database
