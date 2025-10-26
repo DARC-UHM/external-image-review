@@ -93,6 +93,29 @@ export const imageCard = ({ comment, photos, index, idRefUuids, localizations, s
         `;
     }
 
+    // TODO add back once "view favorites" page has been added
+    const favoriteButton = `
+        <div
+            class="position-absolute px-2 py-1 ${reviewerComments?.favorite ? 'btn-favorite-favorited' : 'btn-favorite'}"
+            style="right: 0; cursor: pointer;"
+            data-toggle="tooltip"
+            data-bs-placement="left"
+            title="${reviewerComments?.favorite ? 'Remove from favorites' : 'Save to favorites'}"
+            onclick="toggleFavorite('${[...idRefUuids]}', ${reviewerComments?.favorite ?? false})"
+        >
+            ${reviewerComments?.favorite
+                ? `
+                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-heart-fill" viewBox="-2 -2 24 24">
+                      <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"/>
+                   </svg>
+                ` : `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-heart" viewBox="-2 -2 24 24" stroke="currentColor" stroke-width="1">
+                        <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"/>
+                    </svg>
+                `
+            }
+        </div>`;
+
     return `
         <div
             id="${comment.uuid}"
@@ -189,13 +212,13 @@ export const imageCard = ({ comment, photos, index, idRefUuids, localizations, s
                             <div class="mt-3">
                                 <button
                                     class="btn btn-sm btn-success px-3 me-1"
-                                    onclick="saveComments('${[...idRefUuids]}', '${index}', '${tentativeId}', false)"
+                                    onclick="saveComments('${[...idRefUuids]}', '${index}', '${tentativeId}', '${comment.annotator}', '${comment.sequence}', false)"
                                 >
                                     Confirm & Save
                                 </button>
                                 <button
                                     class="btn btn-sm btn-outline-info"
-                                    onclick="saveComments('${[...idRefUuids]}', '${index}', '${tentativeId}', true)"
+                                    onclick="saveComments('${[...idRefUuids]}', '${index}', '${tentativeId}', '${comment.annotator}', '${comment.sequence}', true)"
                                 >
                                     Skip (No Response)
                                 </button>
@@ -205,26 +228,6 @@ export const imageCard = ({ comment, photos, index, idRefUuids, localizations, s
                     <div class="col text-center py-3 d-flex">
                         <div class="my-auto">
                             <div class="slideshow-container w-100 position-relative">
-                                <div
-                                    class="position-absolute px-2 py-1 ${reviewerComments?.favorite ? 'btn-favorite-favorited' : 'btn-favorite'}"
-                                    style="right: 0; cursor: pointer;"
-                                    data-toggle="tooltip"
-                                    data-bs-placement="left"
-                                    title="${reviewerComments?.favorite ? 'Remove from favorites' : 'Save to favorites'}"
-                                    onclick="toggleFavorite('${[...idRefUuids]}', ${reviewerComments?.favorite ?? false})"
-                                >
-                                    ${reviewerComments?.favorite
-                                        ? `
-                                           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-heart-fill" viewBox="-2 -2 24 24">
-                                              <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"/>
-                                           </svg>
-                                        ` : `
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-heart" viewBox="-2 -2 24 24" stroke="currentColor" stroke-width="1">
-                                                <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15"/>
-                                            </svg>
-                                        `
-                                    }
-                                </div>
                                 ${photoSlideshow}
                                 <a id="prev" onclick="prevSlide('${comment.uuid}')" ${photos.length < 2 ? "hidden" : ""}>&#10094;</a>
                                 <a id="next" onclick="nextSlide('${comment.uuid}')" ${photos.length < 2 ? "hidden" : ""}>&#10095;</a>

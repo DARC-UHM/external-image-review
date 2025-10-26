@@ -78,6 +78,44 @@ def review(reviewer_name):
     }), 200
 
 
+# save one card of reviewer comments
+@site_bp.post('/save-comments')
+def save_comments():
+    current_app.logger.info(f'Saving reviewer comments: {request.json}')
+    uuids = request.json.get('uuids')
+    reviewer = request.json.get('reviewer')
+    annotator = request.json.get('annotator')
+    sequence = request.json.get('sequence')
+    if uuids is None or len(uuids) == 0:
+        return {'400': 'At least one uuid is required'}, 400
+    if reviewer is None or reviewer == '':
+        return {'400': 'Reviewer is required'}, 400
+    if annotator is None or annotator == '':
+        return {'400': 'Annotator is required'}, 400
+    if sequence is None or sequence == '':
+        return {'400': 'Sequence is required'}, 400
+    count_success = 0
+    count_failures = 0
+    for uuid in uuids:
+        res = requests.patch(
+            url=f'{request.url_root}/comment/{uuid}',
+            json={
+                'reviewer': reviewer,
+                'comment': request.json.get('comment'),
+                'id_consensus': request.json.get('idConsensus'),
+                'tentative_id': request.json.get('tentativeId'),
+            },
+        )
+        if res.status_code != 200:
+            current_app.logger.error(f'Failed to save reviewer comment for {uuid}: {res.text}')
+            count_failures += 1
+        else:
+            count_success += 1
+    if count_success > 0:
+        return {'200': 'Comments saved'}, 200
+    return {'500', 'Error saving comments'}, 500
+
+
 # save success page
 @site_bp.get('/success')
 def success():

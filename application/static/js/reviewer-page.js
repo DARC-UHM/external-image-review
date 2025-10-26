@@ -43,32 +43,27 @@ function updateCard(idConsensus, index) {
 
 document.updateCard = updateCard;
 
-async function saveComments(uuids, index, tentativeId, skip) {
+async function saveComments(uuids, index, tentativeId, annotator, sequence, skip) {
     const uuidArray = uuids.split(',');
     const cardUuid = uuidArray[0];
     const idConsensus = $(`input[name='idConsensus_${index}']:checked`).val();
     const comment = $(`#comment_${index}`).val();
 
-    let success = true;
+    const res = await fetch(`/save-comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            uuids: uuidArray,
+            reviewer,
+            idConsensus: skip ? null : idConsensus,
+            comment: skip ? "Skipped" : comment,
+            tentativeId,
+            annotator,
+            sequence,
+        }),
+    });
 
-    for (const uuid of uuidArray) {
-        const res = await fetch(`/comment/${uuid}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                reviewer,
-                idConsensus,
-                comment: skip ? "Skipped" : comment,
-                tentativeId,
-            }),
-        });
-        if (!res.ok) {
-            success = false;
-            break;
-        }
-    }
-
-    if (success) {
+    if (res.ok) {
         cardStatuses[cardUuid] = 'reviewed';
 
         const cardsReviewed = Object.values(cardStatuses).filter((status) => status !== 'pending').length;

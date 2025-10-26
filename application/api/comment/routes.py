@@ -1,5 +1,5 @@
+import datetime
 import json
-from datetime import datetime, timedelta
 
 from flask import request, jsonify, current_app
 from flask_cors import cross_origin
@@ -136,7 +136,7 @@ def add_comment():
                 ReviewerCommentList(
                     reviewer=reviewer,
                     comment='',
-                    date_modified=(datetime.now() - timedelta(hours=10)),
+                    date_modified=(datetime.datetime.now() - datetime.timedelta(hours=10)),
                 )
             )
         comment.save()
@@ -164,16 +164,16 @@ def save_reviewer_comment(uuid):
             # check for favorite updates first
             if request.json.get('favorite') is not None:
                 reviewer_comment['favorite'] = request.json.get('favorite')
-                reviewer_comment['date_modified'] = (datetime.now() - timedelta(hours=10))
+                reviewer_comment['date_modified'] = (datetime.datetime.now() - datetime.timedelta(hours=10))
                 db_record.save()
                 return jsonify(Comment.objects.get(uuid=uuid).json()), 200
             # if the comment or the id consensus changed, update it
             if reviewer_comment['comment'] != request.json.get('comment') \
                     or reviewer_comment['id_consensus'] != request.json.get('id_consensus'):
                 reviewer_comment['comment'] = request.json.get('comment')
-                reviewer_comment['id_consensus'] = request.json.get('idConsensus')
-                reviewer_comment['id_at_time_of_response'] = request.json.get('tentativeId')
-                reviewer_comment['date_modified'] = (datetime.now() - timedelta(hours=10))
+                reviewer_comment['id_consensus'] = request.json.get('id_consensus')
+                reviewer_comment['id_at_time_of_response'] = request.json.get('tentative_id')
+                reviewer_comment['date_modified'] = (datetime.datetime.now() - datetime.timedelta(hours=10))
                 db_record.unread = True
                 db_record.save()
                 return jsonify(Comment.objects.get(uuid=uuid).json()), 200
@@ -200,7 +200,7 @@ def update_comment_reviewer(uuid):
             ReviewerCommentList(
                 reviewer=reviewer,
                 comment='',
-                date_modified=(datetime.now() - timedelta(hours=10)),
+                date_modified=(datetime.datetime.now() - datetime.timedelta(hours=10)),
             )
         )
     db_record.reviewer_comments = temp_reviewer_comments
