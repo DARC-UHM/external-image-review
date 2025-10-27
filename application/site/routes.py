@@ -10,6 +10,7 @@ from schema.comment import Comment
 from . import site_bp
 from .fetch_tator_localization import fetch_tator_localizations
 from .fetch_vars_annotation import fetch_vars_annotation
+from .slack_helper import SlackHelper
 from ..get_request_ip import get_request_ip
 
 
@@ -106,12 +107,22 @@ def save_comments():
                 'tentative_id': request.json.get('tentativeId'),
             },
         )
-        if res.status_code != 200:
+        if res.status_code == 200:
+            count_success += 1
+        elif res.status_code == 304:
+            current_app.logger.info(f'No updates made for reviewer comment for {uuid}')
+        else:
             current_app.logger.error(f'Failed to save reviewer comment for {uuid}: {res.text}')
             count_failures += 1
-        else:
-            count_success += 1
     if count_success > 0:
+        SlackHelper(
+            reviewer=reviewer,
+            sequence=sequence,
+            annotator=annotator,
+            logger=current_app.logger,
+            slack_client=current_app.config.get('SLACK_CLIENT'),
+            slack_channel_id=current_app.config.get('SLACK_CHANNEL_ID'),
+        ).send_message()
         return {'200': 'Comments saved'}, 200
     return {'500', 'Error saving comments'}, 500
 

@@ -1,4 +1,13 @@
-from mongoengine import Document, StringField
+from mongoengine import Document, StringField, EmbeddedDocument, IntField, ListField, DateTimeField, \
+    EmbeddedDocumentField
+
+
+class SlackMessage(EmbeddedDocument):
+    count = IntField()
+    annotators = ListField(StringField())
+    dives = ListField(StringField())
+    scheduled_message_id = StringField()
+    scheduled_time = DateTimeField()
 
 
 class Reviewer(Document):
@@ -8,6 +17,7 @@ class Reviewer(Document):
     organization = StringField(max_length=150)
     phylum = StringField(required=True, max_length=150)
     focus = StringField(max_length=150)
+    slack_message = EmbeddedDocumentField(SlackMessage)
 
     def json(self):
         reviewer = {

@@ -8,3 +8,4 @@ requests
 jinja2
 mongoengine
 gunicorn
+slack-sdk

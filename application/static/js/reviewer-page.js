@@ -80,10 +80,11 @@ async function saveComments(uuids, index, tentativeId, annotator, sequence, skip
 document.saveComments = saveComments;
 
 async function toggleFavorite(uuids, isFavorite) {
-    console.log(isFavorite);
     const uuidArray = uuids.split(',');
 
     let success = true;
+
+    // todo handle this on backend
 
     for (const uuid of uuidArray) {
         const res = await fetch(`/comment/${uuid}`, {

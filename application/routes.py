@@ -20,6 +20,18 @@ def robots():
     return response
 
 
+@app.get('/reset-test-reviewer-comments')
+def reset_test_reviewer_comments():
+    comments = Comment.objects(reviewer_comments__reviewer="Test Reviewer")
+    for db_record in comments:
+        for reviewer_comment in db_record.reviewer_comments:
+            if reviewer_comment['reviewer'] == "Test Reviewer":
+                reviewer_comment['comment'] = ""
+                reviewer_comment['id_consensus'] = None
+                db_record.save()
+    return jsonify({'message': 'Test Reviewer comments reset'}), 200
+
+
 # returns number of unread comments, number of total comments, and a list of reviewers with comments in the database
 @app.get('/stats')
 @require_api_key

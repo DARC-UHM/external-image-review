@@ -1,4 +1,5 @@
 import os
+from slack_sdk import WebClient
 
 
 class Config:
@@ -8,10 +9,5 @@ class Config:
     TATOR_URL = 'https://cloud.tator.io'
     HURLSTOR_URL = 'http://hurlstor.soest.hawaii.edu'
     IMAGE_REF_DIR_PATH = 'application/image-reference'
-    MAIL_SERVER = os.environ.get('MAIL_SERVER')
-    MAIL_PORT = os.environ.get('MAIL_PORT')
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
-    MAIL_USE_TLS = True
-    MAIL_USE_SSL = False
+    SLACK_CHANNEL_ID = os.environ.get('SLACK_CHANNEL_ID')
+    SLACK_CLIENT = WebClient(token=os.environ.get("SLACK_BOT_TOKEN"))
