@@ -32,7 +32,7 @@ class SlackHelper:
 
     def _send_message(self):
         annotators = {self.annotator}
-        sequences = {self.sequence}
+        sequences = {self._get_short_sequence_name(self.sequence)}
         count = 1
         try:
             db_record = Reviewer.objects.get(name=self.reviewer)
@@ -95,7 +95,7 @@ class SlackHelper:
         return [
             {
                 "type": "markdown",
-                "text": f"> **New comments from {self.reviewer} {self.emoji}**\n"
+                "text": f"> **New comments from {self.reviewer} {self.emoji}**\n> \n"
                         f"> {self.reviewer} added {count} new comment{'' if count == 1 else 's'} from "
                         f"**{self._formatted_comma_list(sequences)}** "
                         f"(annotator{'' if len(annotators) == 1 else 's'} {self._formatted_comma_list(annotator_ids)})."
@@ -108,6 +108,14 @@ class SlackHelper:
         except DoesNotExist:
             self.logger.error(f'No annotator record found for {annotator_name}')
             return annotator_name
+
+    @staticmethod
+    def _get_short_sequence_name(sequence: str) -> str:
+        if 'Hercules' in sequence:
+            return f'Hercules {sequence.split("Hercules ")[1][:3]}'
+        if 'Deep Discoverer' in sequence:
+            return f'Deep Discoverer {sequence.split("Deep Discoverer ")[1][:4]}'
+        return sequence
 
     @staticmethod
     def _formatted_comma_list(items: list) -> str:
