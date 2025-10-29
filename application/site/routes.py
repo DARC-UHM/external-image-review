@@ -95,8 +95,9 @@ def save_comments():
         return {'400': 'Annotator is required'}, 400
     if sequence is None or sequence == '':
         return {'400': 'Sequence is required'}, 400
-    count_success = 0
-    count_failures = 0
+    count_updated = 0
+    count_sames = 0
+    count_failed = 0
     for uuid in uuids:
         res = requests.patch(
             url=f'{request.url_root}/comment/{uuid}',
@@ -108,13 +109,15 @@ def save_comments():
             },
         )
         if res.status_code == 200:
-            count_success += 1
+            count_updated += 1
         elif res.status_code == 304:
             current_app.logger.info(f'No updates made for reviewer comment for {uuid}')
+            count_sames += 1
         else:
             current_app.logger.error(f'Failed to save reviewer comment for {uuid}: {res.text}')
-            count_failures += 1
-    if count_success > 0:
+            count_failed += 1
+    current_app.logger.info(f"count updated: {count_updated}, count same: {count_sames}, count failed: {count_failed}")
+    if count_sames > 0:
         SlackHelper(
             reviewer=reviewer,
             sequence=sequence,
@@ -124,6 +127,8 @@ def save_comments():
             slack_channel_id=current_app.config.get('SLACK_CHANNEL_ID'),
         ).send_message()
         return {'200': 'Comments saved'}, 200
+    if count_sames > 0:
+        return {'304', 'No updates made'}, 304
     return {'500', 'Error saving comments'}, 500
 
 
