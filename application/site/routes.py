@@ -128,8 +128,8 @@ def save_comments():
         ).send_message()
         return {'200': 'Comments saved'}, 200
     if count_sames > 0:
-        return {'304', 'No updates made'}, 304
-    return {'500', 'Error saving comments'}, 500
+        return {'304': 'No updates made'}, 304
+    return {'500': 'Error saving comments'}, 500
 
 
 # save success page
