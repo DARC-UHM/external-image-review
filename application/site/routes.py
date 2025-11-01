@@ -117,7 +117,7 @@ def save_comments():
             current_app.logger.error(f'Failed to save reviewer comment for {uuid}: {res.text}')
             count_failed += 1
     current_app.logger.info(f"count updated: {count_updated}, count same: {count_sames}, count failed: {count_failed}")
-    if count_sames > 0:
+    if count_updated > 0:
         SlackHelper(
             reviewer=reviewer,
             sequence=sequence,

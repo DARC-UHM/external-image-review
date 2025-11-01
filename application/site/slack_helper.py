@@ -36,7 +36,6 @@ class SlackHelper:
         count = 1
         try:
             db_record = Reviewer.objects.get(name=self.reviewer)
-            self.emoji = self._get_reviewer_emoji(db_record.phylum.split(',')[0])
         except DoesNotExist:
             self.logger.error(f'No reviewer record found for {self.reviewer}')
             return
@@ -49,7 +48,7 @@ class SlackHelper:
                 for sequence in db_record.slack_message.dives:
                     sequences.add(sequence)
                 count += db_record.slack_message.count
-
+        self.emoji = self._get_reviewer_emoji(db_record.phylum.split(',')[0])
         new_scheduled_time = datetime.datetime.now() + datetime.timedelta(minutes=35)
         scheduled_message_id = self._schedule_new_message(
             scheduled_time=new_scheduled_time.strftime('%s'),

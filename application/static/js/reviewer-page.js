@@ -63,7 +63,7 @@ async function saveComments(uuids, index, tentativeId, annotator, sequence, skip
         }),
     });
 
-    if (res.ok) {
+    if (res.ok || res.status === 304) {
         cardStatuses[cardUuid] = 'reviewed';
 
         const cardsReviewed = Object.values(cardStatuses).filter((status) => status !== 'pending').length;
