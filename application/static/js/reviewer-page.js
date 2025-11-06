@@ -154,10 +154,16 @@ $(document).ready(() => {
             sampleReference,
         }));
 
-        cardStatuses[comment.uuid] = 'pending';
-
         const reviewerComments = comment.reviewer_comments.find((comment) => comment.reviewer === reviewer);
         const idConsensus = reviewerComments?.id_consensus;
+        const reviewerComment = reviewerComments?.comment;
+
+        if (reviewerComment || idConsensus) {
+            $(`#status-${comment.uuid}`).html(imageCardStatus('reviewed'));
+            cardStatuses[comment.uuid] = 'reviewed';
+        } else {
+            cardStatuses[comment.uuid] = 'pending';
+        }
 
         if (idConsensus) {
             if (idConsensus === 'agree') {
@@ -185,6 +191,10 @@ $(document).ready(() => {
             }
         }
     }
+
+    const cardsReviewed = Object.values(cardStatuses).filter((status) => status !== 'pending').length;
+    $('#cardsReviewed').html(cardsReviewed);
+    $('#progressBarProgress').css('width', `${(cardsReviewed / Object.keys(cardStatuses).length) * 100}%`);
 
     $('#totalCards').html(Object.keys(cardStatuses).length);
 });

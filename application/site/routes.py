@@ -20,6 +20,7 @@ def review(reviewer_name):
     current_app.logger.info(f'Access {reviewer_name}\'s review page - IP Address: {get_request_ip()}')
     current_app.logger.info(request.url)
     reviewer_name = reviewer_name.replace('-', ' ')
+    return_all_comments = request.args.get('all') == 'true'
     matched_records = Comment.objects(reviewer_comments__reviewer=reviewer_name).order_by('sequence')
     # we can only get one annotation per VARS API call (but responses are much faster than Tator)
     vars_annotations = []  # using a list: each api call will get passed the object in the list and update it in place
@@ -29,8 +30,8 @@ def review(reviewer_name):
     for record in matched_records:
         record = record.json()
         reviewer_comment = next((x for x in record['reviewer_comments'] if x['reviewer'] == reviewer_name))
-        if not reviewer_comment.get('id_consensus') and not reviewer_comment.get('comment'):
-            # only return records that the reviewer has not yet commented on
+        if return_all_comments or not reviewer_comment.get('id_consensus') and not reviewer_comment.get('comment'):
+            # return all records if flag is set or only return records that the reviewer has not yet commented on
             if request.args.getlist('annotator') and record['annotator'] not in request.args.getlist('annotator'):
                 # filter by annotator if specified
                 continue
