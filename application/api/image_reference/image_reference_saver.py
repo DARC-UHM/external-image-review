@@ -96,7 +96,7 @@ class ImageReferenceSaver:
         self.scientific_name = json_payload.get('scientific_name')
         self.morphospecies = json_payload.get('morphospecies')
         self.tentative_id = json_payload.get('tentative_id')
-        self.deployment_name = json_payload.get('deployment_name')
+        self.deployment_name = json_payload.get('deployment_name').replace('-', '_')
         self.section_id = json_payload.get('section_id')
         self.tator_elemental_id = json_payload.get('tator_elemental_id')
         self.localization_media_id = json_payload.get('localization_media_id')
