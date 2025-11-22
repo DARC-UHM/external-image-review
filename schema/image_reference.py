@@ -18,6 +18,7 @@ class ImageRecord(EmbeddedDocument):
     salinity_m_l = DecimalField()
 
     KNOWN_LOCATIONS = {
+        'FJI': 'Fiji',
         'FSM': 'Federated States of Micronesia',
         'HAW': 'Hawaii',
         'NIU': 'Niue',
@@ -25,6 +26,8 @@ class ImageRecord(EmbeddedDocument):
         'PLW': 'Palau',
         'RMI': 'Marshall Islands',
         'SLB': 'Solomon Islands',
+        'TUV': 'Tuvalu',
+        'VUT': 'Vanuatu',
     }
 
     def json(self):
