@@ -79,8 +79,18 @@ class ImageReferenceSaver:
         if media_res.status_code != 200:
             abort(media_res.status_code, 'Error fetching media from Tator')
         media = media_res.json()
-        self.deployment_name = '_'.join(media['name'].split('.')[0].split('_')[:-1])
+        self.deployment_name = self._get_deployment_name_from_media(media['name'])
         self.section_id = media['primary_section']
+
+    @staticmethod
+    def _get_deployment_name_from_media(media_name: str) -> str:
+        # because there are so many different media naming conventions
+        media_name_parts = media_name.split('_')
+        if 'dscm' in media_name_parts and media_name_parts.index('dscm') == 2:  # format SLB_2024_dscm_01_C001.MP4
+            return '_'.join(media_name_parts[0:4])
+        if 'dscm' in media_name_parts and media_name_parts.index('dscm') == 1:  # format HAW_dscm_01_c010_202304250123Z_0983m.mp4
+            return '_'.join(media_name_parts[0:3])
+        return media_name_parts[1].replace('-', '_') # format DOEX0087_NIU-dscm-02_c009.mp4
 
     def load_from_json(self, json_payload):
         self.scientific_name = json_payload.get('scientific_name')
