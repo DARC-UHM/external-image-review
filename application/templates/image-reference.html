@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>DARC Image References</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+<style>
+    #keywordFilterInput:focus {
+        outline: none;
+    }
+     .tooltip-inner {
+         white-space: nowrap;
+         max-width: none;
+     }
+</style>
+<div class="text-center my-3 mx-5">
+    <div class="col mt-3 m-auto position-relative" style="max-width: 1200px;">
+        <div
+            id="filterContainer"
+            class="mx-auto rounded-pill py-1 d-flex justify-content-between"
+            style="background: var(--darc-input-bg); max-width: 700px; border: 1px solid var(--darc-bg);"
+        >
+            <div class="d-flex" style="min-width: 350px; max-width: 60%;">
+                <label for="keywordFilterInput" class="my-auto ms-3 btn p-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3">
+                        <path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/>
+                    </svg>
+                </label>
+                <input
+                    id="keywordFilterInput"
+                    class="rounded-1 small"
+                    style="padding: 6px 12px; background-color: var(--darc-input-bg); color: var(--darc-text); border: 0; width: 100%;"
+                    type="text"
+                    placeholder="Search by phylum, class, order, etc."
+                    aria-label="Search by phylum, class, order, etc."
+                />
+            </div>
+            <div
+                class="my-auto ps-4 pe-2 position-relative visible d-none d-md-block"
+                style="color: #ccc; border-left: 1px solid #ccc; height: 24px;"
+            >
+                <label for="sortSelect" style="font-size: 0.8rem;">Sort by</label>
+                <select
+                    id="sortSelect"
+                    class="form-select-sm small"
+                    style="background-color: var(--darc-input-bg); border: 0; width: 100px; cursor: pointer;"
+                >
+                    <option selected value="default">Default</option>
+                    <option value="phylum">Phylum</option>
+                    <option value="class">Class</option>
+                    <option value="order">Order</option>
+                    <option value="family">Family</option>
+                    <option value="genus">Genus</option>
+                    <option value="species">Species</option>
+                    <option value="depth">Depth</option>
+                </select>
+                <div class="position-absolute pe-none" style="top: 0; right: 1rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3">
+                        <path d="M480-360 280-560h400L480-360Z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        <div class="position-relative mt-3 mx-auto visible d-block d-md-none" style="width: max-content;">
+            <label for="sortSelectSmall" style="font-size: 0.8rem; width: 75px;">
+                Sort by
+            </label>
+            <select
+                id="sortSelectSmall"
+                class="mx-2 px-3 small rounded-pill"
+                style="background-color: var(--darc-input-bg); min-width: 250px; cursor: pointer;"
+            >
+                <option selected value="default">Default</option>
+                <option value="phylum">Phylum</option>
+                <option value="class">Class</option>
+                <option value="order">Order</option>
+                <option value="family">Family</option>
+                <option value="genus">Genus</option>
+                <option value="species">Species</option>
+                <option value="depth">Depth</option>
+            </select>
+            <div class="position-absolute pe-none" style="top: 4px; right: 1rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3">
+                    <path d="M480-360 280-560h400L480-360Z"/>
+                </svg>
+            </div>
+        </div>
+        <div class="position-relative mx-auto mt-3" style="width: max-content;">
+            <label for="idTypeFilterSelect" style="font-size: 0.8rem; width: 75px;">
+                ID type filter
+            </label>
+            <select
+                id="idTypeFilterSelect"
+                class="mx-2 px-3 small rounded-pill"
+                style="background-color: var(--darc-input-bg); min-width: 250px; cursor: pointer;"
+            >
+                <option value="any" selected>Any</option>
+                <option value="morphoOrTentative">Morphospecies/tentative ID</option>
+                <option value="morphospecies">Morphospecies</option>
+                <option value="tentativeId">Tentative ID</option>
+            </select>
+            <div class="position-absolute pe-none" style="top: 4px; right: 1rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3" class="my-auto">
+                    <path d="M480-360 280-560h400L480-360Z"/>
+                </svg>
+            </div>
+        </div>
+        <div class="accordion accordion-flush" id="phylogenyFilter">
+            <div class="accordion-item accordion-filter py-2">
+                <div class="accordion-header" id="flush-headingOne">
+                    <button
+                        class="collapsed p-0 border-0 px-3"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#flush-collapseOne"
+                        aria-expanded="false"
+                        aria-controls="flush-collapseOne"
+                        style="background: none; color: #ccc; font-size: 0.85rem;"
+                        onclick="$('#phylogenyArrow').toggleClass('rotate');"
+                    >
+                        Browse by phylogeny
+                        <svg id="phylogenyArrow" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3">
+                            <path d="M480-360 280-560h400L480-360Z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div
+                    id="flush-collapseOne"
+                    class="accordion-collapse collapse py-2 small"
+                    aria-labelledby="flush-headingOne"
+                    data-bs-parent="#phylogenyFilter"
+                >
+                    <div id="filterList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="imageGrid" class="row d-flex mt-1">
+    </div>
+</div>
+<script>
+  const None = null;
+  const nan = null;
+  const True = true;
+  const False = false;
+  const imageReferences = {{ image_references|safe or None }};
+</script>
+<script type="module" src="{{ url_for('static', filename='js/image-references.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+</body>
+</html>

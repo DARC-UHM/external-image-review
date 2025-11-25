@@ -7,6 +7,8 @@ import requests
 from flask import request, current_app, render_template, Response, redirect, jsonify
 
 from schema.comment import Comment
+from schema.image_reference import ImageReference
+from schema.reviewer import Reviewer
 from . import site_bp
 from .fetch_tator_localization import fetch_tator_localizations
 from .fetch_vars_annotation import fetch_vars_annotation
@@ -203,3 +205,32 @@ def tator_video(media_id):
 @site_bp.get('/summary/vars/<sequence_num>')
 def summary(sequence_num):
     return render_template('vars_summary.html', sequence_num=sequence_num), 200
+
+
+@site_bp.get('/image-references')
+def image_reference_page():
+    current_app.logger.info(f'Access image references page - IP Address: {get_request_ip()}')
+    query_filter = {}
+    if phylum := request.args.get('phylum'):
+        query_filter['phylum'] = phylum
+    if class_name := request.args.get('class'):
+        query_filter['class_name'] = class_name
+    if order := request.args.get('order'):
+        query_filter['order'] = order
+    if family := request.args.get('family'):
+        query_filter['family'] = family
+    if genus := request.args.get('genus'):
+        query_filter['genus'] = genus
+    if species := request.args.get('species'):
+        query_filter['species'] = species
+    image_references = ImageReference.objects(**query_filter).order_by(
+        'phylum',
+        'class_name',
+        'order',
+        'family',
+        'genus',
+        'species',
+        'scientific_name',
+        'tentative_id',
+    )
+    return render_template('image-reference.html', image_references=[image_ref.json() for image_ref in image_references])
