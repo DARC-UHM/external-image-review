@@ -1,4 +1,5 @@
 import base64
+import json
 import os
 import threading
 from json import JSONDecodeError
@@ -8,7 +9,6 @@ from flask import request, current_app, render_template, Response, redirect, jso
 
 from schema.comment import Comment
 from schema.image_reference import ImageReference
-from schema.reviewer import Reviewer
 from . import site_bp
 from .fetch_tator_localization import fetch_tator_localizations
 from .fetch_vars_annotation import fetch_vars_annotation

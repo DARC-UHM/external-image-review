@@ -31,19 +31,24 @@ class ImageRecord(EmbeddedDocument):
     }
 
     def json(self):
-        return {
+        item = {
             'tator_elemental_id': self.tator_elemental_id,
             'image_name': self.image_name,
             'thumbnail_name': self.thumbnail_name,
             'location_short_name': self.location_short_name,
             'location_long_name': self.KNOWN_LOCATIONS.get(self.location_short_name, self.location_short_name),
             'video_url': self.video_url,
-            'lat': self.lat,
-            'long': self.long,
-            'depth_m': self.depth_m,
-            'temp_c': self.temp_c,
-            'salinity_m_l': self.salinity_m_l,
         }
+        for field in [
+            'lat',
+            'long',
+            'depth_m',
+            'temp_c',
+            'salinity_m_l',
+        ]:
+            if getattr(self, field):
+                item[field] = float(getattr(self, field))
+        return item
 
 
 class ImageReference(Document):
@@ -63,8 +68,8 @@ class ImageReference(Document):
 
     def json(self):
         item = {
-            'created_at': self.created_at,
-            'updated_at': self.updated_at,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat(),
             'scientific_name': self.scientific_name,
             'photo_records': [record.json() for record in self.photo_records],
         }
