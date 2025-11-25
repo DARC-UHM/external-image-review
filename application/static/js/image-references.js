@@ -171,7 +171,7 @@ function updateImageGrid() {
                         class="d-flex justify-content-center w-100 position-relative"
                     >
                         ${imageRef.photo_records.map((photoRecord, index) => {
-                            const imageBaseUrl = 'https://hurlstor.soest.hawaii.edu:5000/image-reference/image/';
+                            const imageBaseUrl = 'https://darc.soest.hawaii.edu/image-reference/image/';
                             return `
                                 <div id="${photoKey}-${index}" style="display: ${index > 0 ? 'none' : 'block'}; width: 100%">
                                     <div class="position-relative">
