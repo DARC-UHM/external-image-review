@@ -195,11 +195,15 @@ def tator_video(media_id):
     except JSONDecodeError:
         return jsonify({404: 'No media found'}), 404
     user_agent = request.user_agent.string.lower()
-    if 'chrome' in user_agent or 'edge' in user_agent or 'safari' in user_agent:
+    if 'archival' in media['media_files'].keys() and ('chrome' in user_agent or 'edge' in user_agent or 'safari' in user_agent):
         current_app.logger.info('Playing HEVC')
         return redirect(media['media_files']['archival'][0]['path'])
     current_app.logger.info('Playing AV1')
-    return redirect(media['media_files']['streaming'][-1]['path'])
+    best_stream = {'resolution': [0], 'path': 'not-found'}
+    for stream in media['media_files']['streaming']:
+        if stream['resolution'][0] > best_stream['resolution'][0]:
+            best_stream = stream
+    return redirect(best_stream['path'])
 
 
 @site_bp.get('/summary/vars/<sequence_num>')
