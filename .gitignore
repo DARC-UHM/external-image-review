@@ -1,11 +1,8 @@
 .idea/
 __pycache__/
-cert/
 cache/
 image-reference/
 .DS_Store
 *.log
 env.sh
 .env
-tator-images/*.png
-tator-videos/*.mp4

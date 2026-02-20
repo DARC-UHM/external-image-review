@@ -6,10 +6,13 @@ services:
     environment:
       - MONGO_USERNAME=${DB_USER}
       - MONGO_PASSWORD=${DB_PASS}
+      - CERT_FILE
+      - KEY_FILE
     ports:
       - "5000:5000"
     volumes:
       - ./image-reference:/external-image-review/application/image-reference
+      - ${CERT_PATH}:/external-image-review/cert
     links:
       - mongodb
   mongodb:
