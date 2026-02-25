@@ -53,7 +53,7 @@ class TatorFrameFetcher:
     def save_images(self, save_path: str):
         image_path = os.path.join(save_path, self.image_name)
         thumbnail_path = os.path.join(save_path, self.thumbnail_name)
-        if self.localization_data['type'] == 48:  # 48 is BOX, crop the image
+        if self._is_localization_type_box(self.localization_data['type']):
             normalized_top_left_x = float(self.localization_data['normalized_top_left_x_y'][0])
             normalized_top_left_y = float(self.localization_data['normalized_top_left_x_y'][1])
             normalized_width = float(self.localization_data['normalized_dimensions'][0])
@@ -94,3 +94,9 @@ class TatorFrameFetcher:
         self.pil_image.save(image_path)
         self.pil_image.thumbnail((600, 600))
         self.pil_image.save(thumbnail_path)
+
+    @staticmethod
+    def _is_localization_type_box(localization_type: int):
+        box_localization_type = 48
+        sub_box_localization_type = 794
+        return localization_type == box_localization_type or localization_type == sub_box_localization_type

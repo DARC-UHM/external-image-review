@@ -45,6 +45,11 @@ const consensusRadio = ({index, label, idConsensus}) =>
             </label>
     </div>`;
 
+function isLocalizationTypeBox(localizationType) {
+    return localizationType === 48   // box
+        || localizationType === 794; // sub box
+}
+
 export const imageCard = ({ comment, photos, index, idRefUuids, localizations, sampleReference  }) => {
     const reviewerComments = comment.reviewer_comments.find((comment) => comment.reviewer === reviewer);
     const tentativeId = `${comment.concept}${comment.id_certainty?.includes('maybe') ? '?' : ''}`;
@@ -79,7 +84,7 @@ export const imageCard = ({ comment, photos, index, idRefUuids, localizations, s
                 <div id="${comment.uuid}-${j}_overlay">
                     ${localizations[j] 
                         ? JSON.parse(localizations[j]).map((loco) => {
-                            if (loco.type === 48) { // 48 is a box
+                            if (isLocalizationTypeBox(loco.type)) {
                                 return `<span
                                     class="position-absolute tator-box pe-none"
                                     style="top: ${loco.points[1] * 100}%; left: ${loco.points[0] * 100}%; width: ${loco.dimensions[0] * 100}%; height: ${loco.dimensions[1] * 100}%;"
