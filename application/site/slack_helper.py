@@ -105,7 +105,7 @@ class SlackHelper:
         try:
             return Annotator.objects.get(name=annotator_name).slack_id or annotator_name
         except DoesNotExist:
-            self.logger.error(f'No annotator record found for {annotator_name}')
+            self.logger.warning(f'No annotator record found for {annotator_name}')
             return annotator_name
 
     @staticmethod

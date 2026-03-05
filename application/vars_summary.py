@@ -9,6 +9,7 @@ TERM_YELLOW = '\033[1;93m'
 TERM_NORMAL = '\033[1;37;0m'
 
 
+# TODO fix hurlstor URLs (maybe, if we still want to keep this class)
 class VarsSummary:
     def __init__(self, sequence_num: str):
         self.phylogeny = {}

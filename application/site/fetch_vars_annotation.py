@@ -5,7 +5,7 @@ import requests
 
 
 def fetch_vars_annotation(record_ptr: dict, hurlstor_url: str, logger: logging.Logger):
-    with requests.get(f'{hurlstor_url}:8082/v1/annotations/{record_ptr["uuid"]}') as r:
+    with requests.get(f'{hurlstor_url}/anno/v1/annotations/{record_ptr["uuid"]}') as r:
         try:
             server_record = r.json()
             record_ptr['concept'] = server_record['concept']
