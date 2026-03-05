@@ -51,6 +51,7 @@ def stats():
 @app.post('/log-error')
 def log_error():
     app.logger.error('Error from internal annotation review app:')
+    app.logger.error(request.json.get('url'))
     app.logger.error(request.json.get('error'))
     return jsonify({200: 'Error logged'}), 200
 
