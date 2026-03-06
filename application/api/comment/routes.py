@@ -6,7 +6,7 @@ from flask_cors import cross_origin
 from mongoengine import NotUniqueError, DoesNotExist
 
 from application.require_api_key import require_api_key
-from schema.comment import Comment, ReviewerCommentList
+from application.schema.comment import Comment, ReviewerCommentList
 from . import comment_bp
 
 

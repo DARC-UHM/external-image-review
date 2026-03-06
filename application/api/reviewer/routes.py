@@ -2,7 +2,7 @@ from flask import jsonify, request, current_app
 from mongoengine import NotUniqueError, DoesNotExist
 
 from application.require_api_key import require_api_key
-from schema.reviewer import Reviewer
+from application.schema.reviewer import Reviewer
 from . import reviewer_bp
 
 

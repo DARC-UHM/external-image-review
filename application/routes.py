@@ -5,7 +5,7 @@ from flask import render_template, request, jsonify, make_response
 from application import app
 from application.get_request_ip import get_request_ip
 from application.require_api_key import require_api_key
-from schema.comment import Comment
+from application.schema.comment import Comment
 
 
 @app.route('/favicon.ico')

@@ -6,8 +6,8 @@ from mongoengine import DoesNotExist
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
-from schema.annotator import Annotator
-from schema.reviewer import Reviewer, SlackMessage
+from application.schema.annotator import Annotator
+from application.schema.reviewer import Reviewer, SlackMessage
 
 
 class SlackHelper:

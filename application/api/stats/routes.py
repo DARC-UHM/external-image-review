@@ -2,7 +2,7 @@ import re
 
 from flask import current_app, jsonify
 
-from schema.comment import Comment
+from application.schema.comment import Comment
 from . import stats_bp
 from ...vars_summary import VarsSummary
 from ...get_request_ip import get_request_ip

@@ -3,7 +3,7 @@ from json import JSONDecodeError
 from flask import jsonify, current_app, request
 from mongoengine import DoesNotExist, NotUniqueError
 
-from schema.dropcam_field_book import DropcamFieldBook
+from application.schema.dropcam_field_book import DropcamFieldBook
 from . import dropcam_fieldbook_bp
 from ...require_api_key import require_api_key
 

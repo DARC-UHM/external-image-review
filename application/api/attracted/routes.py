@@ -1,7 +1,7 @@
 from flask import jsonify, request
 from mongoengine import DoesNotExist
 
-from schema.attracted import Attracted
+from application.schema.attracted import Attracted
 from . import attracted_bp
 from ...require_api_key import require_api_key
 

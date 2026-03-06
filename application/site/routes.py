@@ -7,8 +7,8 @@ from json import JSONDecodeError
 import requests
 from flask import request, current_app, render_template, Response, redirect, jsonify
 
-from schema.comment import Comment
-from schema.image_reference import ImageReference
+from application.schema.comment import Comment
+from application.schema.reviewer import Reviewer
 from . import site_bp
 from .fetch_tator_localization import fetch_tator_localizations
 from .fetch_vars_annotation import fetch_vars_annotation

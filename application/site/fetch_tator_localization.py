@@ -4,8 +4,8 @@ import os
 import requests
 from mongoengine import DoesNotExist
 
-from schema.comment import Comment
-from schema.dropcam_field_book import DropcamFieldBook
+from application.schema.comment import Comment
+from application.schema.dropcam_field_book import DropcamFieldBook
 
 
 def fetch_tator_localizations(

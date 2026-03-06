@@ -5,7 +5,7 @@ from flask import current_app, jsonify, request, send_file
 from mongoengine import DoesNotExist
 from werkzeug.exceptions import HTTPException
 
-from schema.image_reference import ImageReference
+from application.schema.image_reference import ImageReference
 from . import image_reference_bp
 from .image_reference_saver import ImageReferenceSaver
 from ...get_request_ip import get_request_ip

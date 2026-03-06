@@ -8,8 +8,8 @@ from werkzeug.exceptions import HTTPException
 
 from application.api.image_reference.tator_frame_fetcher import TatorFrameFetcher
 from application.api.image_reference.worms_phylogeny_fetcher import WormsPhylogenyFetcher
-from schema.dropcam_field_book import DropcamFieldBook
-from schema.image_reference import ImageReference
+from application.schema.dropcam_field_book import DropcamFieldBook
+from application.schema.image_reference import ImageReference
 
 
 class ImageReferenceSaver:

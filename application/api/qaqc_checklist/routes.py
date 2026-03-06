@@ -2,8 +2,8 @@ from flask import jsonify, request, current_app
 from mongoengine import DoesNotExist
 
 from application.require_api_key import require_api_key
-from schema.tator_dropcam_qaqc_checklist import TatorDropcamQaqcChecklist
-from schema.vars_qaqc_checklist import VarsQaqcChecklist
+from application.schema.tator_dropcam_qaqc_checklist import TatorDropcamQaqcChecklist
+from application.schema.vars_qaqc_checklist import VarsQaqcChecklist
 
 from . import qaqc_checklist_bp
 
