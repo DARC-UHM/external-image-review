@@ -28,7 +28,7 @@ def get_all_comments():
     db_records = Comment.objects()
     for record in db_records:
         obj = record.json()
-        comments[obj['uuid']] = record.json()
+        comments[obj['uuid']] = obj
     return jsonify(comments), 200
 
 
@@ -40,7 +40,7 @@ def get_unread_comments():
     db_records = Comment.objects(unread=True)
     for record in db_records:
         obj = record.json()
-        comments[obj['uuid']] = record.json()
+        comments[obj['uuid']] = obj
     return jsonify(comments), 200
 
 
@@ -53,7 +53,7 @@ def get_read_comments():
     db_records = Comment.objects(unread=False, reviewer_comments__comment__ne='')
     for record in db_records:
         obj = record.json()
-        comments[obj['uuid']] = record.json()
+        comments[obj['uuid']] = obj
     return jsonify(comments), 200
 
 
@@ -65,7 +65,7 @@ def get_sequence_comments(sequence_num):
     db_records = Comment.objects(sequence=sequence_num)
     for record in db_records:
         obj = record.json()
-        comments[obj['uuid']] = record.json()
+        comments[obj['uuid']] = obj
     return jsonify(comments), 200
 
 
@@ -93,7 +93,7 @@ def get_reviewer_comments(reviewer_name):
         db_records = Comment.objects(reviewer_comments__reviewer=reviewer_name)
     for record in db_records:
         obj = record.json()
-        comments[obj['uuid']] = record.json()
+        comments[obj['uuid']] = obj
     return jsonify({
         'unread_comments': count_unread_comments,
         'read_comments': count_read_comments,
