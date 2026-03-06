@@ -12,10 +12,10 @@ from ...get_request_ip import get_request_ip
 def sequence_stats(sequence_num):
     current_app.logger.info(f'Got stats for VARS: {sequence_num} - IP Address: {get_request_ip()}')
     if not sequence_num:
-        return jsonify({400: 'No sequence number provided'}), 400
+        return jsonify({'error': 'No sequence number provided'}), 400
     summary = VarsSummary(sequence_num)
     if not summary.matched_sequences:
-        return jsonify({404: 'No sequences in VARS match given sequence number'}), 404
+        return jsonify({'error': 'No sequences in VARS match given sequence number'}), 404
     summary.get_summary()
     comments = Comment.objects(sequence=re.compile(f'.*{sequence_num}.*'))
     reviewers_responded = set()

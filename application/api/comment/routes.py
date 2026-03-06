@@ -16,7 +16,7 @@ from . import comment_bp
 def get_comment(uuid):
     db_record = Comment.objects(uuid=uuid)
     if not db_record:
-        return jsonify({404: 'No comment with given uuid'}), 404
+        return jsonify({'error': 'No comment with given uuid'}), 404
     return jsonify(db_record[0].json()), 200
 
 
@@ -126,7 +126,7 @@ def add_comment():
             or comment.get('sequence') is None \
             or comment.get('annotator') is None \
             or reviewers is None:
-        return jsonify({400: 'Missing required values'}), 400
+        return jsonify({'error': 'Missing required values'}), 400
     if comment.get('all_localizations'):  # tator localization
         comment['sequence'] = comment['sequence'].replace('-', '_')
     try:
@@ -141,7 +141,7 @@ def add_comment():
             )
         comment.save()
     except NotUniqueError:
-        return jsonify({409: 'Already a comment record for given uuid'}), 409
+        return jsonify({'error': 'Already a comment record for given uuid'}), 409
     current_app.logger.info(f'New comment added for {", ".join(reviewers)} ({comment["sequence"]}, annotator {comment["annotator"]})')
     return jsonify(comment.json()), 201
 
@@ -150,14 +150,14 @@ def add_comment():
 @comment_bp.patch('/<uuid>')
 def save_reviewer_comment(uuid):
     if not request.json:
-        return jsonify({400: 'No data provided'}), 400
+        return jsonify({'error': 'No data provided'}), 400
     reviewer = request.json.get('reviewer')
     if not reviewer:
-        return jsonify({400: 'No reviewer provided'}), 400
+        return jsonify({'error': 'No reviewer provided'}), 400
     try:
         db_record = Comment.objects.get(uuid=uuid)
     except DoesNotExist:
-        return jsonify({404: 'No comment records matching given uuid'}), 404
+        return jsonify({'error': 'No comment records matching given uuid'}), 404
     for reviewer_comment in db_record.reviewer_comments:
         # find the matching reviewer
         if reviewer_comment['reviewer'] == reviewer:
@@ -177,8 +177,8 @@ def save_reviewer_comment(uuid):
                 db_record.unread = True
                 db_record.save()
                 return jsonify(Comment.objects.get(uuid=uuid).json()), 200
-            return jsonify({304: 'No updates made'}), 304
-    return jsonify({404: 'No comment records matching given reviewer'}), 404
+            return jsonify({'message': 'No updates made'}), 304
+    return jsonify({'error': 'No comment records matching given reviewer'}), 404
 
 
 # update a comment's reviewers given an observation uuid
@@ -188,7 +188,7 @@ def update_comment_reviewer(uuid):
     try:
         db_record = Comment.objects.get(uuid=uuid)
     except DoesNotExist:
-        return jsonify({404: 'No comment records matching given uuid'}), 404
+        return jsonify({'error': 'No comment records matching given uuid'}), 404
     reviewers = json.loads(request.values.get('reviewers'))
     temp_reviewer_comments = []
     for reviewer_comment in db_record.reviewer_comments:
@@ -214,7 +214,7 @@ def mark_comment_read(uuid):
     try:
         db_record = Comment.objects.get(uuid=uuid)
     except DoesNotExist:
-        return jsonify({404: 'No comment records matching given uuid'}), 404
+        return jsonify({'error': 'No comment records matching given uuid'}), 404
     db_record.update(
         unread=False,
     )
@@ -227,7 +227,7 @@ def mark_comment_unread(uuid):
     try:
         db_record = Comment.objects.get(uuid=uuid)
     except DoesNotExist:
-        return jsonify({404: 'No comment records matching given uuid'}), 404
+        return jsonify({'error': 'No comment records matching given uuid'}), 404
     db_record.update(
         unread=True,
     )
@@ -240,12 +240,12 @@ def mark_comment_unread(uuid):
 def update_video_url(uuid):
     video_url = request.values.get('video_url')
     if not video_url:
-        return jsonify({400: 'No video url provided'}), 400
+        return jsonify({'error': 'No video url provided'}), 400
     try:
         db_record = Comment.objects.get(uuid=uuid)
         db_record.update(set__video_url=video_url)
     except DoesNotExist:
-        return jsonify({404: 'No record with given uuid'}), 404
+        return jsonify({'error': 'No record with given uuid'}), 404
     return jsonify(Comment.objects.get(uuid=uuid).json()), 200
 
 
@@ -256,6 +256,6 @@ def delete_comment(uuid):
     try:
         db_record = Comment.objects.get(uuid=uuid)
     except DoesNotExist:
-        return jsonify({404: 'No comment records matching given uuid'}), 404
+        return jsonify({'error': 'No comment records matching given uuid'}), 404
     db_record.delete()
-    return jsonify({200: 'Comment deleted'}), 200
+    return jsonify({'message': 'Comment deleted'}), 200

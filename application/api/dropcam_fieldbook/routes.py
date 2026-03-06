@@ -15,9 +15,9 @@ def get_dropcam_field_book(section_id):
     try:
         return jsonify(DropcamFieldBook.objects.get(section_id=section_id).json()), 200
     except DoesNotExist:
-        return jsonify({404: 'No record matching given section id'}), 404
+        return jsonify({'error': 'No record matching given section id'}), 404
     except ValueError:
-        return jsonify({400: 'Invalid section id'}), 400
+        return jsonify({'error': 'Invalid section id'}), 400
 
 
 # create new dropcam fieldbook
@@ -43,10 +43,10 @@ def add_dropcam_field_book():
         ).save()
     except JSONDecodeError:
         current_app.logger.info(f'Invalid JSON')
-        return jsonify({400: 'Invalid JSON'}), 400
+        return jsonify({'error': 'Invalid JSON'}), 400
     except KeyError:
         current_app.logger.info(f'Missing required values')
-        return jsonify({400: 'Missing required values'}), 400
+        return jsonify({'error': 'Missing required values'}), 400
     except NotUniqueError:
         # delete current record and replace with new one
         expedition_fieldbook = request.json

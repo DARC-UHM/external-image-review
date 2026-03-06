@@ -59,7 +59,7 @@ def get_image(image_name):
     if os.path.exists(file_path):
         return send_file(file_path)
     else:
-        return jsonify({404: 'Image not found'}), 404
+        return jsonify({'error': 'Image not found'}), 404
 
 
 @image_reference_bp.post('')
@@ -95,9 +95,9 @@ def add_image_reference():
             image_reference_saver.load_from_json(request.get_json())
         saved_ref = image_reference_saver.save()
     except HTTPException as e:
-        return jsonify({e.code: f'Error loading image reference: {e.description}'}), e.code
+        return jsonify({'error': f'Error loading image reference: {e.description}'}), e.code
     except ValueError as e:
-        return jsonify({400: str(e)}), 400
+        return jsonify({'error': str(e)}), 400
     return jsonify(saved_ref), 201
 
 
@@ -128,10 +128,10 @@ def update_image_reference(scientific_name):
             db_record.update(**{f'set__updated_at': datetime.now()})
     except DoesNotExist:
         return jsonify({
-            404: f'No record found matching request: '
-                 f'scientific_name={scientific_name}, '
-                 f'morphospecies={request.args.get("morphospecies")}, '
-                 f'tentative_id={request.args.get("tentative_id")}'
+            'error': f'No record found matching request: '
+                     f'scientific_name={scientific_name}, '
+                     f'morphospecies={request.args.get("morphospecies")}, '
+                     f'tentative_id={request.args.get("tentative_id")}'
         }), 404
 
     return jsonify(ImageReference.objects.get(
@@ -166,10 +166,10 @@ def update_photo_record(scientific_name):
                 photo_record.update(**{f'set__{field}': updated_value})
     except DoesNotExist:
         return jsonify({
-            404: f'No record found matching request: '
-                 f'scientific_name={scientific_name}, '
-                 f'morphospecies={request.args.get("morphospecies")}, '
-                 f'tentative_id={request.args.get("tentative_id")}'
+            'error': f'No record found matching request: '
+                     f'scientific_name={scientific_name}, '
+                     f'morphospecies={request.args.get("morphospecies")}, '
+                     f'tentative_id={request.args.get("tentative_id")}'
         }), 404
     return jsonify(ImageReference.objects.get(
         scientific_name=scientific_name,
@@ -197,12 +197,12 @@ def delete_image_reference(scientific_name):
         db_record.delete()
     except DoesNotExist:
         return jsonify({
-            404: f'No record found matching request: '
-                 f'scientific_name={scientific_name}, '
-                 f'morphospecies={request.args.get("morphospecies")}, '
-                 f'tentative_id={request.args.get("tentative_id")}'
+            'error': f'No record found matching request: '
+                     f'scientific_name={scientific_name}, '
+                     f'morphospecies={request.args.get("morphospecies")}, '
+                     f'tentative_id={request.args.get("tentative_id")}'
         }), 404
-    return jsonify({200: 'Record deleted'}), 200
+    return jsonify({'message': 'Record deleted'}), 200
 
 
 # delete a photo record
@@ -219,7 +219,7 @@ def delete_photo_record(scientific_name, tator_elemental_id):
         record_to_delete = next((record for record in db_record.photo_records
                                  if record.tator_elemental_id == tator_elemental_id), None)
         if not record_to_delete:
-            return jsonify({404: 'No photo record found matching request'}), 404
+            return jsonify({'error': 'No photo record found matching request'}), 404
         if record_to_delete.image_name:
             os.remove(os.path.join(current_app.config.get('IMAGE_REF_DIR_PATH'), record_to_delete.image_name))
         if record_to_delete.thumbnail_name:
@@ -227,9 +227,9 @@ def delete_photo_record(scientific_name, tator_elemental_id):
         db_record.update(pull__photo_records=record_to_delete)
     except DoesNotExist:
         return jsonify({
-            404: f'No record found matching request: '
-                 f'scientific_name={scientific_name}, '
-                 f'morphospecies={request.args.get("morphospecies")}, '
-                 f'tentative_id={request.args.get("tentative_id")}'
+            'error': f'No record found matching request: '
+                     f'scientific_name={scientific_name}, '
+                     f'morphospecies={request.args.get("morphospecies")}, '
+                     f'tentative_id={request.args.get("tentative_id")}'
         }), 404
-    return jsonify({200: 'Record deleted'}), 200
+    return jsonify({'message': 'Record deleted'}), 200

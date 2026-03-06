@@ -20,7 +20,7 @@ def add_reviewer():
     name = request.values.get('name')
     phylum = request.values.get('phylum')
     if not name or not phylum:
-        return jsonify({400: 'Missing required values'}), 400
+        return jsonify({'error': 'Missing required values'}), 400
     try:
         reviewer = Reviewer(
             name=name,
@@ -30,7 +30,7 @@ def add_reviewer():
             focus=request.values.get('focus'),
         ).save()
     except NotUniqueError:
-        return jsonify({409: 'There is already a reviewer with this name'}), 409
+        return jsonify({'error': 'There is already a reviewer with this name'}), 409
     current_app.logger.info(f'Added new reviewer to database: {name}')
     return jsonify(reviewer.json()), 201
 
@@ -43,7 +43,7 @@ def update_reviewer_info(old_name):
     try:
         db_record = Reviewer.objects.get(name=old_name)
     except DoesNotExist:
-        return jsonify({404: 'No reviewer records found with matching name'}), 404
+        return jsonify({'error': 'No reviewer records found with matching name'}), 404
     db_record.update(
         set__name=new_name,
         set__email=request.values.get('email', ''),
@@ -62,6 +62,6 @@ def delete_reviewer(name):
         db_record = Reviewer.objects.get(name=name)
         db_record.delete()
     except DoesNotExist:
-        return jsonify({404: 'No comment records matching given uuid'}), 404
+        return jsonify({'error': 'No reviewer record found with matching name'}), 404
     current_app.logger.info(f'Deleted reviewer from database: {name}')
-    return jsonify({200: 'Reviewer deleted'}), 200
+    return jsonify({'message': 'Reviewer deleted'}), 200

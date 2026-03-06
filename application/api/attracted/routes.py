@@ -21,9 +21,9 @@ def add_attracted():
     scientific_name = request.values.get('scientific_name')
     attracted = request.values.get('attracted')
     if not scientific_name or not attracted:
-        return jsonify({400: 'Missing required values'}), 400
+        return jsonify({'error': 'Missing required values'}), 400
     if Attracted.objects(scientific_name=scientific_name):
-        return jsonify({409: 'Record already exists'}), 409
+        return jsonify({'error': 'Record already exists'}), 409
     attr = Attracted(scientific_name=scientific_name, attracted=attracted).save()
     return jsonify(attr.json()), 201
 
@@ -34,12 +34,12 @@ def add_attracted():
 def update_attracted(scientific_name):
     attracted = request.values.get('attracted')
     if not scientific_name or not attracted:
-        return jsonify({400: 'Missing required values'}), 400
+        return jsonify({'error': 'Missing required values'}), 400
     try:
         db_record = Attracted.objects.get(scientific_name=scientific_name)
         db_record.update(set__attracted=attracted)
     except DoesNotExist:
-        return jsonify({404: 'No record with given scientific name'}), 404
+        return jsonify({'error': 'No record with given scientific name'}), 404
     return jsonify(Attracted.objects.get(scientific_name=scientific_name).json()), 200
 
 
@@ -51,5 +51,5 @@ def delete_attracted(scientific_name):
         db_record = Attracted.objects.get(scientific_name=scientific_name)
         db_record.delete()
     except DoesNotExist:
-        return jsonify({404: 'No record with given scientific name'}), 404
-    return jsonify({200: 'Record deleted'}), 200
+        return jsonify({'error': 'No record with given scientific name'}), 404
+    return jsonify({'message': 'Record deleted'}), 200

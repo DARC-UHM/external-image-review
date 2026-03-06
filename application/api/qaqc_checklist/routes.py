@@ -13,7 +13,7 @@ from . import qaqc_checklist_bp
 @require_api_key
 def vars_qaqc_checklist(sequences):
     if not sequences:
-        return jsonify({400: 'No sequence name provided'}), 400
+        return jsonify({'error': 'No sequence name provided'}), 400
     try:
         checklist = VarsQaqcChecklist.objects.get(sequence_names=sequences)
     except DoesNotExist:
@@ -47,7 +47,7 @@ def vars_qaqc_checklist(sequences):
 @require_api_key
 def patch_vars_qaqc_checklist(sequences):
     if not sequences:
-        return jsonify({400: 'No sequence name provided'}), 400
+        return jsonify({'error': 'No sequence name provided'}), 400
     updated_checkbox = request.json
     checklist = VarsQaqcChecklist.objects.get(sequence_names=sequences)
     checklist[next(iter(updated_checkbox.keys()))] = next(iter(updated_checkbox.values()))
@@ -61,7 +61,7 @@ def patch_vars_qaqc_checklist(sequences):
 @require_api_key
 def tator_qaqc_checklist(deployments):
     if not deployments:
-        return jsonify({400: 'No deployment name provided'}), 400
+        return jsonify({'error': 'No deployment name provided'}), 400
     try:
         checklist = TatorDropcamQaqcChecklist.objects.get(deployment_names=deployments)
     except DoesNotExist:
@@ -90,7 +90,7 @@ def tator_qaqc_checklist(deployments):
 @require_api_key
 def patch_tator_qaqc_checklist(deployments):
     if not deployments:
-        return jsonify({400: 'No deployment name provided'}), 400
+        return jsonify({'error': 'No deployment name provided'}), 400
     updated_checkbox = request.json
     checklist = TatorDropcamQaqcChecklist.objects.get(deployment_names=deployments)
     checklist[next(iter(updated_checkbox.keys()))] = next(iter(updated_checkbox.values()))

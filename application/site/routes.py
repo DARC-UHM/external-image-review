@@ -91,13 +91,13 @@ def save_comments():
     annotator = request.json.get('annotator')
     sequence = request.json.get('sequence')
     if uuids is None or len(uuids) == 0:
-        return {'400': 'At least one uuid is required'}, 400
+        return jsonify({'error': 'At least one uuid is required'}), 400
     if reviewer is None or reviewer == '':
-        return {'400': 'Reviewer is required'}, 400
+        return jsonify({'error': 'Reviewer is required'}), 400
     if annotator is None or annotator == '':
-        return {'400': 'Annotator is required'}, 400
+        return jsonify({'error': 'Annotator is required'}), 400
     if sequence is None or sequence == '':
-        return {'400': 'Sequence is required'}, 400
+        return jsonify({'error': 'Sequence is required'}), 400
     count_updated = 0
     count_sames = 0
     count_failed = 0
@@ -129,10 +129,10 @@ def save_comments():
             slack_client=current_app.config.get('SLACK_CLIENT'),
             slack_channel_id=current_app.config.get('SLACK_CHANNEL_ID'),
         ).send_message()
-        return {'200': 'Comments saved'}, 200
+        return jsonify({'message': 'Comments saved'}), 200
     if count_sames > 0:
-        return {'304': 'No updates made'}, 304
-    return {'500': 'Error saving comments'}, 500
+        return jsonify({'message': 'No updates made'}), 304
+    return jsonify({'error': 'Error saving comments'}), 500
 
 
 # save success page
@@ -193,7 +193,7 @@ def tator_video(media_id):
     try:
         media = req.json()
     except JSONDecodeError:
-        return jsonify({404: 'No media found'}), 404
+        return jsonify({'error': 'No media found'}), 404
     user_agent = request.user_agent.string.lower()
     if 'archival' in media['media_files'].keys() and ('chrome' in user_agent or 'edge' in user_agent or 'safari' in user_agent):
         current_app.logger.info('Playing HEVC')
