@@ -21,7 +21,7 @@ def get_dropcam_field_book(section_id):
 
 
 # create new dropcam fieldbook
-@dropcam_fieldbook_bp.post('/dropcam-fieldbook')
+@dropcam_fieldbook_bp.post('')
 @require_api_key
 def add_dropcam_field_book():
     current_app.logger.info(f'Updating dropcam fieldbook...')

@@ -8,7 +8,7 @@ from ...vars_summary import VarsSummary
 from ...get_request_ip import get_request_ip
 
 
-@stats_bp.get('/stats/vars/<sequence_num>')
+@stats_bp.get('/vars/<sequence_num>')
 def sequence_stats(sequence_num):
     current_app.logger.info(f'Got stats for VARS: {sequence_num} - IP Address: {get_request_ip()}')
     if not sequence_num:
