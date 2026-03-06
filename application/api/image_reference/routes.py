@@ -125,7 +125,7 @@ def update_image_reference(scientific_name):
         ]:
             if updated_value := request.values.get(field):
                 db_record.update(**{f'set__{field}': updated_value})
-            db_record.update(**{f'set__updated_at': datetime.now()})
+        db_record.update(**{f'set__updated_at': datetime.now()})
     except DoesNotExist:
         return jsonify({
             'error': f'No record found matching request: '
@@ -142,10 +142,9 @@ def update_image_reference(scientific_name):
 
 
 # update a photo record (lat/long, depth, temp, salinity)
-@image_reference_bp.patch('/<scientific_name>')
+@image_reference_bp.patch('/<scientific_name>/<tator_elemental_id>')
 @require_api_key
-def update_photo_record(scientific_name):
-    tator_elemental_id = request.args.get('tator_elemental_id')
+def update_photo_record(scientific_name, tator_elemental_id):
     try:
         db_record = ImageReference.objects.get(
             scientific_name=scientific_name,
@@ -155,6 +154,8 @@ def update_photo_record(scientific_name):
         # find the photo record to update
         photo_record = next((record for record in db_record.photo_records
                              if record.tator_id == tator_elemental_id), None)
+        if not photo_record:
+            return jsonify({'error': 'No photo record found matching request'}), 404
         for field in [
             'lat',
             'long',

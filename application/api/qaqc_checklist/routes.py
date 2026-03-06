@@ -49,7 +49,10 @@ def patch_vars_qaqc_checklist(sequences):
     if not sequences:
         return jsonify({'error': 'No sequence name provided'}), 400
     updated_checkbox = request.json
-    checklist = VarsQaqcChecklist.objects.get(sequence_names=sequences)
+    try:
+        checklist = VarsQaqcChecklist.objects.get(sequence_names=sequences)
+    except DoesNotExist:
+        return jsonify({'error': 'No checklist found for given sequence name'}), 404
     checklist[next(iter(updated_checkbox.keys()))] = next(iter(updated_checkbox.values()))
     checklist.save()
     current_app.logger.info(f'Updated VARS QA/QC checklist: {sequences}')
@@ -92,7 +95,10 @@ def patch_tator_qaqc_checklist(deployments):
     if not deployments:
         return jsonify({'error': 'No deployment name provided'}), 400
     updated_checkbox = request.json
-    checklist = TatorDropcamQaqcChecklist.objects.get(deployment_names=deployments)
+    try:
+        checklist = TatorDropcamQaqcChecklist.objects.get(deployment_names=deployments)
+    except DoesNotExist:
+        return jsonify({'error': 'No checklist found for given deployment name'}), 404
     checklist[next(iter(updated_checkbox.keys()))] = next(iter(updated_checkbox.values()))
     checklist.save()
     current_app.logger.info(f'Updated Tator QA/QC checklist: {deployments}')
