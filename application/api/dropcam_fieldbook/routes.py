@@ -9,7 +9,7 @@ from ...require_api_key import require_api_key
 
 
 # get dropcam fieldbook by section id
-@dropcam_fieldbook_bp.get('/dropcam-fieldbook/<section_id>')
+@dropcam_fieldbook_bp.get('/<section_id>')
 @require_api_key
 def get_dropcam_field_book(section_id):
     try:
