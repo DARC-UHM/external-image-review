@@ -31,7 +31,7 @@ class Comment(Document):
             comment = {
                 'reviewer': reviewer_comment.reviewer,
                 'favorite': reviewer_comment.favorite,
-                'date_modified': reviewer_comment.date_modified.strftime('%d %b %H:%M HST'),
+                'date_modified': reviewer_comment.date_modified.strftime('%d %b %Y %H:%M HST'),
             }
             for field in ['id_consensus', 'id_at_time_of_response', 'comment']:
                 if getattr(reviewer_comment, field) is not None:
