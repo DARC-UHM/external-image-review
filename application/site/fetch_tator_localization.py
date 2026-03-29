@@ -72,6 +72,10 @@ def update_localization_in_dict(localization: dict, updated_localization: dict, 
     localization['oxygen_ml_l'] = updated_localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
     localization['id_reference'] = f'{updated_localization["media"]}:{localization["concept"]}'
     section_id = localization['section_id']
+    if '_sub_' in localization['sequence']:
+        localization['expedition_name'] = localization['sequence'].split('_sub_')[0] 
+        return
+    # get dropcam fieldbook info
     if section_id not in expeditions.keys():
         try:
             expeditions[section_id] = DropcamFieldBook.objects.get(section_id=section_id).json()
