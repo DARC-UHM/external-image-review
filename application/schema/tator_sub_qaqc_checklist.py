@@ -16,7 +16,6 @@ class TatorSubQaqcChecklist(Document):
     notes_remarks = IntField(required=True, min_value=0, max_value=2)
     re_examined = IntField(required=True, min_value=0, max_value=2)
     review_sizes = IntField(required=True, min_value=0, max_value=2)
-    review_counts = IntField(required=True, min_value=0, max_value=2)
     unique_taxa = IntField(required=True, min_value=0, max_value=2)
     media_attributes = IntField(required=True, min_value=0, max_value=2)
 
@@ -34,7 +33,6 @@ class TatorSubQaqcChecklist(Document):
             'notes_remarks': self.notes_remarks,
             're_examined': self.re_examined,
             'review_sizes': self.review_sizes,
-            'review_counts': self.review_counts,
             'unique_taxa': self.unique_taxa,
             'media_attributes': self.media_attributes,
         }
