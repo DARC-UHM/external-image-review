@@ -130,8 +130,6 @@ def tator_sub_qaqc_checklist(transect_media_ids):
             notes_remarks=0,
             re_examined=0,
             review_sizes=0,
-            review_counts=0,
-            review_exploratory_segments=0,
             unique_taxa=0,
             media_attributes=0,
         ).save()
