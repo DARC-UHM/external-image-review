@@ -333,3 +333,112 @@ select {
     border: 0;
     border-radius: 3px;
 }
+
+#filterSidebar {
+    width: 280px;
+    height: 100vh;
+    background: var(--darc-bg-dark);
+    transition: all 0.3s ease;
+    z-index: 1040;
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.5);
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+#filterSidebar.collapsed {
+    width: 0;
+}
+
+.toggle-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    background: var(--darc-input-bg);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    color: var(--darc-text);
+}
+
+.toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.hide-on-collapse {
+    width: 280px;
+}
+
+.collapsed .hide-on-collapse {
+    display: none;
+}
+
+.sidebar-close-btn svg {
+    transition: fill 0.15s ease;
+}
+
+.sidebar-close-btn:hover svg {
+    fill: #ffffff;
+}
+
+.filter-active-dot {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--darc-link-text);
+    pointer-events: none;
+}
+
+.image-ref-card {
+    background: #1b1f26;
+    transition: box-shadow 0.15s ease;
+}
+
+.image-ref-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.sidebar-section-divider {
+    border-color: var(--darc-border);
+    margin: 1rem 0;
+}
+
+.phylo-label {
+    cursor: pointer;
+    color: var(--darc-text);
+    transition: color 0.15s ease;
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+.phylo-label:hover {
+    color: var(--darc-link-text);
+}
+
+.phylo-label-active {
+    color: var(--darc-link-text);
+}
+
+.tree-toggle {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+    cursor: pointer;
+}
+
+.tree-toggle-open {
+    transform: rotate(90deg);
+}
+
+.tree-spacer {
+    width: 16px;
+    flex-shrink: 0;
+    display: inline-block;
+}
+
+#phylogenyTree ul {
+    border-left: 1px solid var(--darc-border);
+}

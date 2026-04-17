@@ -5,23 +5,108 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <style>
+        #keywordFilterInput:focus {
+            outline: none;
+        }
+        .tooltip-inner {
+            white-space: nowrap;
+            max-width: none;
+        }
+    </style>
 </head>
 <body>
-<style>
-    #keywordFilterInput:focus {
-        outline: none;
-    }
-     .tooltip-inner {
-         white-space: nowrap;
-         max-width: none;
-     }
-</style>
-<div class="text-center my-3 mx-5">
-    <div class="col mt-3 m-auto position-relative" style="max-width: 1200px;">
+<nav id="filterSidebar" class="collapsed d-flex flex-column flex-shrink-0 position-fixed" style="top: 0;">
+    <div class="hide-on-collapse px-3 mt-4">
+        <div class="d-flex mb-4">
+            <div class="my-auto fw-semibold">
+                Filters
+            </div>
+            <button
+                    class="ms-auto mt-2 me-2 sidebar-close-btn"
+                    style="background: none; border: none;"
+                    onclick="toggleSidebar()"
+                    data-toggle="tooltip"
+                    data-bs-placement="right"
+                    data-bs-html="true"
+                    title="Hide filters"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z"/></svg>
+            </button>
+        </div>
+        <label for="idTypeFilterSelect" class="small text-muted">
+            Filter by ID type
+        </label>
+        <div class="position-relative mx-auto">
+            <select
+                    id="idTypeFilterSelect"
+                    class="px-3 small w-100"
+                    style="background-color: var(--darc-input-bg); cursor: pointer;"
+            >
+                <option value="any" selected>Any ID type</option>
+                <option value="morphospecies">Only morphospecies</option>
+                <option value="tentativeId">Only tentative ID</option>
+                <option value="morphoOrTentative">Only morphospecies or tentative ID</option>
+            </select>
+            <div class="position-absolute pe-none" style="top: 4px; right: 1rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3" class="my-auto">
+                    <path d="M480-360 280-560h400L480-360Z"/>
+                </svg>
+            </div>
+        </div>
+        <hr class="sidebar-section-divider">
+        <label for="baitInteractionFilterSelect" class="small text-muted">
+            Filter by bait interaction
+        </label>
+        <div class="position-relative mx-auto">
+            <select
+                    id="baitInteractionFilterSelect"
+                    class="px-3 small w-100"
+                    style="background-color: var(--darc-input-bg); cursor: pointer;"
+            >
+                <option value="any" selected>Any bait interaction</option>
+                <option value="attracted">Attracted</option>
+                <option value="notAttracted">Not attracted</option>
+            </select>
+            <div class="position-absolute pe-none" style="top: 4px; right: 1rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3" class="my-auto">
+                    <path d="M480-360 280-560h400L480-360Z"/>
+                </svg>
+            </div>
+        </div>
+        <hr class="sidebar-section-divider">
+        <div>
+            <label for="phylogenyTree" class="small text-muted">
+                Filter by phylogeny
+            </label>
+            <ul id="phylogenyTree" class="list-unstyled small" style="max-height: 500px; overflow-y: auto;">
+                <li class="mb-1">
+                    <div class="d-flex align-items-center gap-1">
+                        <span class="tree-spacer"></span>
+                        <span class="phylo-label phylo-label-active" data-filter="any" onclick="updatePhylogenyFilter('any');">Any</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="content collapsed">
+    <div class="mt-4 mx-5 d-flex justify-content-between">
+        <button
+                class="toggle-btn my-auto position-relative"
+                onclick="toggleSidebar()"
+                data-toggle="tooltip"
+                data-bs-placement="right"
+                data-bs-html="true"
+                title="Show filters"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M360-440 129-735q-5-6-7-12.5t-2-12.5q0-16 11.5-28t28.5-12h560q17 0 28.5 12t11.5 28q0 6-2 12.5t-7 12.5L520-440v240q0 17-11.5 28.5T480-160h-80q-17 0-28.5-11.5T360-200v-240Zm400 240-56-56 63-64H600v-80h167l-63-64 56-56 160 160-160 160ZM440-468l198-252H242l198 252Z"/></svg>
+            <span id="filterActiveDot" class="filter-active-dot d-none"></span>
+        </button>
         <div
-            id="filterContainer"
-            class="mx-auto rounded-pill py-1 d-flex justify-content-between"
-            style="background: var(--darc-input-bg); max-width: 700px; border: 1px solid var(--darc-bg);"
+                id="searchAndFilterContainer"
+                class="mx-auto rounded-pill py-1 d-flex justify-content-between"
+                style="background: var(--darc-input-bg); max-width: 700px; border: 1px solid var(--darc-bg);"
         >
             <div class="d-flex" style="min-width: 350px; max-width: 60%;">
                 <label for="keywordFilterInput" class="my-auto ms-3 btn p-0">
@@ -30,23 +115,23 @@
                     </svg>
                 </label>
                 <input
-                    id="keywordFilterInput"
-                    class="rounded-1 small"
-                    style="padding: 6px 12px; background-color: var(--darc-input-bg); color: var(--darc-text); border: 0; width: 100%;"
-                    type="text"
-                    placeholder="Search by phylum, class, order, etc."
-                    aria-label="Search by phylum, class, order, etc."
+                        id="keywordFilterInput"
+                        class="rounded-1 small"
+                        style="padding: 6px 12px; background-color: var(--darc-input-bg); color: var(--darc-text); border: 0; width: 100%;"
+                        type="text"
+                        placeholder="Search by name, location, phylum..."
+                        aria-label="Search by name, location, phylum..."
                 />
             </div>
             <div
-                class="my-auto ps-4 pe-2 position-relative visible d-none d-md-block"
-                style="color: #ccc; border-left: 1px solid #ccc; height: 24px;"
+                    class="my-auto ps-4 pe-2 position-relative visible d-none d-md-block"
+                    style="color: #ccc; border-left: 1px solid #ccc; height: 24px;"
             >
                 <label for="sortSelect" style="font-size: 0.8rem;">Sort by</label>
                 <select
-                    id="sortSelect"
-                    class="form-select-sm small"
-                    style="background-color: var(--darc-input-bg); border: 0; width: 100px; cursor: pointer;"
+                        id="sortSelect"
+                        class="form-select-sm small"
+                        style="background-color: var(--darc-input-bg); border: 0; width: 100px; cursor: pointer;"
                 >
                     <option selected value="default">Default</option>
                     <option value="phylum">Phylum</option>
@@ -64,81 +149,11 @@
                 </div>
             </div>
         </div>
-        <div class="position-relative mt-3 mx-auto visible d-block d-md-none" style="width: max-content;">
-            <label for="sortSelectSmall" style="font-size: 0.8rem; width: 75px;">
-                Sort by
-            </label>
-            <select
-                id="sortSelectSmall"
-                class="mx-2 px-3 small rounded-pill"
-                style="background-color: var(--darc-input-bg); min-width: 250px; cursor: pointer;"
-            >
-                <option selected value="default">Default</option>
-                <option value="phylum">Phylum</option>
-                <option value="class">Class</option>
-                <option value="order">Order</option>
-                <option value="family">Family</option>
-                <option value="genus">Genus</option>
-                <option value="species">Species</option>
-                <option value="depth">Depth</option>
-            </select>
-            <div class="position-absolute pe-none" style="top: 4px; right: 1rem;">
-                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3">
-                    <path d="M480-360 280-560h400L480-360Z"/>
-                </svg>
-            </div>
-        </div>
-        <div class="position-relative mx-auto mt-3" style="width: max-content;">
-            <label for="idTypeFilterSelect" style="font-size: 0.8rem; width: 75px;">
-                ID type filter
-            </label>
-            <select
-                id="idTypeFilterSelect"
-                class="mx-2 px-3 small rounded-pill"
-                style="background-color: var(--darc-input-bg); min-width: 250px; cursor: pointer;"
-            >
-                <option value="any" selected>Any</option>
-                <option value="morphoOrTentative">Morphospecies/tentative ID</option>
-                <option value="morphospecies">Morphospecies</option>
-                <option value="tentativeId">Tentative ID</option>
-            </select>
-            <div class="position-absolute pe-none" style="top: 4px; right: 1rem;">
-                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3" class="my-auto">
-                    <path d="M480-360 280-560h400L480-360Z"/>
-                </svg>
-            </div>
-        </div>
-        <div class="accordion accordion-flush" id="phylogenyFilter">
-            <div class="accordion-item accordion-filter py-2">
-                <div class="accordion-header" id="flush-headingOne">
-                    <button
-                        class="collapsed p-0 border-0 px-3"
-                        type="button"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#flush-collapseOne"
-                        aria-expanded="false"
-                        aria-controls="flush-collapseOne"
-                        style="background: none; color: #ccc; font-size: 0.85rem;"
-                        onclick="$('#phylogenyArrow').toggleClass('rotate');"
-                    >
-                        Browse by phylogeny
-                        <svg id="phylogenyArrow" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3">
-                            <path d="M480-360 280-560h400L480-360Z"/>
-                        </svg>
-                    </button>
-                </div>
-                <div
-                    id="flush-collapseOne"
-                    class="accordion-collapse collapse py-2 small"
-                    aria-labelledby="flush-headingOne"
-                    data-bs-parent="#phylogenyFilter"
-                >
-                    <div id="filterList"></div>
-                </div>
-            </div>
+        <div class="my-auto text-end" style="min-width: 2.5rem;">
+            <span id="resultsCount" class="small text-muted"></span>
         </div>
     </div>
-    <div id="imageGrid" class="row d-flex mt-1">
+    <div id="imageGrid" class="row d-flex my-3 mx-5">
     </div>
 </div>
 <script>

@@ -3,9 +3,10 @@ const taxonRanks = ['phylum', 'class', 'order', 'family', 'genus'];
 const phyla = {};
 
 let filteredImageReferences = [...imageReferences];
-let phylogenyFilter = {};
+let phylogenyFilter = 'any';
 let keywordFilter = '';
 let idTypeFilter = 'any';
+let baitInteractionFilter = 'any';
 let sortKey = 'default';
 
 $(document).ready(() => {
@@ -15,18 +16,18 @@ $(document).ready(() => {
     });
     keywordFilter = $('#keywordFilterInput').val();
     populatePhyla();
-    updatePhylogenyFilterSelects();
+    $("#phylogenyTree").append(renderTree(phyla));
     updateImageGrid();
     $('#keywordFilterInput').on('input', (e) => {
         keywordFilter = e.target.value;
         $('[data-toggle="tooltip"]').tooltip('dispose');
-        updateFilter();
+        updateImageGrid();
     });
     $('#keywordFilterInput').on('focus', () => {
-        $('#filterContainer').css('border', '1px solid #ffffff25');
+        $('#searchAndFilterContainer').css('border', '1px solid #ffffff25');
     });
     $('#keywordFilterInput').on('blur', () => {
-        $('#filterContainer').css('border', '1px solid var(--darc-bg)');
+        $('#searchAndFilterContainer').css('border', '1px solid var(--darc-bg)');
     });
     $('#sortSelect').on('change', (e) => {
         sortKey = e.target.value;
@@ -38,28 +39,61 @@ $(document).ready(() => {
     });
     $('#idTypeFilterSelect').on('change', (e) => {
         idTypeFilter = e.target.value;
-        updateFilter();
+        updateImageGrid();
+    });
+    $('#baitInteractionFilterSelect').on('change', (e) => {
+        baitInteractionFilter = e.target.value;
+        updateImageGrid();
+    });
+    $("#phylogenyTree").on("click", ".tree-toggle", function () {
+        const $toggle = $(this);
+        const $childUl = $toggle.closest("li").children("ul");
+        $childUl.toggleClass("d-none");
+        $toggle.toggleClass("tree-toggle-open");
     });
 });
 
-function updateFilter() {
-    updatePhylogenyFilterSelects();
+function toggleSidebar() {
+    $('#filterSidebar').toggleClass('collapsed');
+}
+
+window.toggleSidebar = toggleSidebar;
+
+function updatePhylogenyFilter(newFilter) {
+    phylogenyFilter = newFilter;
+    $('.phylo-label').removeClass('phylo-label-active');
+    $(`.phylo-label[data-filter="${newFilter}"]`).addClass('phylo-label-active');
     updateImageGrid();
 }
 
+window.updatePhylogenyFilter = updatePhylogenyFilter;
+
 function updateIdTypeFilter(newFilter) {
     idTypeFilter = newFilter;
-    updateFilter();
+    updateImageGrid();
 }
 
 window.updateIdTypeFilter = updateIdTypeFilter;
 
+function updateFilterIndicator() {
+    const anyActive = phylogenyFilter !== 'any' || keywordFilter !== '' || idTypeFilter !== 'any' || baitInteractionFilter !== 'any';
+    $('#filterActiveDot').toggleClass('d-none', !anyActive);
+}
+
 function updateImageGrid() {
     $('#imageGrid').empty();
     filteredImageReferences = [...imageReferences];
-    for (const key of Object.keys(phylogenyFilter)) {
+    if (phylogenyFilter !== 'any') {
         filteredImageReferences = filteredImageReferences.filter((imageRef) => {
-            return imageRef[key === 'class' ? 'class_name' : key]?.toLowerCase().includes(phylogenyFilter[key].toLowerCase());
+            const properties = [
+                'phylum',
+                'class_name',
+                'order',
+                'family',
+                'genus',
+                'species',
+            ];
+            return properties.some((property) => imageRef[property]?.toLowerCase().includes(phylogenyFilter.toLowerCase()));
         });
     }
     if (keywordFilter) {
@@ -74,6 +108,7 @@ function updateImageGrid() {
                 'species',
                 'tentative_id',
                 'morphospecies',
+                'attracted',
             ];
             return properties.some((property) => imageRef[property]?.toLowerCase().includes(keywordFilter.toLowerCase()));
         });
@@ -98,8 +133,17 @@ function updateImageGrid() {
         default:
             break;
     }
-    // move all records missing specified property to bottom
-    const recordsMissingSortKey = filteredImageReferences.filter((anno) => anno[sortKey]);
+    switch (baitInteractionFilter) {
+        case 'attracted':
+            filteredImageReferences = filteredImageReferences.filter((imageRef) => imageRef.attracted === true);
+            break;
+        case 'notAttracted':
+            filteredImageReferences = filteredImageReferences.filter((imageRef) => imageRef.attracted === false);
+            break;
+        default:
+            break;
+    }
+    updateFilterIndicator();
     switch (sortKey) {
         case 'phylum':
             filteredImageReferences = filterAndSort(filteredImageReferences, 'species');
@@ -135,19 +179,37 @@ function updateImageGrid() {
             filteredImageReferences = filterAndSort(filteredImageReferences, 'species');
             break;
         case 'depth':
-            filteredImageReferences.sort((a, b) => a.photo_records[0].depth_m - b.photo_records[0].depth_m);
+            filteredImageReferences.sort((a, b) => {
+                const aDepth = a.photo_records[0]?.depth_m;
+                const bDepth = b.photo_records[0]?.depth_m;
+                if (aDepth == null && bDepth == null) return 0;
+                if (aDepth == null) return 1;
+                if (bDepth == null) return -1;
+                return aDepth - bDepth;
+            });
             break;
         default:
             break;
     }
-    filteredImageReferences = recordsMissingSortKey.concat(filteredImageReferences.filter((record) => !record[sortKey]));
+    const total = imageReferences.length;
+    const filtered = filteredImageReferences.length;
+    $('#resultsCount').text(filtered === total ? `${total} taxa` : `${filtered} of ${total} taxa`);
+    if (filteredImageReferences.length === 0) {
+        $('#imageGrid').html(`
+            <div class="col-12 text-center py-5 text-muted">
+                No taxa match your current filters.
+            </div>
+        `);
+        return;
+    }
+
     filteredImageReferences.forEach((imageRef) => {
         const fullName = formattedName(imageRef);
         const photoKey = fullName.replaceAll(' ', '-');
         slideshows[photoKey] = { currentIndex: 0, maxIndex: imageRef.photo_records.length - 1, depths: [] };
         $('#imageGrid').append(`
             <div class="col-lg-3 col-md-4 col-sm-6 col-12 p-2">
-                <div class="rounded-3 small" style="background: #1b1f26;">
+                <div class="image-ref-card rounded-3 small">
                     <div class="py-2 rounded-top m-0" style="background: #171a1f;">
                         <div
                             class="mx-auto"
@@ -288,82 +350,6 @@ function populatePhyla() {
     });
 }
 
-function addPhylogenyFilterSelect(taxonRank, selectedValue) {
-    let rankOptions;
-    switch (taxonRank) {
-        case 'phylum':
-            rankOptions = (Object.keys(phyla));
-            break;
-        case 'class':
-            rankOptions = (Object.keys(phyla[phylogenyFilter.phylum]));
-            break;
-        case 'order':
-            rankOptions = (Object.keys(phyla[phylogenyFilter.phylum][phylogenyFilter.class]));
-            break;
-        case 'family':
-            rankOptions = (Object.keys(phyla[phylogenyFilter.phylum][phylogenyFilter.class][phylogenyFilter.order]));
-            break;
-        case 'genus':
-            rankOptions = (Object.keys(phyla[phylogenyFilter.phylum][phylogenyFilter.class][phylogenyFilter.order][phylogenyFilter.family]));
-            break;
-        default:
-            rankOptions = [];
-    }
-    $('#filterList').append(`
-        <span id="${taxonRank}Filter">
-            <span class="position-relative">
-                <select
-                    id="${taxonRank}FilterSelect"
-                    onchange="updatePhylogenyFilter('${taxonRank}')"
-                    style="background: var(--darc-input-bg); height: 2rem;"
-                >
-                    <option value="all">Any ${taxonRank}</option>
-                    ${rankOptions.map((option) =>
-        `<option value="${option}" ${selectedValue === option ? 'selected' : ''}>${option}</option>`
-    )}
-                </select>
-                <span class="position-absolute dropdown-chev">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
-                      <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
-                    </svg>
-                </span>
-            </span>
-        </span>
-    `);
-}
-
-function updatePhylogenyFilter(taxonRank) {
-    const selected = $(`#${taxonRank}FilterSelect`).val();
-    if (selected === 'all') {
-        delete phylogenyFilter[taxonRank];
-    } else {
-        phylogenyFilter[taxonRank] = selected;
-    }
-    // remove all lower ranks
-    for (let i = taxonRanks.indexOf(taxonRank) + 1; i < taxonRanks.length; i++) {
-        delete phylogenyFilter[taxonRanks[i]];
-    }
-    updateFilter();
-}
-
-window.updatePhylogenyFilter = updatePhylogenyFilter;
-
-function updatePhylogenyFilterSelects() {
-    $('#filterList').empty();
-    for (const filterName of Object.keys(phylogenyFilter)) {
-        addPhylogenyFilterSelect(filterName, phylogenyFilter[filterName]);
-        if (filterName !== 'genus') {
-            $('#filterList').append('→');
-        }
-    }
-    for (const taxonRank of taxonRanks) {
-        if (!phylogenyFilter[taxonRank]) {
-            addPhylogenyFilterSelect(taxonRank, '');
-            break;
-        }
-    }
-}
-
 function changeSlide(photoKey, slideMod) {
     const { currentIndex, maxIndex } = slideshows[photoKey];
     const slideIndex = (currentIndex + slideMod + maxIndex + 1) % (maxIndex + 1);
@@ -419,4 +405,37 @@ const depthColor = (depthM) => {
         return '#fffd38';
     }
     return '#fc0d1b';
+}
+
+function renderTree(node, path = []) {
+    let html = '';
+
+    Object.entries(node).forEach(([name, children]) => {
+        const hasChildren = Object.keys(children).length > 0;
+        const childHtml = hasChildren
+            ? `
+                <ul class="list-unstyled ms-3 d-none">
+                    ${renderTree(children, [...path, name])}
+                </ul>
+            ` : '';
+
+        html += `
+          <li class="mb-1">
+            <div class="d-flex align-items-center gap-1">
+              ${hasChildren
+                    ? `<span class="tree-toggle" role="button">
+                           <svg xmlns="http://www.w3.org/2000/svg" height="16px" viewBox="0 -960 960 960" width="16px" fill="#aaa"><path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/></svg>
+                       </span>`
+                    : `<span class="tree-spacer"></span>`
+              }
+              <span class="phylo-label" data-filter="${name}" onclick="updatePhylogenyFilter('${name}');">
+                  ${name}
+              </span>
+            </div>
+            ${childHtml}
+          </li>
+        `;
+    });
+
+    return html;
 }
