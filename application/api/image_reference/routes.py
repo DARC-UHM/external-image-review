@@ -156,6 +156,7 @@ def update_photo_record(scientific_name, tator_elemental_id):
                              if record.tator_elemental_id == tator_elemental_id), None)
         if not photo_record:
             return jsonify({'error': 'No photo record found matching request'}), 404
+        request_json = request.get_json()
         for field in [
             'lat',
             'long',
@@ -164,7 +165,7 @@ def update_photo_record(scientific_name, tator_elemental_id):
             'salinity_m_l',
             'attracted',
         ]:
-            if updated_value := request.values.get(field):
+            if updated_value := request_json.get(field):
                 setattr(photo_record, field, updated_value)
         db_record._mark_as_changed('photo_records')
         db_record.save()
