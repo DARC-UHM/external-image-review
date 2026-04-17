@@ -141,7 +141,7 @@ def update_image_reference(scientific_name):
     ).json()), 200
 
 
-# update a photo record (lat/long, depth, temp, salinity)
+# update a photo record (lat/long, depth, temp, salinity, attracted)
 @image_reference_bp.patch('/<scientific_name>/<tator_elemental_id>')
 @require_api_key
 def update_photo_record(scientific_name, tator_elemental_id):
@@ -162,6 +162,7 @@ def update_photo_record(scientific_name, tator_elemental_id):
             'depth_m',
             'temp_c',
             'salinity_m_l',
+            'attracted',
         ]:
             if updated_value := request.values.get(field):
                 photo_record.update(**{f'set__{field}': updated_value})

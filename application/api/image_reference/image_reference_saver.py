@@ -31,6 +31,7 @@ class ImageReferenceSaver:
         self.depth_m = None
         self.temp_c = None
         self.salinity_m_l = None
+        self.attracted = None
 
     def load_from_tator_localization_id(self, localization_id):
         # if lone tator localization id is passed, fetch the rest of the data from tator
@@ -56,6 +57,7 @@ class ImageReferenceSaver:
         self.depth_m = localization['attributes'].get('Depth')
         self.temp_c = localization['attributes'].get('DO Temperature (celsius)')
         self.salinity_m_l = localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
+        self.attracted = localization['attributes'].get('Attracted')
         if self.tentative_id == '':
             self.tentative_id = None
         if self.morphospecies == '':
@@ -107,6 +109,7 @@ class ImageReferenceSaver:
         self.depth_m = json_payload.get('depth_m')
         self.temp_c = json_payload.get('temp_c')
         self.salinity_m_l = json_payload.get('salinity_m_l')
+        self.attracted = json_payload.get('attracted')
         if not self.scientific_name \
                 or not self.section_id \
                 or not self.deployment_name \
@@ -159,6 +162,7 @@ class ImageReferenceSaver:
                 'depth_m': self.depth_m or fetched_data['depth_m'],
                 'temp_c': self.temp_c,
                 'salinity_m_l': self.salinity_m_l,
+                'attracted': self.attracted,
             })
         except HTTPException as e:
             abort(e.code, e.description)
@@ -191,6 +195,7 @@ class ImageReferenceSaver:
                 'depth_m': self.depth_m or fetched_data['depth_m'],
                 'temp_c': self.temp_c,
                 'salinity_m_l': self.salinity_m_l,
+                'attracted': self.attracted,
             }],
         }
         if self.tentative_id:

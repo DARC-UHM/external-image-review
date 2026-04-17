@@ -16,6 +16,7 @@ class ImageRecord(EmbeddedDocument):
     depth_m = IntField()
     temp_c = DecimalField()
     salinity_m_l = DecimalField()
+    attracted = BooleanField()
 
     KNOWN_LOCATIONS = {
         'FJI': 'Fiji',
@@ -45,6 +46,7 @@ class ImageRecord(EmbeddedDocument):
             'depth_m',
             'temp_c',
             'salinity_m_l',
+            'attracted',
         ]:
             if getattr(self, field):
                 item[field] = float(getattr(self, field))
@@ -59,7 +61,6 @@ class ImageReference(Document):
     photo_records = ListField(EmbeddedDocumentField(ImageRecord), required=True, max_length=5)
     tentative_id = StringField(max_length=100)
     morphospecies = StringField(max_length=100)
-    attracted = BooleanField()
     phylum = StringField(max_length=100)
     class_name = StringField(max_length=100)
     order = StringField(max_length=100)
@@ -77,7 +78,6 @@ class ImageReference(Document):
         for field in [
             'tentative_id',
             'morphospecies',
-            'attracted',
             'phylum',
             'class_name',
             'order',

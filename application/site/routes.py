@@ -14,6 +14,7 @@ from .fetch_tator_localization import fetch_tator_localizations
 from .fetch_vars_annotation import fetch_vars_annotation
 from .slack_helper import SlackHelper
 from ..get_request_ip import get_request_ip
+from ..schema.image_reference import ImageReference
 
 
 # the link to share with external reviewers
