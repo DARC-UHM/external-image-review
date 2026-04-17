@@ -135,10 +135,14 @@ function updateImageGrid() {
     }
     switch (baitInteractionFilter) {
         case 'attracted':
-            filteredImageReferences = filteredImageReferences.filter((imageRef) => imageRef.attracted === true);
+            filteredImageReferences = filteredImageReferences.filter((imageRef) => {
+                return imageRef.photo_records.some((photoRecord) => photoRecord.attracted);
+            });
             break;
         case 'notAttracted':
-            filteredImageReferences = filteredImageReferences.filter((imageRef) => imageRef.attracted === false);
+            filteredImageReferences = filteredImageReferences.filter((imageRef) => {
+                return imageRef.photo_records.some((photoRecord) => !photoRecord.attracted);
+            });
             break;
         default:
             break;
