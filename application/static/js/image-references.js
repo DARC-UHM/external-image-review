@@ -210,7 +210,7 @@ function updateImageGrid() {
         $('#imageGrid').append(`
             <div class="col-lg-3 col-md-4 col-sm-6 col-12 p-2">
                 <div class="image-ref-card rounded-3 small">
-                    <div class="py-2 rounded-top m-0" style="background: #171a1f;">
+                    <div class="image-ref-card-header rounded-top m-0">
                         <div
                             class="mx-auto"
                             style="width: fit-content;"
@@ -261,7 +261,7 @@ function updateImageGrid() {
                                             }
                                         </div>
                                         <div
-                                            class="position-absolute d-flex align-items-center"
+                                            class="position-absolute d-flex align-items-center image-ref-card-footer-text"
                                             style="height: 1.5rem; left: 0; bottom: -1.5rem; font-size: 0.75rem;"
                                         >
                                             <div
@@ -288,7 +288,7 @@ function updateImageGrid() {
                                         ${imageRef.photo_records.length > 1
                                             ? `
                                                 <div
-                                                    class="position-absolute d-flex align-items-center w-100 pe-none"
+                                                    class="position-absolute d-flex align-items-center w-100 pe-none image-ref-card-footer-text"
                                                     style="height: 1.5rem; bottom: -1.5rem; font-size: 0.75rem;"
                                                 >
                                                     <div class="w-100 text-center">
