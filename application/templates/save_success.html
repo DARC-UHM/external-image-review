@@ -4,8 +4,8 @@
     <title>DARC Image Review</title>
     <meta name="robots" content="noindex, nofollow" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/static/css/bootstrap.css" />
-    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body id="index" class="text-center my-3 mx-5">
     <img src="/static/img/darc.png" class="mt-4" width="30%" style="max-width: 300px; min-width: 200px"/>
@@ -14,6 +14,6 @@
     <a class="mediaButton" href="/review/{{ data.name }}?all=true">
         <p>Return to previous page</p>
     </a>
-    <script src="/static/js/bootstrap.bundle.js"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
 </body>
 </html>

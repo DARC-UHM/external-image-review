@@ -4,8 +4,8 @@
     <title>DARC Image Review | {{ data.reviewer }}</title>
     <meta name="robots" content="noindex, nofollow" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/static/css/bootstrap.css" />
-    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body class="min-vh-100 d-flex flex-column">
     <div id="flash-messages-container">
@@ -78,7 +78,7 @@
     </div>
 
     <script src="/static/js/jquery.min.js"></script>
-    <script src="/static/js/bootstrap.bundle.js"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
     <script>
         const None = null;
         const True = true;
