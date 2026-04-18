@@ -46,10 +46,11 @@ class ImageRecord(EmbeddedDocument):
             'depth_m',
             'temp_c',
             'salinity_m_l',
-            'attracted',
         ]:
-            if getattr(self, field):
+            if getattr(self, field) is not None:
                 item[field] = float(getattr(self, field))
+        if self.attracted is not None:
+            item['attracted'] = self.attracted
         return item
 
 
@@ -58,7 +59,7 @@ class ImageReference(Document):
     created_at = DateTimeField(required=True, default=datetime.now)
     updated_at = DateTimeField(required=True, default=datetime.now)
     scientific_name = StringField(required=True, max_length=100)
-    photo_records = ListField(EmbeddedDocumentField(ImageRecord), required=True, max_length=5)
+    photo_records = ListField(EmbeddedDocumentField(ImageRecord), required=True)
     tentative_id = StringField(max_length=100)
     morphospecies = StringField(max_length=100)
     phylum = StringField(max_length=100)
@@ -88,6 +89,10 @@ class ImageReference(Document):
             if getattr(self, field):
                 item[field] = getattr(self, field)
         return item
+
+    meta = {
+        'indexes': ['scientific_name', 'tentative_id', 'morphospecies']
+    }
 
     def json_quick(self):
         quick_name = self.scientific_name

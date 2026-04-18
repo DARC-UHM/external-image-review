@@ -3,7 +3,7 @@ from mongoengine import Document, IntField, StringField
 
 class VarsQaqcChecklist(Document):
     """ Schema for VARS QAQC checklist collection """
-    sequence_names = StringField(required=True, max_length=750)
+    sequence_names = StringField(required=True, unique=True, max_length=750)
     multiple_associations = IntField(required=True, min_value=0, max_value=2)
     primary_substrate = IntField(required=True, min_value=0, max_value=2)
     identical_s1_s2 = IntField(required=True, min_value=0, max_value=2)

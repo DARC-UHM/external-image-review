@@ -54,5 +54,5 @@ class Comment(Document):
         return comment
 
     meta = {
-        'indexes': ['uuid', 'sequence']
+        'indexes': ['uuid', 'sequence', 'unread', 'reviewer_comments.reviewer']
     }

@@ -3,7 +3,7 @@ from mongoengine import Document, IntField, StringField
 
 class TatorSubQaqcChecklist(Document):
     """ Schema for Tator sub QAQC checklist collection """
-    transect_media_ids = StringField(required=True, max_length=750)
+    transect_media_ids = StringField(required=True, unique=True, max_length=750)
     names_accepted = IntField(required=True, min_value=0, max_value=2)
     missing_qualifier = IntField(required=True, min_value=0, max_value=2)
     stet_reason = IntField(required=True, min_value=0, max_value=2)

@@ -3,7 +3,7 @@ from mongoengine import Document, StringField
 
 class Annotator(Document):
     """ Schema for annotator collection """
-    name = StringField(required=True, max_length=100)
+    name = StringField(required=True, unique=True, max_length=100)
     email = StringField(max_length=100)
     slack_id = StringField(max_length=20)
 
