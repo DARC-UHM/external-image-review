@@ -62,11 +62,11 @@ class ImageReferenceSaver:
             self.tentative_id = None
         if self.morphospecies == '':
             self.morphospecies = None
-        if self.depth_m:
+        if self.depth_m is not None:
             self.depth_m = round(self.depth_m)
-        if self.temp_c:
+        if self.temp_c is not None:
             self.temp_c = round(self.temp_c, 2)
-        if self.salinity_m_l:
+        if self.salinity_m_l is not None:
             self.salinity_m_l = round(self.salinity_m_l, 2)
         if self.morphospecies and self.tentative_id:
             raise ValueError('Record should not contain both morphospecies and tentative ID')
@@ -115,7 +115,7 @@ class ImageReferenceSaver:
                 or not self.deployment_name \
                 or not self.tator_elemental_id \
                 or not self.localization_media_id \
-                or not self.localization_frame \
+                or self.localization_frame is None \
                 or not self.localization_type:
             raise ValueError('Missing required fields')
         if self.morphospecies and self.tentative_id:
@@ -124,11 +124,11 @@ class ImageReferenceSaver:
         self.localization_media_id = int(self.localization_media_id)
         self.localization_frame = int(self.localization_frame)
         self.localization_type = int(self.localization_type)
-        if self.depth_m:
+        if self.depth_m is not None:
             self.depth_m = round(float(self.depth_m))
-        if self.temp_c:
+        if self.temp_c is not None:
             self.temp_c = round(float(self.temp_c), 2)
-        if self.salinity_m_l:
+        if self.salinity_m_l is not None:
             self.salinity_m_l = round(float(self.salinity_m_l), 2)
 
     def save(self) -> dict:
@@ -223,7 +223,7 @@ class ImageReferenceSaver:
                     break
         except DoesNotExist:
             self.logger.warning(f'No field book found for section {self.section_id}')
-        if not lat or not long:
+        if lat is None or long is None:
             self.logger.warning(f'No lat/long found for deployment {self.deployment_name}')
         # get the image/ctd data from Tator
         tator_fetcher = TatorFrameFetcher(

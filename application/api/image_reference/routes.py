@@ -134,11 +134,7 @@ def update_image_reference(scientific_name):
                      f'tentative_id={request.args.get("tentative_id")}'
         }), 404
 
-    return jsonify(ImageReference.objects.get(
-        scientific_name=scientific_name,
-        morphospecies=request.values.get('morphospecies') or request.args.get('morphospecies'),
-        tentative_id=request.values.get('tentative_id') or request.args.get('tentative_id'),
-    ).json()), 200
+    return jsonify(db_record.reload().json()), 200
 
 
 # update a photo record (lat/long, depth, temp, salinity, attracted)
@@ -165,7 +161,7 @@ def update_photo_record(scientific_name, tator_elemental_id):
             'salinity_m_l',
             'attracted',
         ]:
-            if updated_value := request_json.get(field):
+            if (updated_value := request_json.get(field)) is not None:
                 setattr(photo_record, field, updated_value)
         db_record._mark_as_changed('photo_records')
         db_record.save()
@@ -176,11 +172,7 @@ def update_photo_record(scientific_name, tator_elemental_id):
                      f'morphospecies={request.args.get("morphospecies")}, '
                      f'tentative_id={request.args.get("tentative_id")}'
         }), 404
-    return jsonify(ImageReference.objects.get(
-        scientific_name=scientific_name,
-        morphospecies=request.values.get('morphospecies') or request.args.get('morphospecies'),
-        tentative_id=request.values.get('tentative_id') or request.args.get('tentative_id'),
-    ).json()), 200
+    return jsonify(db_record.reload().json()), 200
 
 
 # delete an image reference item
@@ -195,10 +187,11 @@ def delete_image_reference(scientific_name):
         )
         # delete photos
         for photo_ref in db_record.photo_records:
-            if photo_ref.image_name:
-                os.remove(os.path.join(current_app.config.get('IMAGE_REF_DIR_PATH'), photo_ref.image_name))
-            if photo_ref.thumbnail_name:
-                os.remove(os.path.join(current_app.config.get('IMAGE_REF_DIR_PATH'), photo_ref.thumbnail_name))
+            for fname in [photo_ref.image_name, photo_ref.thumbnail_name]:
+                if fname:
+                    fpath = os.path.join(current_app.config.get('IMAGE_REF_DIR_PATH'), fname)
+                    if os.path.exists(fpath):
+                        os.remove(fpath)
         db_record.delete()
     except DoesNotExist:
         return jsonify({
@@ -225,10 +218,11 @@ def delete_photo_record(scientific_name, tator_elemental_id):
                                  if record.tator_elemental_id == tator_elemental_id), None)
         if not record_to_delete:
             return jsonify({'error': 'No photo record found matching request'}), 404
-        if record_to_delete.image_name:
-            os.remove(os.path.join(current_app.config.get('IMAGE_REF_DIR_PATH'), record_to_delete.image_name))
-        if record_to_delete.thumbnail_name:
-            os.remove(os.path.join(current_app.config.get('IMAGE_REF_DIR_PATH'), record_to_delete.thumbnail_name))
+        for fname in [record_to_delete.image_name, record_to_delete.thumbnail_name]:
+            if fname:
+                fpath = os.path.join(current_app.config.get('IMAGE_REF_DIR_PATH'), fname)
+                if os.path.exists(fpath):
+                    os.remove(fpath)
         db_record.update(pull__photo_records=record_to_delete)
     except DoesNotExist:
         return jsonify({
