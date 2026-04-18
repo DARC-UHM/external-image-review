@@ -3,7 +3,7 @@
     --darc-bg-dark: #1d222a;
     --darc-input-bg: #2d3541;
     --darc-text: #eeeeee;
-    --darc-border: #171a1e;
+    --darc-border: #393e46;
     --darc-btn-text-hover: #00c3cc;
     --darc-link-text: #00adb5;
     --status-pending: #f0ad4e;
@@ -90,7 +90,6 @@ select {
 }
 
 .mediaButton {
-    font-weight: 500;
     color: var(--darc-link-text);
     text-decoration: none;
     background: transparent;
