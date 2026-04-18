@@ -4,9 +4,6 @@ const canEdit = window.canEdit ?? false;
 const trashSvg = (dimensions) =>
     `<svg xmlns="http://www.w3.org/2000/svg" height="${dimensions}px" viewBox="0 -960 960 960" width="${dimensions}px" fill="#e3e3e3"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>`;
 
-window.onDeleteImageReference = window.onDeleteImageReference ?? ((imageRef) => {});
-window.onDeletePhotoRecord = window.onDeletePhotoRecord ?? ((imageRef, tatorElementalId) => {});
-
 let filteredImageReferences = [...imageReferences];
 let phylogenyFilter = 'any';
 let keywordFilter = '';
@@ -241,7 +238,9 @@ function updateImageGrid() {
                             <button
                                 class="position-absolute top-0 end-0 btn"
                                 style="background: none; border: none; outline: none; box-shadow: none; opacity: 0.5;"
-                                onclick="window.onDeleteImageReference(${JSON.stringify(imageRef).replaceAll("'", "&#39;")})"
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteImageReferenceModal"
+                                data-anno='${JSON.stringify(imageRef)}'
                                 data-toggle="tooltip"
                                 data-bs-placement="left"
                                 title="Delete image reference"
@@ -317,9 +316,11 @@ function updateImageGrid() {
                                                         <button
                                                             class="ms-1 my-auto p-0"
                                                             style="background: none; border: none; outline: none; box-shadow: none; opacity: 0.5; line-height: 1;"
-                                                            onclick="window.onDeletePhotoRecord(${JSON.stringify(imageRef).replaceAll("'", "&#39;")}, '${photoRecord.tator_elemental_id}')"
-                                                            data-toggle="tooltip"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#deleteImageReferenceModal"
+                                                            data-anno='${JSON.stringify(imageRef)}'
                                                             data-bs-placement="right"
+                                                            data-toggle="tooltip"
                                                             title="Delete this photo"
                                                         >
                                                             ${trashSvg(14)}
