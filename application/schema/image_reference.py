@@ -71,6 +71,7 @@ class ImageReference(Document):
 
     def json(self):
         item = {
+            'id': str(self.id),
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat(),
             'scientific_name': self.scientific_name,

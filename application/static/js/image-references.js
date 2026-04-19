@@ -1,8 +1,12 @@
 const slideshows = {}; // { fullName: { currentIndex, maxIndex, depths } }
 const phyla = {};
 const canEdit = window.canEdit ?? false;
-const trashSvg = (dimensions) =>
+const trashIconSvg = (dimensions) =>
     `<svg xmlns="http://www.w3.org/2000/svg" height="${dimensions}px" viewBox="0 -960 960 960" width="${dimensions}px" fill="#e3e3e3"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>`;
+const refreshIconSvg = (dimensions) =>
+    `<svg xmlns="http://www.w3.org/2000/svg" height="${dimensions}px" viewBox="0 -960 960 960" width="${dimensions}px" fill="#e3e3e3"><path d="M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z"/></svg>`;
+
+window.refreshImageReference = window.refreshImageReference ?? ((imageRefId) => {});
 
 let filteredImageReferences = [...imageReferences];
 let phylogenyFilter = 'any';
@@ -218,7 +222,7 @@ function updateImageGrid() {
                 <div class="image-ref-card rounded-3 small">
                     <div class="image-ref-card-header rounded-top m-0 position-relative">
                         <div
-                            class="mx-auto"
+                            class="mx-auto text-center px-2"
                             style="width: fit-content;"
                             data-toggle="tooltip"
                             data-bs-placement="right"
@@ -236,6 +240,16 @@ function updateImageGrid() {
                         </div>
                         ${canEdit ? `
                             <button
+                                onclick="refreshImageReference('${imageRef.id}');"
+                                class="position-absolute top-0 start-0 btn"
+                                style="background: none; border: none; outline: none; box-shadow: none; opacity: 0.5"
+                                data-bs-placement="right"
+                                data-toggle="tooltip"
+                                title="Refresh image reference details from Tator"
+                            >
+                                ${refreshIconSvg(18)}
+                            </button>
+                            <button
                                 class="position-absolute top-0 end-0 btn"
                                 style="background: none; border: none; outline: none; box-shadow: none; opacity: 0.5;"
                                 data-bs-toggle="modal"
@@ -245,7 +259,7 @@ function updateImageGrid() {
                                 data-bs-placement="left"
                                 title="Delete image reference"
                             >
-                                ${trashSvg(18)}
+                                ${trashIconSvg(18)}
                             </button>
                         ` : ''}
                     </div>
@@ -319,12 +333,12 @@ function updateImageGrid() {
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#deleteImageReferenceModal"
                                                             data-anno='${JSON.stringify(imageRef)}'
-							                                data-elemental-id='${photoRecord.tator_elemental_id}'
+                                                            data-elemental-id='${photoRecord.tator_elemental_id}'
                                                             data-bs-placement="right"
                                                             data-toggle="tooltip"
                                                             title="Delete this photo"
                                                         >
-                                                            ${trashSvg(14)}
+                                                            ${trashIconSvg(14)}
                                                         </button>
                                                     ` : ''}
                                                         ${index + 1} / ${imageRef.photo_records.length}
