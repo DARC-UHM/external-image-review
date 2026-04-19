@@ -319,6 +319,7 @@ function updateImageGrid() {
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#deleteImageReferenceModal"
                                                             data-anno='${JSON.stringify(imageRef)}'
+							                                data-elemental-id='${photoRecord.tator_elemental_id}'
                                                             data-bs-placement="right"
                                                             data-toggle="tooltip"
                                                             title="Delete this photo"
@@ -356,6 +357,8 @@ function updateImageGrid() {
         `);
     });
 }
+
+window.updateImageGrid = updateImageGrid;
 
 const filterAndSort = (list, key) => {
     let filtered = list.filter((anno) => anno[key]);
