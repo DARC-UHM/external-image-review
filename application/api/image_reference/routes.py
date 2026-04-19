@@ -179,7 +179,8 @@ def update_photo_record(scientific_name, tator_elemental_id):
 @image_reference_bp.delete('/<scientific_name>')
 @require_api_key
 def delete_image_reference(scientific_name):
-    print(f'Delete image reference request for {scientific_name}, {request.args.get("morphospecies")}, {request.args.get("tentative_id")}')
+    current_app.logger.info(f'Delete image reference request for {scientific_name}, {request.args.get("morphospecies")},'
+                            f' {request.args.get("tentative_id")}')
     try:
         db_record = ImageReference.objects.get(
             scientific_name=scientific_name,
@@ -192,10 +193,10 @@ def delete_image_reference(scientific_name):
                 if fname:
                     fpath = os.path.join(current_app.config.get('IMAGE_REF_DIR_PATH'), fname)
                     if os.path.exists(fpath):
-                        print(f'Deleting file at {fpath}')
+                        current_app.logger.info(f'Deleting file at {fpath}')
                         os.remove(fpath)
                     else:
-                        print(f'File not found at {fpath}, skipping deletion')
+                        current_app.logger.warning(f'File not found at {fpath}, skipping deletion')
         db_record.delete()
     except DoesNotExist:
         return jsonify({
@@ -204,7 +205,7 @@ def delete_image_reference(scientific_name):
                      f'morphospecies={request.args.get("morphospecies")}, '
                      f'tentative_id={request.args.get("tentative_id")}'
         }), 404
-    print('Deleted image reference')
+    current_app.logger.info('Deleted image reference')
     return jsonify({'message': 'Record deleted'}), 200
 
 
@@ -212,8 +213,8 @@ def delete_image_reference(scientific_name):
 @image_reference_bp.delete('/<scientific_name>/<tator_elemental_id>')
 @require_api_key
 def delete_photo_record(scientific_name, tator_elemental_id):
-    print(f'Delete photo record request for  {scientific_name}, {request.args.get("morphospecies")}, {request.args.get("tentative_id")},'
-          f' {tator_elemental_id}')
+    current_app.logger.info(f'Delete photo record request for  {scientific_name}, {request.args.get("morphospecies")},'
+                            f'{request.args.get("tentative_id")}, {tator_elemental_id}')
     try:
         db_record = ImageReference.objects.get(
             scientific_name=scientific_name,
@@ -229,10 +230,10 @@ def delete_photo_record(scientific_name, tator_elemental_id):
             if fname:
                 fpath = os.path.join(current_app.config.get('IMAGE_REF_DIR_PATH'), fname)
                 if os.path.exists(fpath):
-                    print(f'Deleting file at {fpath}')
+                    current_app.logger.info(f'Deleting file at {fpath}')
                     os.remove(fpath)
                 else:
-                    print(f'File not found at {fpath}, skipping deletion')
+                    current_app.logger.warning(f'File not found at {fpath}, skipping deletion')
         db_record.update(pull__photo_records=record_to_delete)
     except DoesNotExist:
         return jsonify({
@@ -241,5 +242,5 @@ def delete_photo_record(scientific_name, tator_elemental_id):
                      f'morphospecies={request.args.get("morphospecies")}, '
                      f'tentative_id={request.args.get("tentative_id")}'
         }), 404
-    print('Deleted photo record')
+    current_app.logger.info('Deleted photo record')
     return jsonify({'message': 'Record deleted'}), 200
