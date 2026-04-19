@@ -3,8 +3,7 @@ import os
 
 import requests
 from flask import abort
-from mongoengine import DoesNotExist
-from werkzeug.exceptions import HTTPException
+from mongoengine import DoesNotExist, NotUniqueError
 
 from application.api.image_reference.tator_frame_fetcher import TatorFrameFetcher
 from application.api.image_reference.worms_phylogeny_fetcher import WormsPhylogenyFetcher
@@ -13,6 +12,8 @@ from application.schema.image_reference import ImageReference
 
 
 class ImageReferenceSaver:
+    LOCALIZATION_TYPE = 45
+
     def __init__(self, tator_url: str, image_ref_dir_path: str, logger: logging.Logger):
         self.tator_url = tator_url
         self.image_ref_dir_path = image_ref_dir_path
@@ -32,16 +33,28 @@ class ImageReferenceSaver:
         self.temp_c = None
         self.salinity_m_l = None
         self.attracted = None
+        self.fps = 30
 
-    def load_from_tator_localization_id(self, localization_id):
-        # if lone tator localization id is passed, fetch the rest of the data from tator
-        localization_res = requests.get(
-            url=f'{self.tator_url}/rest/Localization/{localization_id}',
-            headers={
-                'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}',
-                'Content-Type': 'application/json',
-            }
-        )
+    def load_from_tator_id(self, localization_id: str = None, elemental_id: str = None):
+        if localization_id:
+            localization_res = requests.get(
+                url=f'{self.tator_url}/rest/Localization/{localization_id}',
+                headers={
+                    'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}',
+                    'Content-Type': 'application/json',
+                }
+            )
+        elif elemental_id:
+            localization_res = requests.get(
+                url=f'{self.tator_url}/rest/Localization/{self.LOCALIZATION_TYPE}/{elemental_id}',
+                headers={
+                    'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}',
+                    'Content-Type': 'application/json',
+                }
+            )
+        else:
+            raise ValueError('Either localization_id or elemental_id must be provided')
+
         if localization_res.status_code != 200:
             abort(localization_res.status_code, 'Error fetching localization from Tator')
         localization = localization_res.json()
@@ -71,28 +84,10 @@ class ImageReferenceSaver:
         if self.morphospecies and self.tentative_id:
             raise ValueError('Record should not contain both morphospecies and tentative ID')
         # still need deployment name and section id, get this from media query
-        media_res = requests.get(
-            url=f'{self.tator_url}/rest/Media/{self.localization_media_id}',
-            headers={
-                'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}',
-                'Content-Type': 'application/json',
-            },
-        )
-        if media_res.status_code != 200:
-            abort(media_res.status_code, 'Error fetching media from Tator')
-        media = media_res.json()
+        media = self._fetch_tator_media(self.localization_media_id)
         self.deployment_name = self._get_deployment_name_from_media(media['name'])
         self.section_id = media['primary_section']
-
-    @staticmethod
-    def _get_deployment_name_from_media(media_name: str) -> str:
-        # because there are so many different media naming conventions
-        media_name_parts = media_name.split('_')
-        if 'dscm' in media_name_parts and media_name_parts.index('dscm') == 2:  # format SLB_2024_dscm_01_C001.MP4
-            return '_'.join(media_name_parts[0:4])
-        if 'dscm' in media_name_parts and media_name_parts.index('dscm') == 1:  # format HAW_dscm_01_c010_202304250123Z_0983m.mp4
-            return '_'.join(media_name_parts[0:3])
-        return media_name_parts[1].replace('-', '_') # format DOEX0087_NIU-dscm-02_c009.mp4
+        self.fps = media.get('fps', 30)
 
     def load_from_json(self, json_payload):
         self.scientific_name = json_payload.get('scientific_name')
@@ -130,6 +125,9 @@ class ImageReferenceSaver:
             self.temp_c = round(float(self.temp_c), 2)
         if self.salinity_m_l is not None:
             self.salinity_m_l = round(float(self.salinity_m_l), 2)
+        # still need fps, get this from media query
+        media = self._fetch_tator_media(self.localization_media_id)
+        self.fps = media.get('fps', 30)
 
     def save(self) -> dict:
         if db_record := ImageReference.objects(
@@ -137,10 +135,19 @@ class ImageReferenceSaver:
                 tentative_id=self.tentative_id,
                 morphospecies=self.morphospecies,
         ).first():
-            return self.add_photo_record(db_record)  # image reference item already exists, add a new photo record
-        return self.add_image_reference()  # image reference item does not exist, create a new one
+            return self._add_photo_record(db_record)  # image reference item already exists, add a new photo record
+        try:
+            return self._add_image_reference()  # image reference item does not exist, create a new one
+        except NotUniqueError:
+            # concurrent request created the record between our check and insert
+            db_record = ImageReference.objects.get(
+                scientific_name=self.scientific_name,
+                tentative_id=self.tentative_id,
+                morphospecies=self.morphospecies,
+            )
+            return self._add_photo_record(db_record)
 
-    def add_photo_record(self, db_record) -> dict:
+    def _add_photo_record(self, db_record) -> dict:
         for record in db_record.photo_records:
             if record.tator_elemental_id == self.tator_elemental_id:
                 abort(409, 'Photo record already exists')
@@ -148,15 +155,14 @@ class ImageReferenceSaver:
             abort(400, 'Five photo records already exist')
         self.logger.info(f'Adding new photo record for image reference: scientific_name={self.scientific_name}, '
                          f'morphospecies={self.morphospecies}, tentative_id={self.tentative_id}')
+        fetched_data = self._fetch_data_and_save_image()
         try:
-            fetched_data = self.fetch_data_and_save_image()
-            video_url = f'https://hurlstor.soest.hawaii.edu:5000/video?link=/tator-video/{self.localization_media_id}&time={round(self.localization_frame / 30)}'
             db_record.update(push__photo_records={
                 'tator_elemental_id': self.tator_elemental_id,
                 'image_name': fetched_data['image_name'],
                 'thumbnail_name': fetched_data['thumbnail_name'],
                 'location_short_name': self.deployment_name.split('_')[0],
-                'video_url': video_url,
+                'video_url': self._build_video_url(),
                 'lat': fetched_data['lat'],
                 'long': fetched_data['long'],
                 'depth_m': self.depth_m or fetched_data['depth_m'],
@@ -164,31 +170,28 @@ class ImageReferenceSaver:
                 'salinity_m_l': self.salinity_m_l,
                 'attracted': self.attracted,
             })
-        except HTTPException as e:
-            abort(e.code, e.description)
+        except Exception:
+            self._cleanup_images(fetched_data['image_name'], fetched_data['thumbnail_name'])
+            raise
         return ImageReference.objects.get(
             scientific_name=self.scientific_name,
             morphospecies=self.morphospecies,
             tentative_id=self.tentative_id,
         ).json()
 
-    def add_image_reference(self) -> dict:
+    def _add_image_reference(self) -> dict:
         self.logger.info(f'Adding new image reference: scientific_name={self.scientific_name}, '
                          f'morphospecies={self.morphospecies}, tentative_id={self.tentative_id}')
-        try:
-            fetched_data = self.fetch_data_and_save_image()
-        except HTTPException as e:
-            abort(e.code, e.description)
+        fetched_data = self._fetch_data_and_save_image()
         worms_fetcher = WormsPhylogenyFetcher(self.scientific_name)
         worms_fetcher.fetch(self.logger)
-        video_url = f'https://hurlstor.soest.hawaii.edu:5000/video?link=/tator-video/{self.localization_media_id}&time={round(self.localization_frame / 30)}'
         attr = {
             'scientific_name': self.scientific_name,
             'photo_records': [{
                 'tator_elemental_id': self.tator_elemental_id,
                 'image_name': fetched_data['image_name'],
                 'thumbnail_name': fetched_data['thumbnail_name'],
-                'video_url': video_url,
+                'video_url': self._build_video_url(),
                 'location_short_name': self.deployment_name.split('_')[0],
                 'lat': fetched_data['lat'],
                 'long': fetched_data['long'],
@@ -205,10 +208,14 @@ class ImageReferenceSaver:
         for field in ['phylum', 'class_name', 'order', 'family', 'genus', 'species']:
             if worms_fetcher.phylogeny.get(field):
                 attr[field] = worms_fetcher.phylogeny[field]
-        image_ref = ImageReference(**attr).save()
+        try:
+            image_ref = ImageReference(**attr).save()
+        except Exception:
+            self._cleanup_images(fetched_data['image_name'], fetched_data['thumbnail_name'])
+            raise
         return image_ref.json()
 
-    def fetch_data_and_save_image(self) -> dict:
+    def _fetch_data_and_save_image(self) -> dict:
         # get the lat/long from the field book
         lat = None
         long = None
@@ -245,3 +252,37 @@ class ImageReferenceSaver:
             'long': long,
             'depth_m': depth_m,
         }
+
+    def _fetch_tator_media(self, media_id: int) -> dict:
+        media_res = requests.get(
+            url=f'{self.tator_url}/rest/Media/{media_id}',
+            headers={
+                'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}',
+                'Content-Type': 'application/json',
+            },
+        )
+        if media_res.status_code != 200:
+            abort(media_res.status_code, 'Error fetching media from Tator')
+        return media_res.json()
+
+    @staticmethod
+    def _get_deployment_name_from_media(media_name: str) -> str:
+        # because there are so many different media naming conventions
+        media_name_parts = media_name.split('_')
+        if 'dscm' in media_name_parts and media_name_parts.index('dscm') == 2:  # format SLB_2024_dscm_01_C001.MP4
+            return '_'.join(media_name_parts[0:4])
+        if 'dscm' in media_name_parts and media_name_parts.index('dscm') == 1:  # format HAW_dscm_01_c010_202304250123Z_0983m.mp4
+            return '_'.join(media_name_parts[0:3])
+        return media_name_parts[1].replace('-', '_')  # format DOEX0087_NIU-dscm-02_c009.mp4
+
+    def _build_video_url(self) -> str:
+        return (f'https://hurlstor.soest.hawaii.edu:5000/video'
+                f'?link=/tator-video/{self.localization_media_id}'
+                f'&time={round(self.localization_frame / self.fps)}')
+
+    def _cleanup_images(self, image_name: str, thumbnail_name: str):
+        for name in [image_name, thumbnail_name]:
+            if name:
+                path = os.path.join(self.image_ref_dir_path, name)
+                if os.path.exists(path):
+                    os.remove(path)
