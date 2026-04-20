@@ -2,12 +2,13 @@ import os
 from datetime import datetime
 
 from flask import current_app, jsonify, request, send_file
-from mongoengine import DoesNotExist
+from mongoengine import DoesNotExist, NotUniqueError
 from werkzeug.exceptions import HTTPException
 
 from application.schema.image_reference import ImageReference
 from . import image_reference_bp
 from .image_reference_saver import ImageReferenceSaver
+from .worms_phylogeny_fetcher import WormsPhylogenyFetcher
 from ...get_request_ip import get_request_ip
 from ...require_api_key import require_api_key
 
@@ -90,7 +91,7 @@ def add_image_reference():
     )
     try:
         if tator_localization_id := request.values.get('tator_localization_id'):
-            image_reference_saver.load_from_tator_localization_id(tator_localization_id)
+            image_reference_saver.load_from_tator_id(localization_id=tator_localization_id)
         else:
             image_reference_saver.load_from_json(request.get_json())
         saved_ref = image_reference_saver.save()
@@ -99,6 +100,66 @@ def add_image_reference():
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
     return jsonify(saved_ref), 201
+
+
+# refresh an existing image reference with data from Tator
+@image_reference_bp.get('/refresh/<image_reference_id>')
+@require_api_key
+def refresh_image_reference(image_reference_id):
+    current_app.logger.info(f'Refresh image reference request for {image_reference_id}')
+    try:
+        db_record = ImageReference.objects.get(id=image_reference_id)
+        current_app.logger.info(f'Scientific name before refresh: {db_record.scientific_name}')
+        tator_records = []
+        for photo_record in db_record.photo_records:
+            saver = ImageReferenceSaver(
+                tator_url=current_app.config.get("TATOR_URL"),
+                image_ref_dir_path=current_app.config.get('IMAGE_REF_DIR_PATH'),
+                logger=current_app.logger,
+            )
+            saver.load_from_tator_id(elemental_id=photo_record.tator_elemental_id)
+            tator_records.append(saver)
+        # all photo records must agree on taxonomy, otherwise the refresh should be rejected
+        if len({(record.scientific_name, record.tentative_id, record.morphospecies) for record in tator_records}) > 1:
+            current_app.logger.error('Conflicting taxonomy in Tator records, cannot refresh image reference')
+            return jsonify({'error': 'Photo records have conflicting taxonomy in Tator'}), 409
+        first = tator_records[0]
+        scientific_name_changed = first.scientific_name != db_record.scientific_name
+        try:
+            db_record.update(
+                set__scientific_name=first.scientific_name,
+                set__tentative_id=first.tentative_id,
+                set__morphospecies=first.morphospecies,
+                set__updated_at=datetime.now(),
+            )
+        except NotUniqueError:
+            current_app.logger.error('Updated taxonomy conflicts with an existing image reference, cannot refresh')
+            current_app.logger.error(f'Conflicting taxonomy: scientific_name={first.scientific_name}, '
+                                     f'tentative_id={first.tentative_id}, morphospecies={first.morphospecies}')
+            return jsonify({'error': 'Updated taxonomy conflicts with an existing image reference'}), 409
+        if scientific_name_changed:
+            worms_fetcher = WormsPhylogenyFetcher(first.scientific_name)
+            worms_fetcher.fetch(current_app.logger)
+            phylogeny_updates = {
+                f'set__{field}': worms_fetcher.phylogeny.get(field)
+                for field in ['phylum', 'class_name', 'order', 'family', 'genus', 'species']
+            }
+            db_record.update(**phylogeny_updates)
+        db_record.reload()
+        for db_photo_record, tator_photo_record in zip(db_record.photo_records, tator_records):
+            db_photo_record.depth_m = tator_photo_record.depth_m
+            db_photo_record.temp_c = tator_photo_record.temp_c
+            db_photo_record.salinity_m_l = tator_photo_record.salinity_m_l
+            db_photo_record.attracted = True if tator_photo_record.attracted == 'Attracted' else False
+        db_record.save()
+    except DoesNotExist:
+        return jsonify({'error': f'No record found with id {image_reference_id}'}), 404
+    except HTTPException as e:
+        return jsonify({'error': f'Error refreshing image reference: {e.description}'}), e.code
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    current_app.logger.info(f'Finished refreshing image reference. New scientific name: {db_record.scientific_name}')
+    return jsonify(db_record.reload().json()), 200
 
 
 # update an existing image reference item

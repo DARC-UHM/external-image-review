@@ -92,7 +92,15 @@ class ImageReference(Document):
         return item
 
     meta = {
-        'indexes': ['scientific_name', 'tentative_id', 'morphospecies']
+        'indexes': [
+            'scientific_name',
+            'tentative_id',
+            'morphospecies',
+            {
+                'fields': ('scientific_name', 'tentative_id', 'morphospecies'),
+                'unique': True
+            },
+        ]
     }
 
     def json_quick(self):
