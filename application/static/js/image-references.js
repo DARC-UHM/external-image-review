@@ -280,7 +280,7 @@ function updateImageGrid() {
                                         </a>
                                         <div
                                             class="position-absolute"
-                                            style="right: 0; bottom: -1.5rem; width: 1.5rem; height: 1.5rem; background: ${depthColor(photoRecord.depth_m)}; border-radius: 0 0 0.25rem 0;"
+                                            style="right: 0; bottom: -1.5rem; width: 1.5rem; height: 1.5rem;  z-index: 5; background: ${depthColor(photoRecord.depth_m)}; border-radius: 0 0 0.25rem 0;"
                                             data-toggle="tooltip"
                                             data-bs-placement="right"
                                             data-bs-html="true"
@@ -296,7 +296,7 @@ function updateImageGrid() {
                                         </div>
                                         <div
                                             class="position-absolute d-flex align-items-center image-ref-card-footer-text"
-                                            style="height: 1.5rem; left: 0; bottom: -1.5rem; font-size: 0.75rem;"
+                                            style="height: 1.5rem; left: 0; bottom: -1.5rem; font-size: 0.75rem;  z-index: 5;"
                                         >
                                             <div
                                                 class="ms-2 my-auto"
