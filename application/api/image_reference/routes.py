@@ -147,6 +147,8 @@ def refresh_image_reference(image_reference_id):
             db_record.update(**phylogeny_updates)
         db_record.reload()
         for db_photo_record, tator_photo_record in zip(db_record.photo_records, tator_records):
+            db_photo_record.lat = tator_photo_record.lat
+            db_photo_record.long = tator_photo_record.long
             db_photo_record.depth_m = tator_photo_record.depth_m
             db_photo_record.temp_c = tator_photo_record.temp_c
             db_photo_record.salinity_m_l = tator_photo_record.salinity_m_l

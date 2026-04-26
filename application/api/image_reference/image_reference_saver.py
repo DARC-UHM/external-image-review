@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import datetime
 
 import requests
 from flask import abort
@@ -29,6 +30,8 @@ class ImageReferenceSaver:
         self.localization_type = None
         self.normalized_top_left_x_y = None
         self.normalized_dimensions = None
+        self.lat = None
+        self.long = None
         self.depth_m = None
         self.temp_c = None
         self.salinity_m_l = None
@@ -70,7 +73,7 @@ class ImageReferenceSaver:
         self.depth_m = localization['attributes'].get('Depth')
         self.temp_c = localization['attributes'].get('DO Temperature (celsius)')
         self.salinity_m_l = localization['attributes'].get('DO Concentration Salin Comp (mol per L)')
-        self.attracted = localization['attributes'].get('Attracted')
+        self.attracted = localization['attributes'].get('Attracted') == 'Attracted'
         if self.tentative_id == '':
             self.tentative_id = None
         if self.morphospecies == '':
@@ -88,6 +91,11 @@ class ImageReferenceSaver:
         self.deployment_name = self._get_deployment_name_from_media(media['name'])
         self.section_id = media['primary_section']
         self.fps = media.get('fps', 30)
+        if localization.get('Position'):
+            self.lat = localization['Position'][1]
+            self.long = localization['Position'][0]
+        else:  # dropcam localizations don't have position, try to get from field book
+            self._load_fieldbook_data()
 
     def load_from_json(self, json_payload):
         self.scientific_name = json_payload.get('scientific_name')
@@ -105,6 +113,8 @@ class ImageReferenceSaver:
         self.temp_c = json_payload.get('temp_c')
         self.salinity_m_l = json_payload.get('salinity_m_l')
         self.attracted = json_payload.get('attracted')
+        self.lat = json_payload.get('lat')
+        self.long = json_payload.get('long')
         if not self.scientific_name \
                 or not self.section_id \
                 or not self.deployment_name \
@@ -128,6 +138,9 @@ class ImageReferenceSaver:
         # still need fps, get this from media query
         media = self._fetch_tator_media(self.localization_media_id)
         self.fps = media.get('fps', 30)
+        if self.lat is None and self.long is None:
+            # try to get lat/long from field book if not provided in payload
+            self._load_fieldbook_data()
 
     def save(self) -> dict:
         if db_record := ImageReference.objects(
@@ -155,23 +168,26 @@ class ImageReferenceSaver:
             abort(400, 'Five photo records already exist')
         self.logger.info(f'Adding new photo record for image reference: scientific_name={self.scientific_name}, '
                          f'morphospecies={self.morphospecies}, tentative_id={self.tentative_id}')
-        fetched_data = self._fetch_data_and_save_image()
+        image_data = self._fetch_and_save_image()
         try:
-            db_record.update(push__photo_records={
-                'tator_elemental_id': self.tator_elemental_id,
-                'image_name': fetched_data['image_name'],
-                'thumbnail_name': fetched_data['thumbnail_name'],
-                'location_short_name': self.deployment_name.split('_')[0],
-                'video_url': self._build_video_url(),
-                'lat': fetched_data['lat'],
-                'long': fetched_data['long'],
-                'depth_m': self.depth_m or fetched_data['depth_m'],
-                'temp_c': self.temp_c,
-                'salinity_m_l': self.salinity_m_l,
-                'attracted': self.attracted,
-            })
+            db_record.update(
+                push__photo_records={
+                    'tator_elemental_id': self.tator_elemental_id,
+                    'image_name': image_data['image_name'],
+                    'thumbnail_name': image_data['thumbnail_name'],
+                    'location_short_name': self.deployment_name.split('_')[0],
+                    'video_url': self._build_video_url(),
+                    'lat': self.lat,
+                    'long': self.long,
+                    'depth_m': self.depth_m,
+                    'temp_c': self.temp_c,
+                    'salinity_m_l': self.salinity_m_l,
+                    'attracted': self.attracted,
+                },
+                set__updated_at=datetime.now(),
+            )
         except Exception:
-            self._cleanup_images(fetched_data['image_name'], fetched_data['thumbnail_name'])
+            self._cleanup_images(image_data['image_name'], image_data['thumbnail_name'])
             raise
         return ImageReference.objects.get(
             scientific_name=self.scientific_name,
@@ -182,20 +198,20 @@ class ImageReferenceSaver:
     def _add_image_reference(self) -> dict:
         self.logger.info(f'Adding new image reference: scientific_name={self.scientific_name}, '
                          f'morphospecies={self.morphospecies}, tentative_id={self.tentative_id}')
-        fetched_data = self._fetch_data_and_save_image()
+        image_data = self._fetch_and_save_image()
         worms_fetcher = WormsPhylogenyFetcher(self.scientific_name)
         worms_fetcher.fetch(self.logger)
         attr = {
             'scientific_name': self.scientific_name,
             'photo_records': [{
                 'tator_elemental_id': self.tator_elemental_id,
-                'image_name': fetched_data['image_name'],
-                'thumbnail_name': fetched_data['thumbnail_name'],
+                'image_name': image_data['image_name'],
+                'thumbnail_name': image_data['thumbnail_name'],
                 'video_url': self._build_video_url(),
                 'location_short_name': self.deployment_name.split('_')[0],
-                'lat': fetched_data['lat'],
-                'long': fetched_data['long'],
-                'depth_m': self.depth_m or fetched_data['depth_m'],
+                'lat': self.lat,
+                'long': self.long,
+                'depth_m': self.depth_m,
                 'temp_c': self.temp_c,
                 'salinity_m_l': self.salinity_m_l,
                 'attracted': self.attracted,
@@ -211,28 +227,26 @@ class ImageReferenceSaver:
         try:
             image_ref = ImageReference(**attr).save()
         except Exception:
-            self._cleanup_images(fetched_data['image_name'], fetched_data['thumbnail_name'])
+            self._cleanup_images(image_data['image_name'], image_data['thumbnail_name'])
             raise
         return image_ref.json()
 
-    def _fetch_data_and_save_image(self) -> dict:
-        # get the lat/long from the field book
-        lat = None
-        long = None
-        depth_m = None
+    def _load_fieldbook_data(self):
         try:
             dropcam_fieldbook = DropcamFieldBook.objects.get(section_id=self.section_id)
             for deployment in dropcam_fieldbook['deployments']:
                 if deployment['deployment_name'] == self.deployment_name:
-                    lat = deployment['lat']
-                    long = deployment['long']
-                    depth_m = deployment['depth_m']
+                    if self.lat is None:
+                        self.lat = deployment['lat']
+                    if self.long is None:
+                        self.long = deployment['long']
+                    if self.depth_m is None:
+                        self.depth_m = deployment['depth_m']
                     break
         except DoesNotExist:
             self.logger.warning(f'No field book found for section {self.section_id}')
-        if lat is None or long is None:
-            self.logger.warning(f'No lat/long found for deployment {self.deployment_name}')
-        # get the image/ctd data from Tator
+
+    def _fetch_and_save_image(self) -> dict:
         tator_fetcher = TatorFrameFetcher(
             localization_id=self.tator_elemental_id,
             localization_media_id=self.localization_media_id,
@@ -248,9 +262,6 @@ class ImageReferenceSaver:
         return {
             'image_name': tator_fetcher.image_name,
             'thumbnail_name': tator_fetcher.thumbnail_name,
-            'lat': lat,
-            'long': long,
-            'depth_m': depth_m,
         }
 
     def _fetch_tator_media(self, media_id: int) -> dict:
