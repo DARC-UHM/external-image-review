@@ -41,6 +41,7 @@ class Comment(Document):
         attributes = [
             'uuid',
             'all_localizations',
+            'phylum',
             'section_id',
             'sequence',
             'timestamp',

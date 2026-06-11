@@ -147,6 +147,21 @@ def add_comment():
     return jsonify(comment.json()), 201
 
 
+#update a comment's phylum given an observation uuid
+@comment_bp.patch('/phylum/<uuid>')
+@require_api_key
+def update_comment_phylum(uuid):
+    phylum = request.values.get('phylum')
+    if phylum is None:
+        return jsonify({'error': 'No phylum provided'}), 400
+    try:
+        db_record = Comment.objects.get(uuid=uuid)
+        db_record.update(set__phylum=phylum)
+    except DoesNotExist:
+        return jsonify({'error': 'No record with given uuid'}), 404
+    return jsonify(Comment.objects.get(uuid=uuid).json()), 200
+
+
 # update a reviewer's comment given the reviewer and an observation uuid
 @comment_bp.patch('/<uuid>')
 def save_reviewer_comment(uuid):
