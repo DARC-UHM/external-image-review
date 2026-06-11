@@ -111,6 +111,7 @@ def add_comment():
     keys = [
         'uuid',
         'all_localizations',
+        'phylum',
         'sequence',
         'timestamp',
         'image_url',

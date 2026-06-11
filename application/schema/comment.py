@@ -21,6 +21,7 @@ class Comment(Document):
     timestamp = StringField(max_length=30)
     image_url = StringField(max_length=200)
     reviewer_comments = ListField(EmbeddedDocumentField(ReviewerCommentList))
+    phylum = StringField(max_length=50)
     annotator = StringField(required=True, max_length=50)
     unread = BooleanField(required=True, default=False)
     video_url = StringField(max_length=200)

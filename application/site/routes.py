@@ -1,5 +1,4 @@
 import base64
-import json
 import os
 import threading
 from json import JSONDecodeError
@@ -24,28 +23,41 @@ def review(reviewer_name):
     current_app.logger.info(request.url)
     reviewer_name = reviewer_name.replace('-', ' ')
     return_all_comments = request.args.get('all') == 'true'
-    matched_records = Comment.objects(reviewer_comments__reviewer=reviewer_name).order_by('sequence')
+    annotators_filter = request.args.getlist('annotator')
+    phyla_filter = request.args.getlist('phylum')
+    sequence_filter = request.args.get('sequence')
+
+    query = Comment.objects(reviewer_comments__reviewer=reviewer_name)
+
+    if annotators_filter:
+        query = query.filter(annotator__in=annotators_filter)
+    if phyla_filter:
+        query = query.filter(phylum__in=phyla_filter)
+    if sequence_filter:
+        query = query.filter(sequence__icontains=sequence_filter)
+
+    matched_records = query.order_by('sequence')
+
     # we can only get one annotation per VARS API call (but responses are much faster than Tator)
     vars_annotations = []  # using a list: each api call will get passed the object in the list and update it in place
     # we can get many localizations in one Tator API call
     tator_localizations = {}  # using a dict: we'll iterate through the api response with all the localizations and
     tator_elemental_ids = []  #               update each object in the dict using the elemental id as the key
+
     for record in matched_records:
         record = record.json()
         reviewer_comment = next((x for x in record['reviewer_comments'] if x['reviewer'] == reviewer_name))
-        if return_all_comments or not reviewer_comment.get('id_consensus') and not reviewer_comment.get('comment'):
-            # return all records if flag is set or only return records that the reviewer has not yet commented on
-            if request.args.getlist('annotator') and record['annotator'] not in request.args.getlist('annotator'):
-                # filter by annotator if specified
-                continue
-            if request.args.get('sequence') and request.args.get('sequence') not in record['sequence']:
-                # filter by sequence (aka dive/deployment) if specified
-                continue
-            if record.get('all_localizations') is None or record['all_localizations'] == '':
-                vars_annotations.append(record)
-            else:
-                tator_localizations[record['uuid']] = record
-                tator_elemental_ids.append(record['uuid'])
+        # records need review if "all" flag is set or reviewer has not yet commented
+        no_response = not reviewer_comment.get('id_consensus') and not reviewer_comment.get('comment')
+        needs_review = return_all_comments or no_response
+        if not needs_review:
+            continue
+        if not record.get('all_localizations'):
+            vars_annotations.append(record)
+        else:
+            tator_localizations[record['uuid']] = record
+            tator_elemental_ids.append(record['uuid'])
+
     tator_threads = []
     for i in range(0, len(tator_elemental_ids), 50):  # fetch 50 localizations per API call
         thread = threading.Thread(
@@ -60,10 +72,13 @@ def review(reviewer_name):
         )
         tator_threads.append(thread)
         thread.start()
+
     for thread in tator_threads:
         thread.join()
+
     for i in range(0, len(vars_annotations), 30):  # allocate 30 threads at a time to make VARS API calls
         var_threads = []
+
         for record in vars_annotations[i:i + 30]:
             thread = threading.Thread(
                 target=fetch_vars_annotation,
@@ -75,8 +90,10 @@ def review(reviewer_name):
             )
             var_threads.append(thread)
             thread.start()
+
         for thread in var_threads:
             thread.join()
+
     return render_template('external_review.html', data={
         'comments': [*vars_annotations, *tator_localizations.values()],
         'reviewer': reviewer_name,
