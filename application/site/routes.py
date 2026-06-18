@@ -1,10 +1,9 @@
 import base64
 import os
 import threading
-from json import JSONDecodeError
 
 import requests
-from flask import request, current_app, render_template, Response, redirect, jsonify
+from flask import request, current_app, render_template, Response, redirect, jsonify, stream_with_context
 
 from application.schema.comment import Comment
 from application.schema.reviewer import Reviewer
@@ -208,20 +207,31 @@ def tator_video(media_id):
             'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}',
         }
     )
+    if req.status_code != 200:
+        current_app.logger.error(f'Failed to fetch media info for media id {media_id} from Tator API: {req.text}')
+        return jsonify({'error': 'Tator API error', 'status': req.status_code}), 502
     try:
         media = req.json()
-    except JSONDecodeError:
-        return jsonify({'error': 'No media found'}), 404
+    except ValueError:
+        current_app.logger.exception("Failed to parse JSON from Tator API")
+        return jsonify({'error': 'Invalid JSON from upstream'}), 502
     user_agent = request.user_agent.string.lower()
     if 'archival' in media['media_files'].keys() and ('chrome' in user_agent or 'edge' in user_agent or 'safari' in user_agent):
         current_app.logger.info('Playing HEVC')
         return redirect(media['media_files']['archival'][0]['path'])
     current_app.logger.info('Playing AV1')
-    best_stream = {'resolution': [0], 'path': 'not-found'}
-    for stream in media['media_files']['streaming']:
-        if stream['resolution'][0] > best_stream['resolution'][0]:
-            best_stream = stream
-    return redirect(best_stream['path'])
+    best_stream = max(
+        media['media_files']['streaming'],
+        key=lambda s: s['resolution'][0]
+    )
+    media_res = requests.get(best_stream['path'], stream=True)
+    return Response(
+        stream_with_context(media_res.iter_content(chunk_size=1024 * 512)),
+        content_type="video/mp4",
+        headers={
+            "Accept-Ranges": "bytes"
+        }
+    )
 
 
 @site_bp.get('/summary/vars/<sequence_num>')

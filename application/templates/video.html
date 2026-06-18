@@ -12,7 +12,7 @@
         If the video does not play, please try loading this page in Google Chrome or Microsoft Edge. You can also
         <a class="mediaButton" href="{{ data.link }}">download the video by clicking here</a> and watch it on your device.
     </div>
-    <video class="w-100" controls style="height: 95vh;">
+    <video class="w-100" controls preload="auto" style="height: 95vh;">
         <!-- AV1 in MP4 container -->
         <source src="{{ data.link }}#t={{ data.time }}" type="video/mp4; codecs='av01.0.08M.08'">
 
