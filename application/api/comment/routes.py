@@ -6,7 +6,7 @@ from flask_cors import cross_origin
 from mongoengine import NotUniqueError, DoesNotExist
 
 from application.require_api_key import require_api_key
-from application.schema.comment import Comment, ReviewerCommentList
+from application.schema.comment import Comment, ReviewerCommentList, Taxonomy
 from . import comment_bp
 
 
@@ -147,16 +147,24 @@ def add_comment():
     return jsonify(comment.json()), 201
 
 
-#update a comment's phylum given an observation uuid
-@comment_bp.patch('/phylum/<uuid>')
+# update a comment's taxonomy given an observation uuid
+@comment_bp.put('/taxonomy/<uuid>')
 @require_api_key
-def update_comment_phylum(uuid):
+def update_comment_taxonomy(uuid):
     phylum = request.values.get('phylum')
     if phylum is None:
         return jsonify({'error': 'No phylum provided'}), 400
+    taxonomy = Taxonomy(
+        phylum=phylum,
+        tax_class=request.values.get('class'),
+        order=request.values.get('order'),
+        family=request.values.get('family'),
+        genus=request.values.get('genus'),
+        species=request.values.get('species'),
+    )
     try:
         db_record = Comment.objects.get(uuid=uuid)
-        db_record.update(set__phylum=phylum)
+        db_record.update(set__taxonomy=taxonomy)
     except DoesNotExist:
         return jsonify({'error': 'No record with given uuid'}), 404
     return jsonify(Comment.objects.get(uuid=uuid).json()), 200
