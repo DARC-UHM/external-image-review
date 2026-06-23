@@ -9,9 +9,6 @@ const slideshowIndices = {};
 // object to store the status of each card (reviewed, pending)
 const cardStatuses = {};
 
-const tempSortedComments = comments.sort((a, b) => Date.parse(a.timestamp) > Date.parse(b.timestamp)); // sort by timestamp
-const sortedComments = tempSortedComments.sort((a, b) => (a.concept > b.concept) ? 1 : (b.concept > a.concept) ? -1 : 0); // sort by concept
-
 function changeSlide(uuid, slideMod) {
     const tempIndex = slideshowIndices[uuid].currentSlideIndex + slideMod;
     const updatedSlideIndex = (tempIndex + slideshowIndices[uuid].totalSlides) % slideshowIndices[uuid].totalSlides;
@@ -113,8 +110,8 @@ $(document).ready(() => {
     });
 
     // go through each record, adding image cards to page. groups images with the same id reference together
-    for (let i = 0; i < sortedComments.length; i += 1) {
-        const comment = sortedComments[i];
+    for (let i = 0; i < comments.length; i += 1) {
+        const comment = comments[i];
         const idRefUuids = new Set(); // all the uuids for records with the same id reference as this record
         const photos = [comment.image_url];
         const localizations = comment.all_localizations ? [comment.all_localizations] : [];
@@ -132,15 +129,15 @@ $(document).ready(() => {
             idRefUuids.add(comment.uuid);
 
             // find other records with same id ref, add them to the photos array
-            for (let j = i + 1; j < sortedComments.length; j += 1) {
-                if (sortedComments[j].id_reference && sortedComments[j].id_reference === sortedComments[i].id_reference) {
-                    photos.push(sortedComments[j].image_url); // add those photos to this comment
-                    if (sortedComments[j].all_localizations) {
-                        localizations.push(sortedComments[j].all_localizations);
+            for (let j = i + 1; j < comments.length; j += 1) {
+                if (comments[j].id_reference && comments[j].id_reference === comments[i].id_reference) {
+                    photos.push(comments[j].image_url); // add those photos to this comment
+                    if (comments[j].all_localizations) {
+                        localizations.push(comments[j].all_localizations);
                     }
                     slideshowIndices[comment.uuid].totalSlides++;
-                    idRefUuids.add(sortedComments[j].uuid);
-                    sampleReference = sortedComments[j].sample_reference || sampleReference;
+                    idRefUuids.add(comments[j].uuid);
+                    sampleReference = comments[j].sample_reference || sampleReference;
                 }
             }
         }
