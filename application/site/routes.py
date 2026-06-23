@@ -23,19 +23,29 @@ def review(reviewer_name):
     reviewer_name = reviewer_name.replace('-', ' ')
     return_all_comments = request.args.get('all') == 'true'
     annotators_filter = request.args.getlist('annotator')
-    phyla_filter = request.args.getlist('phylum')
+    phylum_filter = request.args.getlist('phylum')
+    class_filter = request.args.getlist('class')
+    order_filter = request.args.getlist('order')
+    family_filter = request.args.getlist('family')
+    genus_filter = request.args.getlist('genus')
     sequence_filter = request.args.get('sequence')
 
     query = Comment.objects(reviewer_comments__reviewer=reviewer_name)
 
     if annotators_filter:
         query = query.filter(annotator__in=annotators_filter)
-    if phyla_filter:
-        query = query.filter(phylum__in=phyla_filter)
+    if phylum_filter:
+        query = query.filter(taxonomy__phylum__in=phylum_filter)
+    if class_filter:
+        query = query.filter(taxonomy__tax_class__in=class_filter)
+    if order_filter:
+        query = query.filter(taxonomy__order__in=order_filter)
+    if family_filter:
+        query = query.filter(taxonomy__family__in=family_filter)
+    if genus_filter:
+        query = query.filter(taxonomy__genus__in=genus_filter)
     if sequence_filter:
         query = query.filter(sequence__icontains=sequence_filter)
-
-    matched_records = query.order_by('sequence')
 
     # we can only get one annotation per VARS API call (but responses are much faster than Tator)
     vars_annotations = []  # using a list: each api call will get passed the object in the list and update it in place
@@ -43,8 +53,8 @@ def review(reviewer_name):
     tator_localizations = {}  # using a dict: we'll iterate through the api response with all the localizations and
     tator_elemental_ids = []  #               update each object in the dict using the elemental id as the key
 
-    for record in matched_records:
-        record = record.json()
+    for comment in query:
+        record = comment.json()
         reviewer_comment = next((x for x in record['reviewer_comments'] if x['reviewer'] == reviewer_name))
         # records need review if "all" flag is set or reviewer has not yet commented
         no_response = not reviewer_comment.get('id_consensus') and not reviewer_comment.get('comment')
@@ -93,8 +103,17 @@ def review(reviewer_name):
         for thread in var_threads:
             thread.join()
 
+    comments = sorted([*vars_annotations, *tator_localizations.values()], key=lambda x: (
+        x.get('taxonomy', {}).get('phylum') or 'ZZZZ',
+        x.get('taxonomy', {}).get('class') or 'ZZZZ',
+        x.get('taxonomy', {}).get('order') or 'ZZZZ',
+        x.get('taxonomy', {}).get('family') or 'ZZZZ',
+        x.get('taxonomy', {}).get('genus') or 'ZZZZ',
+        x.get('taxonomy', {}).get('species') or 'ZZZZ',
+    ))
+
     return render_template('external_review.html', data={
-        'comments': [*vars_annotations, *tator_localizations.values()],
+        'comments': comments,
         'reviewer': reviewer_name,
     }), 200
 
