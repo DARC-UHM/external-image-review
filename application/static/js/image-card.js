@@ -146,7 +146,27 @@ export const imageCard = ({ comment, photos, index, idRefUuids, localizations, s
                 <div class="row accordion-body flex-column-reverse flex-md-row small-md" style="margin: 0;">
                     <div class="col ps-3 ps-md-5 text-start pb-3 small">
                         <div class="w-100 pb-3">
-                            ${labelWithValue({ label: 'Tentative ID', value: tentativeId })}
+                            <div class="row">
+                                <div class="col-5 col-sm-4">
+                                    Tentative ID:
+                                </div>
+                                <div
+                                    class="col values"
+                                    data-toggle="tooltip"
+                                    data-bs-placement="left"
+                                    data-bs-html="true"
+                                    title="<div class='text-start' style='max-width: none; white-space: nowrap;'>
+                                             Phylum: ${comment.taxonomy?.phylum ?? 'N/A'}<br>
+                                             Class: ${comment.taxonomy?.class ?? 'N/A'}<br>
+                                             Order: ${comment.taxonomy?.order ?? 'N/A'}<br>
+                                             Family: ${comment.taxonomy?.family ?? 'N/A'}<br>
+                                             Genus: ${comment.taxonomy?.genus ? `<i>${comment.taxonomy?.genus}</i>` : 'N/A'}<br>
+                                             Species: ${comment.taxonomy?.species ? `<i>${comment.taxonomy?.species}</i>` : 'N/A'}
+                                           </div>"
+                                >
+                                    ${tentativeId}
+                                </div>
+                            </div>
                             ${comment.id_certainty && comment.id_certainty !== 'maybe'
                                 ? labelWithValue({ 
                                     label: 'ID Remarks',
