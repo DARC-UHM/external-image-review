@@ -108,10 +108,18 @@ def get_reviewer_comments(reviewer_name):
 def add_comment():
     comment = {}
     reviewers = json.loads(request.values.get('reviewers'))
+    taxonomy = {}
+    taxonomy_keys = [
+        'phylum',
+        'tax_class',
+        'order',
+        'family',
+        'genus',
+        'species',
+    ]
     keys = [
         'uuid',
         'all_localizations',
-        'phylum',
         'sequence',
         'timestamp',
         'image_url',
@@ -119,6 +127,10 @@ def add_comment():
         'annotator',
         'section_id',
     ]
+    for key in taxonomy_keys:
+        value = request.values.get(key)
+        if value is not None and value != '':
+            taxonomy[key] = value
     for key in keys:
         value = request.values.get(key)
         if value is not None and value != '':
@@ -126,8 +138,10 @@ def add_comment():
     if comment.get('uuid') is None \
             or comment.get('sequence') is None \
             or comment.get('annotator') is None \
-            or reviewers is None:
+            or not taxonomy \
+            or not reviewers:
         return jsonify({'error': 'Missing required values'}), 400
+    comment['taxonomy'] = Taxonomy(**taxonomy)
     if comment.get('all_localizations'):  # tator localization
         comment['sequence'] = comment['sequence'].replace('-', '_')
     try:
