@@ -9,6 +9,15 @@ from ...require_api_key import require_api_key
 from ...schema.annotation import Annotation
 
 
+def safe_round(val):
+    if val is None or val == '':
+        return None
+    try:
+        return round(val)
+    except ValueError:
+        return None
+
+
 def safe_float(val):
     if val is None or val == '':
         return None
@@ -89,7 +98,7 @@ def import_annotations_tsv():
                     'type': 'Point',
                     'coordinates': [lng, lat]
                 },
-                depth_m=round(safe_float(row.get('depth(m)')))
+                depth_m=safe_round(safe_float(row.get('depth(m)')))
             )
 
             annotation.save()
