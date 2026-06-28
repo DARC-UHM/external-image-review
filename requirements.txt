@@ -4,6 +4,7 @@ flask_sslify
 flask-mail
 pillow
 python-dotenv
+python-dateutil
 requests
 jinja2
 mongoengine
