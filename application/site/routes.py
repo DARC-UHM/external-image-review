@@ -12,6 +12,7 @@ from .fetch_tator_localization import fetch_tator_localizations
 from .fetch_vars_annotation import fetch_vars_annotation
 from .slack_helper import SlackHelper
 from ..get_request_ip import get_request_ip
+from ..schema.annotation import Annotation
 from ..schema.image_reference import ImageReference
 
 
@@ -192,7 +193,9 @@ def video():
 @site_bp.get('/tator-frame/<media_id>/<frame_number>')
 def tator_frame(media_id, frame_number):
     url = f'{current_app.config.get("TATOR_URL")}/rest/GetFrame/{media_id}?frames={frame_number}'
-    if request.values.get('preview'):
+    if request.values.get('thumbnail'):
+        url += '&quality=300'
+    elif request.values.get('preview'):
         url += '&quality=650'
     res = requests.get(
         url=url,
@@ -285,3 +288,34 @@ def image_reference_page():
         'tentative_id',
     )
     return render_template('image-reference.html', image_references=[image_ref.json() for image_ref in image_references])
+
+
+# observations map
+@site_bp.get('/observations')
+def animal_page():
+    name_filter = request.values.get('name')
+    phylum_filter = request.values.get('phylum')
+    class_filter = request.values.get('class')
+    order_filter = request.values.get('order')
+    expedition_filter = request.values.get('expedition')
+    survey_type_filter = request.values.get('survey-type')
+
+    query = Annotation.objects()
+
+    if expedition_filter:
+        query = query.filter(expedition_name=expedition_filter)
+    if survey_type_filter:
+        query = query.filter(survey_type=survey_type_filter)
+    if name_filter:
+        query = query.filter(scientific_name=name_filter)
+    if phylum_filter:
+        query = query.filter(phylum=phylum_filter)
+    if class_filter:
+        query = query.filter(class_name=class_filter)
+    if order_filter:
+        query = query.filter(order=order_filter)
+
+    current_app.logger.info(f'Access observations page - IP Address: {get_request_ip()}')
+    current_app.logger.info(request.url)
+
+    return render_template('observations.html', annotations=[annotation.json() for annotation in query])

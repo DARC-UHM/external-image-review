@@ -1,3 +1,5 @@
+import datetime
+
 from mongoengine import Document, StringField, IntField, DateTimeField, URLField, PointField
 
 
@@ -16,6 +18,40 @@ class Annotation(Document):
     image_url = URLField()
     location = PointField(required=True)
     depth_m = IntField()
+
+    @property
+    def lat(self):
+        return self.location["coordinates"][1]
+
+    @property
+    def lng(self):
+        return self.location["coordinates"][0]
+
+    def json(self):
+        attributes = [
+            'annotation_id',
+            'annotation_platform',
+            'expedition_name',
+            'survey_type',
+            'scientific_name',
+            'phylum',
+            'class_name',
+            'order',
+            'count',
+            'image_url',
+            'depth_m'
+        ]
+        # create a json object with only the fields that are not None
+        annotation = {
+            attr: getattr(self, attr)
+            for attr in attributes if getattr(self, attr) is not None
+        }
+        if getattr(self, 'observation_timestamp'):
+            annotation['observation_timestamp'] = datetime.datetime.isoformat(self.observation_timestamp)
+        if self.location:
+            annotation['lat'] = self.lat
+            annotation['lng'] = self.lng
+        return annotation
 
     meta = {
         'indexes': [

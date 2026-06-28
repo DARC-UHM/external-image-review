@@ -1,3 +1,5 @@
+import { depthColor } from './util.js';
+
 const slideshows = {}; // { fullName: { currentIndex, maxIndex, depths } }
 const phyla = {};
 const canEdit = window.canEdit ?? false;
@@ -439,24 +441,6 @@ const italicizedSuffix = (suffix) => {
     }
     return `<i>${suffix}</i>`;
 };
-
-const depthColor = (depthM) => {
-    if (!depthM) {
-        return '#00000000';
-    }
-    if (depthM >= 1000) {
-        return '#000';
-    } else if (depthM >= 800) {
-        return '#ca1ec9';
-    } else if (depthM >= 600) {
-        return '#0b24fb';
-    } else if (depthM >= 400) {
-        return '#19af54';
-    } else if (depthM >= 200) {
-        return '#fffd38';
-    }
-    return '#fc0d1b';
-}
 
 function renderTree(node, path = []) {
     let html = '';

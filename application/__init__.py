@@ -29,6 +29,7 @@ else:
     )
 
 from application import routes
+from application.api.annotation import annotation_bp
 from application.api.attracted import attracted_bp
 from application.api.comment import comment_bp
 from application.api.dropcam_fieldbook import dropcam_fieldbook_bp
@@ -41,6 +42,7 @@ from application.site import site_bp
 
 dictConfig(logging_config)
 app.config.from_object('application.config.Config')
+app.register_blueprint(annotation_bp)
 app.register_blueprint(attracted_bp)
 app.register_blueprint(comment_bp)
 app.register_blueprint(dropcam_fieldbook_bp)
