@@ -129,7 +129,7 @@ def add_comment():
     taxonomy = {}
     taxonomy_keys = [
         'phylum',
-        'tax_class',
+        'class',
         'order',
         'family',
         'genus',
@@ -148,7 +148,7 @@ def add_comment():
     for key in taxonomy_keys:
         value = request.values.get(key)
         if value is not None and value != '':
-            taxonomy[key] = value
+            taxonomy['tax_class' if key == 'class' else key] = value
     for key in keys:
         value = request.values.get(key)
         if value is not None and value != '':
@@ -176,6 +176,8 @@ def add_comment():
     except NotUniqueError:
         return jsonify({'error': 'Already a comment record for given uuid'}), 409
     current_app.logger.info(f'New comment added for {", ".join(reviewers)} ({comment["sequence"]}, annotator {comment["annotator"]})')
+    if taxonomy.get('tax_class') is None:
+        current_app.logger.warning('No class provided for comment taxonomy')
     return jsonify(comment.json()), 201
 
 
