@@ -30,7 +30,7 @@ def get_comments():
     if request.args.get('read') == 'true':
         query = query.filter(unread=False, reviewer_comments__comment__ne='')
     if sequence := request.args.get('sequence'):
-        query = query.filter(sequence=sequence)
+        query = query.filter(sequence__icontains=sequence)
     if reviewer := request.args.get('reviewer'):
         query = query.filter(reviewer_comments__reviewer=reviewer)
     if annotator := request.args.get('annotator'):
