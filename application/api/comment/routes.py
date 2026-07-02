@@ -20,6 +20,24 @@ def get_comment(uuid):
     return jsonify(db_record[0].json()), 200
 
 
+# get comments
+@comment_bp.get('')
+@require_api_key
+def get_comments():
+    query = Comment.objects()
+    if request.args.get('unread') == 'true':
+        query = query.filter(unread=True)
+    if request.args.get('read') == 'true':
+        query = query.filter(unread=False, reviewer_comments__comment__ne='')
+    if sequence := request.args.get('sequence'):
+        query = query.filter(sequence=sequence)
+    if reviewer := request.args.get('reviewer'):
+        query = query.filter(reviewer_comments__reviewer=reviewer)
+    if annotator := request.args.get('annotator'):
+        query = query.filter(annotator=annotator)
+    return jsonify([comment.json() for comment in query]), 200
+
+
 # get all comments saved in the database
 @comment_bp.get('/all')
 @require_api_key
