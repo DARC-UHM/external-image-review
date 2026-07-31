@@ -10,6 +10,7 @@ class TatorSubQaqcChecklist(Document):
     tentative_id = IntField(required=True, min_value=0, max_value=2)
     missing_upon = IntField(required=True, min_value=0, max_value=2)
     upon_not_substrate = IntField(required=True, min_value=0, max_value=2)
+    missing_good_image = IntField(required=True, min_value=0, max_value=2)
     suspicious_host = IntField(required=True, min_value=0, max_value=2)
     time_diff_host_upon = IntField(required=True, min_value=0, max_value=2)
     missing_ancillary = IntField(required=True, min_value=0, max_value=2)
@@ -27,6 +28,7 @@ class TatorSubQaqcChecklist(Document):
             'tentative_id': self.tentative_id,
             'missing_upon': self.missing_upon,
             'upon_not_substrate': self.upon_not_substrate,
+            'missing_good_image': self.missing_good_image,
             'suspicious_host': self.suspicious_host,
             'time_diff_host_upon': self.time_diff_host_upon,
             'missing_ancillary': self.missing_ancillary,

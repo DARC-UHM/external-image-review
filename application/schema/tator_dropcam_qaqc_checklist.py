@@ -11,6 +11,7 @@ class TatorDropcamQaqcChecklist(Document):
     attracted = IntField(required=True, min_value=0, max_value=2)
     non_target_not_attracted = IntField(required=True, min_value=0, max_value=2)
     exists_in_image_refs = IntField(required=True, min_value=0, max_value=2)
+    missing_good_image = IntField(required=True, min_value=0, max_value=2)
     same_name_qualifier = IntField(required=True, min_value=0, max_value=2)
     notes_remarks = IntField(required=True, min_value=0, max_value=2)
     re_examined = IntField(required=True, min_value=0, max_value=2)
@@ -26,6 +27,7 @@ class TatorDropcamQaqcChecklist(Document):
             'attracted': self.attracted,
             'non_target_not_attracted': self.non_target_not_attracted,
             'exists_in_image_refs': self.exists_in_image_refs,
+            'missing_good_image': self.missing_good_image,
             'same_name_qualifier': self.same_name_qualifier,
             'notes_remarks': self.notes_remarks,
             're_examined': self.re_examined,
