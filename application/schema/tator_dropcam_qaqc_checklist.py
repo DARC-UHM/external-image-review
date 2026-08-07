@@ -4,19 +4,19 @@ from mongoengine import Document, IntField, StringField
 class TatorDropcamQaqcChecklist(Document):
     """ Schema for Tator dropcam QAQC checklist collection """
     deployment_names = StringField(required=True, unique=True, max_length=750)
-    names_accepted = IntField(required=True, min_value=0, max_value=2)
-    missing_qualifier = IntField(required=True, min_value=0, max_value=2)
-    stet_reason = IntField(required=True, min_value=0, max_value=2)
-    tentative_id = IntField(required=True, min_value=0, max_value=2)
-    attracted = IntField(required=True, min_value=0, max_value=2)
-    non_target_not_attracted = IntField(required=True, min_value=0, max_value=2)
-    exists_in_image_refs = IntField(required=True, min_value=0, max_value=2)
-    missing_good_image = IntField(required=True, min_value=0, max_value=2)
-    same_name_qualifier = IntField(required=True, min_value=0, max_value=2)
-    notes_remarks = IntField(required=True, min_value=0, max_value=2)
-    re_examined = IntField(required=True, min_value=0, max_value=2)
-    unique_taxa = IntField(required=True, min_value=0, max_value=2)
-    media_attributes = IntField(required=True, min_value=0, max_value=2)
+    names_accepted = IntField(required=True, min_value=0, max_value=2, default=0)
+    missing_qualifier = IntField(required=True, min_value=0, max_value=2, default=0)
+    stet_reason = IntField(required=True, min_value=0, max_value=2, default=0)
+    tentative_id = IntField(required=True, min_value=0, max_value=2, default=0)
+    attracted = IntField(required=True, min_value=0, max_value=2, default=0)
+    non_target_not_attracted = IntField(required=True, min_value=0, max_value=2, default=0)
+    exists_in_image_refs = IntField(required=True, min_value=0, max_value=2, default=0)
+    missing_good_image = IntField(required=True, min_value=0, max_value=2, default=0)
+    same_name_qualifier = IntField(required=True, min_value=0, max_value=2, default=0)
+    notes_remarks = IntField(required=True, min_value=0, max_value=2, default=0)
+    re_examined = IntField(required=True, min_value=0, max_value=2, default=0)
+    unique_taxa = IntField(required=True, min_value=0, max_value=2, default=0)
+    media_attributes = IntField(required=True, min_value=0, max_value=2, default=0)
 
     def json(self):
         return {

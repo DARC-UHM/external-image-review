@@ -19,26 +19,7 @@ def vars_qaqc_checklist(sequences):
         checklist = VarsQaqcChecklist.objects.get(sequence_names=sequences)
     except DoesNotExist:
         # create a new checklist
-        checklist = VarsQaqcChecklist(
-            sequence_names=sequences,
-            multiple_associations=0,
-            primary_substrate=0,
-            identical_s1_s2=0,
-            duplicate_s2=0,
-            upon_substrate=0,
-            timestamp_substrate=0,
-            missing_upon=0,
-            missing_ancillary=0,
-            ref_id_concept_name=0,
-            ref_id_associations=0,
-            blank_associations=0,
-            suspicious_host=0,
-            expected_association=0,
-            time_diff_host_upon=0,
-            bounding_boxes=0,
-            localizations_missing_bounding_box=0,
-            unique_fields=0,
-        ).save()
+        checklist = VarsQaqcChecklist(sequence_names=sequences).save()
         current_app.logger.info(f'Created new VARS QA/QC checklist: {sequences}')
     return jsonify(checklist.json()), 200
 
@@ -70,21 +51,7 @@ def tator_qaqc_checklist(deployments):
         checklist = TatorDropcamQaqcChecklist.objects.get(deployment_names=deployments)
     except DoesNotExist:
         # create a new checklist
-        checklist = TatorDropcamQaqcChecklist(
-            deployment_names=deployments,
-            names_accepted=0,
-            missing_qualifier=0,
-            stet_reason=0,
-            tentative_id=0,
-            attracted=0,
-            non_target_not_attracted=0,
-            exists_in_image_refs=0,
-            same_name_qualifier=0,
-            notes_remarks=0,
-            re_examined=0,
-            unique_taxa=0,
-            media_attributes=0,
-        ).save()
+        checklist = TatorDropcamQaqcChecklist(deployment_names=deployments).save()
         current_app.logger.info(f'Created new Tator dropcam QA/QC checklist: {deployments}')
     return jsonify(checklist.json()), 200
 
@@ -116,23 +83,7 @@ def tator_sub_qaqc_checklist(transect_media_ids):
         checklist = TatorSubQaqcChecklist.objects.get(transect_media_ids=transect_media_ids)
     except DoesNotExist:
         # create a new checklist
-        checklist = TatorSubQaqcChecklist(
-            transect_media_ids=transect_media_ids,
-            names_accepted=0,
-            missing_qualifier=0,
-            stet_reason=0,
-            tentative_id=0,
-            missing_upon=0,
-            upon_not_substrate=0,
-            suspicious_host=0,
-            time_diff_host_upon=0,
-            missing_ancillary=0,
-            notes_remarks=0,
-            re_examined=0,
-            review_sizes=0,
-            unique_taxa=0,
-            media_attributes=0,
-        ).save()
+        checklist = TatorSubQaqcChecklist(transect_media_ids=transect_media_ids).save()
         current_app.logger.info(f'Created new Tator sub QA/QC checklist: {transect_media_ids}')
     return jsonify(checklist.json()), 200
 
