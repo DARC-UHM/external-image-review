@@ -297,7 +297,7 @@ select {
 }
 
 .header-link:hover {
-    color: rgba(255, 255, 255, 0.7);
+    color: #ffffff80;
 }
 
 .photo-slideshow-arrows {

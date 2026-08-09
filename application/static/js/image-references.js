@@ -1,12 +1,13 @@
 import { depthColor } from './util.js';
 
+const BASE_URL = 'https://darc.soest.hawaii.edu/';
 const slideshows = {}; // { fullName: { currentIndex, maxIndex, depths } }
 const phyla = {};
 const canEdit = window.canEdit ?? false;
 const trashIconSvg = (dimensions) =>
-    `<svg xmlns="http://www.w3.org/2000/svg" height="${dimensions}px" viewBox="0 -960 960 960" width="${dimensions}px" fill="#e3e3e3"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>`;
+    `<svg xmlns="http://www.w3.org/2000/svg" height="${dimensions}px" viewBox="0 -960 960 960" width="${dimensions}px" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>`;
 const refreshIconSvg = (dimensions) =>
-    `<svg xmlns="http://www.w3.org/2000/svg" height="${dimensions}px" viewBox="0 -960 960 960" width="${dimensions}px" fill="#e3e3e3"><path d="M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z"/></svg>`;
+    `<svg xmlns="http://www.w3.org/2000/svg" height="${dimensions}px" viewBox="0 -960 960 960" width="${dimensions}px" fill="currentColor"><path d="M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z"/></svg>`;
 const mapIconSvg = (dimensions) =>
     `<svg xmlns="http://www.w3.org/2000/svg" height="${dimensions}px" viewBox="0 -960 960 960" width="${dimensions}px" fill="currentColor"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q76 0 144 26.5T745-780q53 47 88 111t44 139q-20-11-42-18t-45-10q-19-75-68.5-132T600-776v16q0 33-23.5 56.5T520-680h-80v80q0 17-11.5 28.5T400-560h-80v80h260q-29 32-44.5 72T520-324q0 78 31 121t80 94q-36 14-74 21.5T480-80Zm-40-82v-78q-33 0-56.5-23.5T360-320v-40L168-552q-3 18-5.5 36t-2.5 36q0 121 79.5 212T440-162Zm362.5-115.5Q820-295 820-320t-17-42.5Q786-380 761-380q-26 0-43.5 17.5T700-320q0 25 17.5 42.5T760-260q25 0 42.5-17.5ZM760-80q-3 0-16-11l-4-7q-22-38-55.5-67.5T627-232q-14-20-20.5-43.5T600-324q0-66 47-111t113-45q66 0 113 45t47 111q0 25-6.5 48.5T893-232q-24 37-57.5 66.5T780-98l-4 7q-2 5-6.5 8t-9.5 3Z"/></svg>`;
 
@@ -307,7 +308,7 @@ const editButtons = (imageRef) => {
             <button
                 onclick="refreshImageReference('${imageRef.id}');"
                 class="header-link"
-                style="background: none; border: none; outline: none; box-shadow: none; opacity: 0.5"
+                style="background: none; border: none; outline: none; box-shadow: none;"
                 data-toggle="tooltip"
                 title="Refresh image reference details from Tator"
             >
@@ -315,7 +316,7 @@ const editButtons = (imageRef) => {
             </button>
             <button
                 class="header-link"
-                style="background: none; border: none; outline: none; box-shadow: none; opacity: 0.5;"
+                style="background: none; border: none; outline: none; box-shadow: none;"
                 data-bs-toggle="modal"
                 data-bs-target="#deleteImageReferenceModal"
                 data-anno='${JSON.stringify(imageRef)}'
@@ -331,7 +332,7 @@ const observationsLink = (scientificName) => {
     return `
         <div class="position-absolute top-0 start-0 btn">
             <a
-                href="/observations?name=${scientificName}"
+                href="${BASE_URL}observations?name=${scientificName}"
                 target="_blank"
                 class="header-link"
                 data-toggle="tooltip"
@@ -343,13 +344,13 @@ const observationsLink = (scientificName) => {
 }
 
 function getPhotoSlideshow(imageRef, photoRecord, fullName, photoKey, index) {
-    const baseUrl = 'https://darc.soest.hawaii.edu/image-reference/image';
+    const imageUrl = `${BASE_URL}image-reference/image`;
     return `
         <div id="${photoKey}-${index}" style="display: ${index > 0 ? 'none' : 'block'}; width: 100%">
             <div class="position-relative">
-                <a href="${baseUrl}/${photoRecord.image_name}" target="_blank">
+                <a href="${imageUrl}/${photoRecord.image_name}" target="_blank">
                     <img
-                        src="${baseUrl}/${photoRecord.thumbnail_name}"
+                        src="${imageUrl}/${photoRecord.thumbnail_name}"
                         class="w-100"
                         alt="${fullName}"
                     >
