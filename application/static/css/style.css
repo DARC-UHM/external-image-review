@@ -291,6 +291,15 @@ select {
     color: #ffffff;
 }
 
+.header-link {
+    color: #ffffff50;
+    transition: 0.1s;
+}
+
+.header-link:hover {
+    color: rgba(255, 255, 255, 0.7);
+}
+
 .photo-slideshow-arrows {
     cursor: pointer;
     position: absolute;

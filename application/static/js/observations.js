@@ -79,7 +79,7 @@ annotations.forEach(annotation => {
 if (annotations.length === 0) {
     map.setView([20, 0], 2);
 } else {
-    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 6 });
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 11 });
 }
 
 map.on('moveend', updateObservationCount);
