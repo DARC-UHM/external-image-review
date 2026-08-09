@@ -343,12 +343,13 @@ const observationsLink = (scientificName) => {
 }
 
 function getPhotoSlideshow(imageRef, photoRecord, fullName, photoKey, index) {
+    const baseUrl = 'https://darc.soest.hawaii.edu/image-reference/image';
     return `
         <div id="${photoKey}-${index}" style="display: ${index > 0 ? 'none' : 'block'}; width: 100%">
             <div class="position-relative">
-                <a href="/image-reference/image/${photoRecord.image_name}" target="_blank">
+                <a href="${baseUrl}/${photoRecord.image_name}" target="_blank">
                     <img
-                        src="/image-reference/image/${photoRecord.thumbnail_name}"
+                        src="${baseUrl}/${photoRecord.thumbnail_name}"
                         class="w-100"
                         alt="${fullName}"
                     >
