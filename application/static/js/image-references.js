@@ -377,7 +377,7 @@ function getPhotoSlideshow(imageRef, photoRecord, fullName, photoKey, index) {
                             <div class="w-100 text-center">
                             ${canEdit ? `
                                 <button
-                                    class="ms-1 my-auto p-0"
+                                    class="ms-1 my-auto p-0 header-link"
                                     style="background: none; border: none; outline: none; box-shadow: none; opacity: 0.5; line-height: 1;"
                                     data-bs-toggle="modal"
                                     data-bs-target="#deleteImageReferenceModal"
