@@ -13,7 +13,7 @@ from application.schema.image_reference import ImageReference
 
 
 class ImageReferenceSaver:
-    LOCALIZATION_TYPE = 45
+    VERSION = 45
 
     def __init__(self, tator_url: str, image_ref_dir_path: str, logger: logging.Logger):
         self.tator_url = tator_url
@@ -38,7 +38,7 @@ class ImageReferenceSaver:
         self.attracted = None
         self.fps = 30
 
-    def load_from_tator_id(self, localization_id: str = None, elemental_id: str = None):
+    def load_from_tator_id(self, localization_id: str|None = None, elemental_id: str|None = None):
         if localization_id:
             localization_res = requests.get(
                 url=f'{self.tator_url}/rest/Localization/{localization_id}',
@@ -49,7 +49,7 @@ class ImageReferenceSaver:
             )
         elif elemental_id:
             localization_res = requests.get(
-                url=f'{self.tator_url}/rest/Localization/{self.LOCALIZATION_TYPE}/{elemental_id}',
+                url=f'{self.tator_url}/rest/Localization/{self.VERSION}/{elemental_id}',
                 headers={
                     'Authorization': f'Token {os.environ.get("TATOR_TOKEN")}',
                     'Content-Type': 'application/json',
@@ -173,6 +173,8 @@ class ImageReferenceSaver:
             db_record.update(
                 push__photo_records={
                     'tator_elemental_id': self.tator_elemental_id,
+                    'localization_media_id': self.localization_media_id,
+                    'localization_frame': self.localization_frame,
                     'image_name': image_data['image_name'],
                     'thumbnail_name': image_data['thumbnail_name'],
                     'location_short_name': self.deployment_name.split('_')[0],
@@ -205,6 +207,8 @@ class ImageReferenceSaver:
             'scientific_name': self.scientific_name,
             'photo_records': [{
                 'tator_elemental_id': self.tator_elemental_id,
+                'localization_media_id': self.localization_media_id,
+                'localization_frame': self.localization_frame,
                 'image_name': image_data['image_name'],
                 'thumbnail_name': image_data['thumbnail_name'],
                 'video_url': self._build_video_url(),

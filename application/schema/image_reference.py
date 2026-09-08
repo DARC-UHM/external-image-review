@@ -7,6 +7,8 @@ from mongoengine import DateTimeField, DecimalField, Document, EmbeddedDocument,
 class ImageRecord(EmbeddedDocument):
     """ Schema for individual image record (embedded in image reference) """
     tator_elemental_id = StringField(required=True)
+    localization_media_id = IntField()  # todo make required after records backfilled & callers updated
+    localization_frame = IntField()  # todo make required after records backfilled & callers updated
     image_name = StringField(max_length=100)
     thumbnail_name = StringField(max_length=100)
     location_short_name = StringField(max_length=100)
@@ -34,6 +36,8 @@ class ImageRecord(EmbeddedDocument):
     def json(self):
         item = {
             'tator_elemental_id': self.tator_elemental_id,
+            'localization_media_id': self.localization_media_id,
+            'localization_frame': self.localization_frame,
             'image_name': self.image_name,
             'thumbnail_name': self.thumbnail_name,
             'location_short_name': self.location_short_name,

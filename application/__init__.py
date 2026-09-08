@@ -3,7 +3,6 @@ from logging.config import dictConfig
 
 from dotenv import load_dotenv
 from flask import Flask
-from flask_mail import Mail
 from flask_cors import CORS
 from mongoengine import connect
 
@@ -11,7 +10,6 @@ load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
-Mail(app)
 
 if os.environ.get('FLASK_ENV') == 'development':
     print('Development mode, connecting to local MongoDB instance')
