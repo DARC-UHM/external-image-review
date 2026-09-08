@@ -10,6 +10,8 @@ const refreshIconSvg = (dimensions) =>
     `<svg xmlns="http://www.w3.org/2000/svg" height="${dimensions}px" viewBox="0 -960 960 960" width="${dimensions}px" fill="currentColor"><path d="M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z"/></svg>`;
 const mapIconSvg = (dimensions) =>
     `<svg xmlns="http://www.w3.org/2000/svg" height="${dimensions}px" viewBox="0 -960 960 960" width="${dimensions}px" fill="currentColor"><path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q76 0 144 26.5T745-780q53 47 88 111t44 139q-20-11-42-18t-45-10q-19-75-68.5-132T600-776v16q0 33-23.5 56.5T520-680h-80v80q0 17-11.5 28.5T400-560h-80v80h260q-29 32-44.5 72T520-324q0 78 31 121t80 94q-36 14-74 21.5T480-80Zm-40-82v-78q-33 0-56.5-23.5T360-320v-40L168-552q-3 18-5.5 36t-2.5 36q0 121 79.5 212T440-162Zm362.5-115.5Q820-295 820-320t-17-42.5Q786-380 761-380q-26 0-43.5 17.5T700-320q0 25 17.5 42.5T760-260q25 0 42.5-17.5ZM760-80q-3 0-16-11l-4-7q-22-38-55.5-67.5T627-232q-14-20-20.5-43.5T600-324q0-66 47-111t113-45q66 0 113 45t47 111q0 25-6.5 48.5T893-232q-24 37-57.5 66.5T780-98l-4 7q-2 5-6.5 8t-9.5 3Z"/></svg>`;
+const tatorIconSvg = (dimensions) =>
+    `<svg xmlns="http://www.w3.org/2000/svg" height="${dimensions}px" viewBox="0 0 100 100" width="${dimensions}px"><path fill="currentColor" d="M81.41,56.24l-11.47-6.86c-1.88-1.12-1.92-3.83-0.07-5.01c5.71-3.64,5.33-11.31,0.19-14.6 L33.17,6.23c-5.71-3.65-13.21,0.46-13.21,7.24v15.38c0,1.83-2.02,2.94-3.56,1.95C10.69,27.15,3.2,31.24,3.2,38.03v47.11 c0,6.78,7.49,10.89,13.21,7.24l12.76-8.24c1.2-0.78,2.78,0.09,2.78,1.52c0,8.74,7.95,11.39,13.04,8.14l36.42-23.26 C86.63,67.2,86.63,59.58,81.41,56.24z M65.64,60.57c-5.92,3.78-33.23,21.44-33.83,21.69c-5.47,2.28-11.84-1.69-11.84-7.95 c0-2.21,0-38.64,0-40.88c0-6.78,7.49-10.89,13.21-7.24c5.1,3.26,32.56,20.62,32.47,20.62C70.86,50.15,70.86,57.24,65.64,60.57z"/></svg>`;
 
 window.refreshImageReference = window.refreshImageReference ?? ((imageRefId) => {});
 
@@ -355,17 +357,8 @@ function getPhotoSlideshow(imageRef, photoRecord, fullName, photoKey, index) {
                         alt="${fullName}"
                     >
                 </a>
-                ${photoRecord.video_url
-                    ? `
-                        <div class="position-absolute" style="left: 0; top: 0;">
-                            <a href="${photoRecord.video_url}" target="_blank" class="video-overlay-link px-2 py-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                    <path fill-rule="evenodd" d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2zm11.5 5.175 3.5 1.556V4.269l-3.5 1.556zM2 4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h7.5a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1z"/>
-                                </svg>
-                            </a>
-                        </div>
-                    ` : ''
-                }
+                ${videoLink(photoRecord)}
+                ${tatorLink(photoRecord)}
                 ${depthIndicator(photoRecord.depth_m)}
                 ${locationIndicator(photoRecord.location_long_name, photoRecord.location_short_name)}
                 ${imageRef.photo_records.length > 1
@@ -436,6 +429,28 @@ const locationIndicator = (locationLongName, locationShortName) => {
                 ${locationShortName}
             </div>
         </div>`;
+}
+
+const videoLink = (photoRecord) => {
+    return photoRecord.video_url ? `
+        <div class="position-absolute" style="left: 0; top: 0;">
+            <a href="${photoRecord.video_url}" target="_blank" class="header-link px-2 py-1" data-toggle="tooltip" title="View video">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2zm11.5 5.175 3.5 1.556V4.269l-3.5 1.556zM2 4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h7.5a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1z"/>
+                </svg>
+            </a>
+        </div>
+    ` : '';
+}
+
+const tatorLink = (photoRecord) => {
+    const tatorUrl =
+        `https://cloud.tator.io/26/annotation/${photoRecord.localization_media_id}?frame=${photoRecord.localization_frame}&selected_entity=${photoRecord.tator_elemental_id}`;
+    return `<div class="position-absolute px-2 py-1" style="left: 0; bottom: 0;">
+        <a href="${tatorUrl}" target="_blank" class="header-link" data-toggle="tooltip" title="View in Tator">
+            ${tatorIconSvg(18)}
+        </a>
+    </div>`;
 }
 
 function populatePhyla() {
