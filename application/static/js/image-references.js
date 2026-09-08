@@ -358,7 +358,7 @@ function getPhotoSlideshow(imageRef, photoRecord, fullName, photoKey, index) {
                     >
                 </a>
                 ${videoLink(photoRecord)}
-                ${tatorLink(photoRecord)}
+                ${canEdit ? tatorLink(photoRecord) : ''}
                 ${depthIndicator(photoRecord.depth_m)}
                 ${locationIndicator(photoRecord.location_long_name, photoRecord.location_short_name)}
                 ${imageRef.photo_records.length > 1
