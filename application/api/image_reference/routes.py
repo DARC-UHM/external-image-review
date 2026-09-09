@@ -102,6 +102,17 @@ def add_image_reference():
     return jsonify(saved_ref), 201
 
 
+def _apply_tator_fields_to_photo_record(photo_record, tator_record):
+    photo_record.localization_media_id = tator_record.localization_media_id
+    photo_record.localization_frame = tator_record.localization_frame
+    photo_record.lat = tator_record.lat
+    photo_record.long = tator_record.long
+    photo_record.depth_m = tator_record.depth_m
+    photo_record.temp_c = tator_record.temp_c
+    photo_record.salinity_m_l = tator_record.salinity_m_l
+    photo_record.attracted = True if tator_record.attracted == 'Attracted' else False
+
+
 # refresh an existing image reference with data from Tator
 @image_reference_bp.get('/refresh/<image_reference_id>')
 @require_api_key
@@ -133,28 +144,46 @@ def refresh_image_reference(image_reference_id):
                 set__updated_at=datetime.now(),
             )
         except NotUniqueError:
-            current_app.logger.error('Updated taxonomy conflicts with an existing image reference, cannot refresh')
-            current_app.logger.error(f'Conflicting taxonomy: scientific_name={first.scientific_name}, '
-                                     f'tentative_id={first.tentative_id}, morphospecies={first.morphospecies}')
-            return jsonify({'error': 'Updated taxonomy conflicts with an existing image reference'}), 409
+            current_app.logger.info(
+                f'Image reference with scientific_name={first.scientific_name}, tentative_id={first.tentative_id}, '
+                f'morphospecies={first.morphospecies} already exists, merging photo records into it instead'
+            )
+            existing_record = ImageReference.objects.get(
+                scientific_name=first.scientific_name,
+                tentative_id=first.tentative_id,
+                morphospecies=first.morphospecies,
+            )
+            existing_elemental_ids = {photo_record.tator_elemental_id for photo_record in existing_record.photo_records}
+            for db_photo_record, tator_photo_record in zip(db_record.photo_records, tator_records):
+                if db_photo_record.tator_elemental_id in existing_elemental_ids:
+                    current_app.logger.info(
+                        f'Skipping photo record {db_photo_record.tator_elemental_id}, already present on merge target'
+                    )
+                    continue
+                _apply_tator_fields_to_photo_record(db_photo_record, tator_photo_record)
+                existing_record.photo_records.append(db_photo_record)
+            existing_record.updated_at = datetime.now()
+            existing_record.save()
+            db_record.delete()
+            current_app.logger.info(f'Merged image reference {image_reference_id} into existing record {existing_record.id}')
+            return jsonify(existing_record.reload().json()), 200
         if scientific_name_changed:
             worms_fetcher = WormsPhylogenyFetcher(first.scientific_name)
             worms_fetcher.fetch(current_app.logger)
-            phylogeny_updates = {
-                f'set__{field}': worms_fetcher.phylogeny.get(field)
-                for field in ['phylum', 'class_name', 'order', 'family', 'genus', 'species']
-            }
-            db_record.update(**phylogeny_updates)
+            if worms_fetcher.phylogeny:
+                phylogeny_updates = {
+                    f'set__{field}': worms_fetcher.phylogeny.get(field)
+                    for field in ['phylum', 'class_name', 'order', 'family', 'genus', 'species']
+                }
+                db_record.update(**phylogeny_updates)
+            else:
+                current_app.logger.error(
+                    f'No WoRMS phylogeny found for {first.scientific_name}, '
+                    'leaving existing phylogeny data unchanged'
+                )
         db_record.reload()
         for db_photo_record, tator_photo_record in zip(db_record.photo_records, tator_records):
-            db_photo_record.localization_media_id = tator_photo_record.localization_media_id
-            db_photo_record.localization_frame = tator_photo_record.localization_frame
-            db_photo_record.lat = tator_photo_record.lat
-            db_photo_record.long = tator_photo_record.long
-            db_photo_record.depth_m = tator_photo_record.depth_m
-            db_photo_record.temp_c = tator_photo_record.temp_c
-            db_photo_record.salinity_m_l = tator_photo_record.salinity_m_l
-            db_photo_record.attracted = True if tator_photo_record.attracted == 'Attracted' else False
+            _apply_tator_fields_to_photo_record(db_photo_record, tator_photo_record)
         db_record.save()
     except DoesNotExist:
         return jsonify({'error': f'No record found with id {image_reference_id}'}), 404
