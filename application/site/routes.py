@@ -1,6 +1,7 @@
 import base64
 import os
 import threading
+from datetime import timezone
 
 import requests
 from flask import request, current_app, render_template, Response, redirect, jsonify, stream_with_context
@@ -288,10 +289,12 @@ def image_reference_page():
         'tentative_id',
     )
     latest_update = image_references.order_by('-updated_at').first()['updated_at'] if image_references else None
+    if latest_update and latest_update.tzinfo is None:
+        latest_update = latest_update.replace(tzinfo=timezone.utc)
     return render_template(
         'image-reference.html',
         image_references=[image_ref.json() for image_ref in image_references],
-        last_updated=latest_update.strftime('%B %d, %Y') if latest_update else 'N/A'
+        last_updated=latest_update.isoformat() if latest_update else None,
     )
 
 

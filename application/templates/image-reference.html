@@ -160,7 +160,7 @@
     <div id="imageGrid" class="row d-flex my-3 mx-5">
     </div>
     <div class="text-center text-muted my-2" style="font-size: 0.75rem;">
-        Last updated {{ last_updated }}
+        Last updated <span id="lastUpdated">N/A</span>
     </div>
     {% include 'footer.html' %}
 </div>
@@ -170,6 +170,7 @@
   const True = true;
   const False = false;
   const imageReferences = {{ image_references|safe or None }};
+  const lastUpdated = "{{ last_updated }}";
 </script>
 <script type="module" src="{{ url_for('static', filename='js/image-references.js') }}"></script>
 <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>

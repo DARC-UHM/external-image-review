@@ -22,6 +22,14 @@ let baitInteractionFilter = 'any';
 let sortKey = 'default';
 
 $(document).ready(() => {
+    const formattedDate = new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    }).format(new Date(lastUpdated));
+    $('#lastUpdated').text(formattedDate);
+
     $('body').tooltip({ selector: '[data-toggle=tooltip]', trigger : 'hover' });
     window.addEventListener('popstate', function () {
         $('[data-toggle="tooltip"]').tooltip('dispose');
