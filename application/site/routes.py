@@ -287,7 +287,12 @@ def image_reference_page():
         'scientific_name',
         'tentative_id',
     )
-    return render_template('image-reference.html', image_references=[image_ref.json() for image_ref in image_references])
+    latest_update = image_references.order_by('-updated_at').first()['updated_at'] if image_references else None
+    return render_template(
+        'image-reference.html',
+        image_references=[image_ref.json() for image_ref in image_references],
+        last_updated=latest_update.strftime('%B %d, %Y') if latest_update else 'N/A'
+    )
 
 
 # observations map
