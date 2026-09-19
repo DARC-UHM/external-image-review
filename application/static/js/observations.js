@@ -1,4 +1,4 @@
-import { depthColor } from './util.js';
+import { DEPTH_COLOR, depthColor } from './util.js';
 
 const map = L.map('map', { worldCopyJump: false });
 const bounds = L.latLngBounds();
@@ -15,12 +15,11 @@ legend.onAdd = function () {
     div.innerHTML = `
         <h4>Depth (m)</h4>
 
-        <div><span class="legend-color" style="background:#fc0d1b"></span> 0–199</div>
-        <div><span class="legend-color" style="background:#fffd38"></span> 200–399</div>
-        <div><span class="legend-color" style="background:#19af54"></span> 400–599</div>
-        <div><span class="legend-color" style="background:#0b24fb"></span> 600–799</div>
-        <div><span class="legend-color" style="background:#ca1ec9"></span> 800–999</div>
-        <div><span class="legend-color" style="background:#000000"></span> 1000+</div>
+        <div><span class="legend-color" style="background:${DEPTH_COLOR['0–299']}"></span> 0–299</div>
+        <div><span class="legend-color" style="background:${DEPTH_COLOR['300–699']}"></span> 300–699</div>
+        <div><span class="legend-color" style="background:${DEPTH_COLOR['700–1499']}"></span> 700–1499</div>
+        <div><span class="legend-color" style="background:${DEPTH_COLOR['1500–2399']}"></span> 1500–2399</div>
+        <div><span class="legend-color" style="background:${DEPTH_COLOR['2400+']}"></span> 2400+</div>
         
         <hr>
         <div class="legend-count">
