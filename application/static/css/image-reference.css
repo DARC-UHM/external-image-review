@@ -37,6 +37,23 @@
     background: rgba(255, 255, 255, 0.1);
 }
 
+.help-btn {
+    width: 2rem;
+    height: 2rem;
+    background: var(--darc-input-bg);
+    border: none;
+    border-radius: 100%;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    color: var(--darc-text);
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.help-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
 .hide-on-collapse {
     width: 280px;
 }
@@ -126,4 +143,66 @@
 
 #phylogenyTree ul {
     border-left: 1px solid var(--darc-border);
+}
+
+.help-guide-wrapper {
+    position: relative;
+    max-width: 320px;
+}
+
+.help-guide-badge {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #e0483e;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.7rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    z-index: 10;
+}
+
+.help-guide-badge-title {
+    top: 0;
+    left: 30%;
+}
+
+.help-guide-badge-map {
+    top: 16px;
+    left: -8px;
+}
+
+.help-guide-badge-video {
+    top: 50px;
+    left: -8px;
+}
+
+.help-guide-badge-arrows {
+    top: 50%;
+    left: -8px;
+    margin-top: -11px;
+}
+
+.help-guide-badge-location {
+    bottom: 10px;
+    left: -8px;
+}
+
+.help-guide-badge-depth {
+    bottom: 10px;
+    right: -8px;
+}
+
+.help-guide-legend-swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    margin-right: 4px;
+    vertical-align: middle;
 }

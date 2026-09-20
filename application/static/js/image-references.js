@@ -1,6 +1,5 @@
-import { depthColor } from './util.js';
+import { depthColor, DEPTH_COLOR } from './util.js';
 
-const BASE_URL = 'https://darc.soest.hawaii.edu/';
 const slideshows = {}; // { fullName: { currentIndex, maxIndex, depths } }
 const phyla = {};
 const canEdit = window.canEdit ?? false;
@@ -71,7 +70,44 @@ $(document).ready(() => {
         $childUl.toggleClass("d-none");
         $toggle.toggleClass("tree-toggle-open");
     });
+    renderHelpModal();
+    showHelpModalOnFirstVisit();
 });
+
+function renderHelpModal() {
+    if (!imageReferences.length) {
+        return;
+    }
+    $('#helpSampleCard').html(imageRefCard(getGuideSampleImageRef(), false));
+    $('#helpDepthLegend').html(depthLegend());
+}
+
+const HELP_GUIDE_SEEN_KEY = 'imageRefHelpGuideSeen';
+
+function showHelpModalOnFirstVisit() {
+    try {
+        if (localStorage.getItem(HELP_GUIDE_SEEN_KEY)) {
+            return;
+        }
+        localStorage.setItem(HELP_GUIDE_SEEN_KEY, 'true');
+    } catch (e) {
+        return;
+    }
+    $('#imageRefHelpModal').modal('show');
+}
+
+function getGuideSampleImageRef() {
+    return imageReferences.find((imageRef) => imageRef.photo_records.length > 1) ?? imageReferences[0];
+}
+
+function depthLegend() {
+    return Object.entries(DEPTH_COLOR).map(([range, color]) => `
+        <span class="d-inline-flex align-items-center me-3">
+            <span class="help-guide-legend-swatch" style="background: ${color};"></span>
+            ${range}m
+        </span>
+    `).join('');
+}
 
 function toggleSidebar() {
     $('#filterSidebar').toggleClass('collapsed');
@@ -114,7 +150,7 @@ function updateImageGrid() {
     }
 
     filterdAndSortedImageRefs.forEach((imageRef) => {
-        addItemToGrid(imageRef);
+        $('#imageGrid').append(imageRefCard(imageRef));
     });
 }
 
@@ -254,12 +290,12 @@ const filterAndSort = (list, key) => {
     return filtered.concat(list.filter((anno) => !anno[key]));
 }
 
-function addItemToGrid(imageRef) {
+function imageRefCard(imageRef, formatForGrid = true) {
     const fullName = formattedName(imageRef);
     const photoKey = fullName.replaceAll(' ', '-');
     slideshows[photoKey] = { currentIndex: 0, maxIndex: imageRef.photo_records.length - 1, depths: [] };
-    $('#imageGrid').append(`
-        <div class="col-lg-3 col-md-4 col-sm-6 col-12 p-2">
+    return `
+        <div class="${formatForGrid ? 'col-lg-3 col-md-4 col-sm-6 col-12' : ''} p-2">
             <div class="image-ref-card rounded-3 small">
                 <div class="image-ref-card-header rounded-top m-0 position-relative">
                     ${cardTitle(imageRef, fullName)}
@@ -288,7 +324,7 @@ function addItemToGrid(imageRef) {
                 <div style="height: 1.5rem;"></div>
             </div>
         </div>
-    `);
+    `;
 }
 
 const cardTitle = (imageRef, fullName) => {
@@ -342,7 +378,7 @@ const observationsLink = (scientificName) => {
     return `
         <div class="position-absolute top-0 start-0 btn">
             <a
-                href="${BASE_URL}observations?name=${scientificName}"
+                href="/observations?name=${scientificName}"
                 target="_blank"
                 class="header-link"
                 data-toggle="tooltip"
@@ -354,7 +390,7 @@ const observationsLink = (scientificName) => {
 }
 
 function getPhotoSlideshow(imageRef, photoRecord, fullName, photoKey, index) {
-    const imageUrl = `${BASE_URL}image-reference/image`;
+    const imageUrl = '/image-reference/image';
     return `
         <div id="${photoKey}-${index}" style="display: ${index > 0 ? 'none' : 'block'}; width: 100%">
             <div class="position-relative">
