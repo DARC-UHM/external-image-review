@@ -292,7 +292,7 @@ const filterAndSort = (list, key) => {
 
 function imageRefCard(imageRef, formatForGrid = true) {
     const fullName = formattedName(imageRef);
-    const photoKey = fullName.replaceAll(' ', '-');
+    const photoKey = (formatForGrid ? '' : 'help-guide-') + fullName.replaceAll(' ', '-');
     slideshows[photoKey] = { currentIndex: 0, maxIndex: imageRef.photo_records.length - 1, depths: [] };
     return `
         <div class="${formatForGrid ? 'col-lg-3 col-md-4 col-sm-6 col-12' : ''} p-2">
