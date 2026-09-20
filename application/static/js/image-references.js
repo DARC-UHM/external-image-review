@@ -446,15 +446,7 @@ const depthIndicator = (depthM) => {
             data-bs-placement="right"
             data-bs-html="true"
             title="${depthM ? `Depth: ${depthM}m` : 'Depth not available for this image'}"
-        >
-            ${depthM >= 1000
-                ? `
-                    <div
-                        style="width: 1.5rem; height: 0.4rem; background: #a6a6a6; margin-top: ${depthM > 5000 ? '1.1rem' : depthM > 3000 ? '0.55rem' : '0' }; border-radius: 0 0 ${depthM > 5000 ? '0.25rem' : '0'} 0;"
-                    ></div>
-                ` : ''
-            }
-        </div>`;
+        ></div>`;
 }
 
 const locationIndicator = (locationLongName, locationShortName) => {
