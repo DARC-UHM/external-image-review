@@ -1,5 +1,6 @@
 import { depthColor, DEPTH_COLOR } from './util.js';
 
+const BASE_URL = 'https://darc.soest.hawaii.edu/';
 const slideshows = {}; // { fullName: { currentIndex, maxIndex, depths } }
 const phyla = {};
 const canEdit = window.canEdit ?? false;
@@ -378,7 +379,7 @@ const observationsLink = (scientificName) => {
     return `
         <div class="position-absolute top-0 start-0 btn">
             <a
-                href="/observations?name=${scientificName}"
+                href="${BASE_URL}observations?name=${scientificName}"
                 target="_blank"
                 class="header-link"
                 data-toggle="tooltip"
@@ -390,7 +391,7 @@ const observationsLink = (scientificName) => {
 }
 
 function getPhotoSlideshow(imageRef, photoRecord, fullName, photoKey, index) {
-    const imageUrl = '/image-reference/image';
+    const imageUrl = `${BASE_URL}image-reference/image`;
     return `
         <div id="${photoKey}-${index}" style="display: ${index > 0 ? 'none' : 'block'}; width: 100%">
             <div class="position-relative">
