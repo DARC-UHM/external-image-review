@@ -42,7 +42,8 @@ class ImageRecord(EmbeddedDocument):
             'thumbnail_name': self.thumbnail_name,
             'location_short_name': self.location_short_name,
             'location_long_name': self.KNOWN_LOCATIONS.get(self.location_short_name, self.location_short_name),
-            'video_url': self.video_url.replace('hurlstor.soest.hawaii.edu:5000', 'darc.soest.hawaii.edu'),
+            # 'video_url': self.video_url.replace('hurlstor.soest.hawaii.edu:5000', 'darc.soest.hawaii.edu'),
+            'video_url': self.video_url,
         }
         for field in [
             'lat',

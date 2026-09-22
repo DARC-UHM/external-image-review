@@ -1,6 +1,7 @@
 import { depthColor, DEPTH_COLOR } from './util.js';
 
-const BASE_URL = 'https://darc.soest.hawaii.edu/';
+// const BASE_URL = 'https://darc.soest.hawaii.edu/';
+const BASE_URL = 'https://hurlstor.soest.hawaii.edu:5000/';
 const slideshows = {}; // { fullName: { currentIndex, maxIndex, depths } }
 const phyla = {};
 const canEdit = window.canEdit ?? false;
