@@ -59,28 +59,29 @@ class Comment(Document):
     video_url = StringField(max_length=200)
 
     def json(self):
+        comment = {
+            'uuid': self.uuid,
+            'reviewer_comments': [reviewer_comment.json() for reviewer_comment in self.reviewer_comments],
+        }
         attributes = [
-            'uuid',
             'all_localizations',
             'phylum',
             'section_id',
             'sequence',
             'timestamp',
-            'image_url',
             'annotator',
             'unread',
-            'video_url',
         ]
-        # create a json object with only the fields that are not None
-        comment = {
-            attr: getattr(self, attr)
-            for attr in attributes if getattr(self, attr) is not None
-        }
-        comment['reviewer_comments'] = [
-            reviewer_comment.json() for reviewer_comment in self.reviewer_comments
-        ]
+        # only populate the fields that are not None
+        for attr in attributes:
+            if getattr(self, attr) is not None:
+                comment[attr] = getattr(self, attr)
         if self.taxonomy is not None:
             comment['taxonomy'] = self.taxonomy.json()
+        if self.video_url is not None:
+            comment['video_url'] = self.video_url.replace('https://hurlvideo.soest.hawaii.edu', 'https://hurlstor.soest.hawaii.edu/videoarchive')
+        if self.image_url is not None:
+            comment['image_url'] = self.image_url.replace('https://hurlimage.soest.hawaii.edu', 'https://hurlstor.soest.hawaii.edu/imagearchive')
         return comment
 
     meta = {
