@@ -33,13 +33,17 @@ def reset_test_reviewer_comments():
 
 
 # returns number of unread comments, number of total comments, and a list of reviewers with comments in the database
+# optionally scoped to a single reviewer via the 'reviewer' query param
 @app.get('/stats')
 @require_api_key
 def stats():
     active_reviewers = Comment.objects().distinct(field='reviewer_comments.reviewer')
-    unread_comments = Comment.objects(unread=True).count()
-    read_comments = Comment.objects(unread=False, reviewer_comments__comment__ne='').count()
-    total_comments = Comment.objects().count()
+    query = Comment.objects()
+    if reviewer := request.args.get('reviewer'):
+        query = query.filter(reviewer_comments__reviewer=reviewer)
+    unread_comments = query.filter(unread=True).count()
+    read_comments = query.filter(unread=False, reviewer_comments__comment__ne='').count()
+    total_comments = query.count()
     return jsonify({
         'unread_comments': unread_comments,
         'read_comments': read_comments,
