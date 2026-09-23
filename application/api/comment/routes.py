@@ -2,7 +2,6 @@ import datetime
 import json
 
 from flask import request, jsonify, current_app
-from flask_cors import cross_origin
 from mongoengine import NotUniqueError, DoesNotExist
 
 from application.require_api_key import require_api_key
@@ -12,7 +11,6 @@ from . import comment_bp
 
 # get a single comment item
 @comment_bp.get('/<uuid>')
-@cross_origin()
 def get_comment(uuid):
     db_record = Comment.objects(uuid=uuid)
     if not db_record:

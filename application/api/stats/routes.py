@@ -17,7 +17,7 @@ def sequence_stats(sequence_num):
     if not summary.matched_sequences:
         return jsonify({'error': 'No sequences in VARS match given sequence number'}), 404
     summary.get_summary()
-    comments = Comment.objects(sequence=re.compile(f'.*{sequence_num}.*'))
+    comments = Comment.objects(sequence=re.compile(f'.*{re.escape(sequence_num)}.*'))
     reviewers_responded = set()
     for comment in comments:
         comment = comment.json()
