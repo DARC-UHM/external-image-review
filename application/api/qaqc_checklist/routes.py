@@ -1,5 +1,5 @@
 from flask import jsonify, request, current_app
-from mongoengine import DoesNotExist
+from mongoengine import DoesNotExist, ValidationError
 
 from application.require_api_key import require_api_key
 from application.schema.tator_dropcam_qaqc_checklist import TatorDropcamQaqcChecklist
@@ -8,98 +8,53 @@ from application.schema.vars_qaqc_checklist import VarsQaqcChecklist
 
 from . import qaqc_checklist_bp
 
+CHECKLISTS = {
+    'vars': VarsQaqcChecklist,
+    'tator-dropcam': TatorDropcamQaqcChecklist,
+    'tator-sub': TatorSubQaqcChecklist,
+}
 
-# get vars qaqc checklist (based on sequence name)
-@qaqc_checklist_bp.get('/vars/<sequences>')
+
+def _unknown_type_response(checklist_type):
+    return jsonify({'error': f'Unknown checklist type: {checklist_type}'}), 404
+
+
+# get a qaqc checklist, creating it if it doesn't exist
+@qaqc_checklist_bp.get('/<checklist_type>/<key>')
 @require_api_key
-def vars_qaqc_checklist(sequences):
-    if not sequences:
-        return jsonify({'error': 'No sequence name provided'}), 400
+def get_qaqc_checklist(checklist_type, key):
+    if checklist_type not in CHECKLISTS:
+        return _unknown_type_response(checklist_type)
+    model = CHECKLISTS[checklist_type]
     try:
-        checklist = VarsQaqcChecklist.objects.get(sequence_names=sequences)
+        checklist = model.objects.get(**{model.KEY_FIELD: key})
     except DoesNotExist:
-        # create a new checklist
-        checklist = VarsQaqcChecklist(sequence_names=sequences).save()
-        current_app.logger.info(f'Created new VARS QA/QC checklist: {sequences}')
+        checklist = model(**{model.KEY_FIELD: key}).save()
+        current_app.logger.info(f'Created new {model.LABEL} QA/QC checklist: {key}')
     return jsonify(checklist.json()), 200
 
 
-# update vars qaqc checklist
-@qaqc_checklist_bp.patch('/vars/<sequences>')
+# update a single field on a qaqc checklist
+@qaqc_checklist_bp.patch('/<checklist_type>/<key>')
 @require_api_key
-def patch_vars_qaqc_checklist(sequences):
-    if not sequences:
-        return jsonify({'error': 'No sequence name provided'}), 400
-    updated_checkbox = request.json
+def patch_qaqc_checklist(checklist_type, key):
+    if checklist_type not in CHECKLISTS:
+        return _unknown_type_response(checklist_type)
+    model = CHECKLISTS[checklist_type]
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict) or len(body) != 1:
+        return jsonify({'error': 'Body must be a single key/value pair'}), 400
+    field, value = next(iter(body.items()))
+    if field not in set(model._fields) - {'id', model.KEY_FIELD}:
+        return jsonify({'error': f'Not a {model.LABEL} checklist field: {field}'}), 400
     try:
-        checklist = VarsQaqcChecklist.objects.get(sequence_names=sequences)
+        checklist = model.objects.get(**{model.KEY_FIELD: key})
     except DoesNotExist:
-        return jsonify({'error': 'No checklist found for given sequence name'}), 404
-    checklist[next(iter(updated_checkbox.keys()))] = next(iter(updated_checkbox.values()))
-    checklist.save()
-    current_app.logger.info(f'Updated VARS QA/QC checklist: {sequences}')
-    return jsonify(checklist.json()), 200
-
-
-# get tator dropcam qaqc checklist (based on deployment name)
-@qaqc_checklist_bp.get('/tator-dropcam/<deployments>')
-@require_api_key
-def tator_qaqc_checklist(deployments):
-    if not deployments:
-        return jsonify({'error': 'No deployment name provided'}), 400
+        return jsonify({'error': f'No {model.LABEL} checklist found for given key'}), 404
+    checklist[field] = value
     try:
-        checklist = TatorDropcamQaqcChecklist.objects.get(deployment_names=deployments)
-    except DoesNotExist:
-        # create a new checklist
-        checklist = TatorDropcamQaqcChecklist(deployment_names=deployments).save()
-        current_app.logger.info(f'Created new Tator dropcam QA/QC checklist: {deployments}')
-    return jsonify(checklist.json()), 200
-
-
-# update tator qaqc checklist
-@qaqc_checklist_bp.patch('/tator-dropcam/<deployments>')
-@require_api_key
-def patch_tator_qaqc_checklist(deployments):
-    if not deployments:
-        return jsonify({'error': 'No deployment name provided'}), 400
-    updated_checkbox = request.json
-    try:
-        checklist = TatorDropcamQaqcChecklist.objects.get(deployment_names=deployments)
-    except DoesNotExist:
-        return jsonify({'error': 'No checklist found for given deployment name'}), 404
-    checklist[next(iter(updated_checkbox.keys()))] = next(iter(updated_checkbox.values()))
-    checklist.save()
-    current_app.logger.info(f'Updated Tator dropcam QA/QC checklist: {deployments}')
-    return jsonify(checklist.json()), 200
-
-
-# get tator sub qaqc checklist (based on transect media id)
-@qaqc_checklist_bp.get('/tator-sub/<transect_media_ids>')
-@require_api_key
-def tator_sub_qaqc_checklist(transect_media_ids):
-    if not transect_media_ids:
-        return jsonify({'error': 'No transect media IDs provided'}), 400
-    try:
-        checklist = TatorSubQaqcChecklist.objects.get(transect_media_ids=transect_media_ids)
-    except DoesNotExist:
-        # create a new checklist
-        checklist = TatorSubQaqcChecklist(transect_media_ids=transect_media_ids).save()
-        current_app.logger.info(f'Created new Tator sub QA/QC checklist: {transect_media_ids}')
-    return jsonify(checklist.json()), 200
-
-
-# update tator sub qaqc checklist
-@qaqc_checklist_bp.patch('/tator-sub/<transect_media_ids>')
-@require_api_key
-def patch_tator_sub_qaqc_checklist(transect_media_ids):
-    if not transect_media_ids:
-        return jsonify({'error': 'No transect media IDs provided'}), 400
-    updated_checkbox = request.json
-    try:
-        checklist = TatorSubQaqcChecklist.objects.get(transect_media_ids=transect_media_ids)
-    except DoesNotExist:
-        return jsonify({'error': 'No checklist found for given transect media IDs'}), 404
-    checklist[next(iter(updated_checkbox.keys()))] = next(iter(updated_checkbox.values()))
-    checklist.save()
-    current_app.logger.info(f'Updated Tator sub QA/QC checklist: {transect_media_ids}')
+        checklist.save()
+    except ValidationError as e:
+        return jsonify({'error': f'Invalid value for {field}: {e.message}'}), 400
+    current_app.logger.info(f'Updated {model.LABEL} QA/QC checklist: {key}')
     return jsonify(checklist.json()), 200

@@ -3,6 +3,9 @@ from mongoengine import Document, IntField, StringField
 
 class TatorDropcamQaqcChecklist(Document):
     """ Schema for Tator dropcam QAQC checklist collection """
+    KEY_FIELD = 'deployment_names'
+    LABEL = 'Tator dropcam'
+
     deployment_names = StringField(required=True, unique=True, max_length=750)
     names_accepted = IntField(required=True, min_value=0, max_value=2, default=0)
     missing_qualifier = IntField(required=True, min_value=0, max_value=2, default=0)
