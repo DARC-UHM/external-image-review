@@ -71,6 +71,8 @@ class Comment(Document):
             'timestamp',
             'annotator',
             'unread',
+            'image_url',
+            'video_url',
         ]
         # only populate the fields that are not None
         for attr in attributes:
@@ -78,10 +80,6 @@ class Comment(Document):
                 comment[attr] = getattr(self, attr)
         if self.taxonomy is not None:
             comment['taxonomy'] = self.taxonomy.json()
-        if self.video_url is not None:
-            comment['video_url'] = self.video_url.replace('https://hurlvideo.soest.hawaii.edu', 'https://hurlstor.soest.hawaii.edu/videoarchive')
-        if self.image_url is not None:
-            comment['image_url'] = self.image_url.replace('https://hurlimage.soest.hawaii.edu', 'https://hurlstor.soest.hawaii.edu/imagearchive')
         return comment
 
     meta = {
